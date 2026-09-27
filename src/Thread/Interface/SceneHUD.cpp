@@ -66,6 +66,7 @@ namespace Thread::Interface
             _threadScript = nullptr;
             return;
         }
+        ++_sceneGeneration;
 
         float scaleMultiplier = instance->GetThreadProperty<float>("VarUI_MenuScaleMult");
         if (scaleMultiplier <= 0.0f) {
@@ -85,6 +86,14 @@ namespace Thread::Interface
         _focused = false;
         _elements = std::make_unique<Elements>();
         _elements->enjoymentBarsOverlay.Init(*instance);
+        if (!_inputRegistered) {
+            if (auto* input = RE::BSInputDeviceManager::GetSingleton()) {
+                input->AddEventSink(this);
+                _inputRegistered = true;
+            } else {
+                logger::warn("SceneHUD::Init >> input device manager unavailable");
+            }
+        }
         _window.SetBlocksInput(false);
         _window.Open();
         logger::info("SceneHUD::Init >> scene UI active");
@@ -95,6 +104,7 @@ namespace Thread::Interface
         if (!IsActive() && !_elements)
             return;
 
+        ++_sceneGeneration;
         _window.SetBlocksInput(false);
         _window.Close();
         _elements.reset();
@@ -107,6 +117,40 @@ namespace Thread::Interface
     void __stdcall SceneHUD::RenderCallback()
     {
         GetSingleton().Render();
+    }
+
+    RE::BSEventNotifyControl SceneHUD::ProcessEvent(RE::InputEvent* const* a_event,
+        RE::BSTEventSource<RE::InputEvent*>*)
+    {
+        if (!a_event || !ShouldRender() || (_focused && _activePanel != PanelId::kNone))
+            return RE::BSEventNotifyControl::kContinue;
+
+        constexpr std::uint32_t kLeftArrow = 203;
+        constexpr std::uint32_t kRightArrow = 205;
+        for (auto* event = *a_event; event; event = event->next) {
+            if (event->GetDevice() != RE::INPUT_DEVICE::kKeyboard)
+                continue;
+            auto* button = event->AsButtonEvent();
+            if (!button || !button->IsDown())
+                continue;
+
+            const auto key = button->GetIDCode();
+            if (key != kLeftArrow && key != kRightArrow)
+                continue;
+
+            const bool increase = key == kRightArrow;
+            auto* linkedThread = _linkedThread;
+            const auto sceneGeneration = _sceneGeneration;
+            SKSE::GetTaskInterface()->AddTask([increase, linkedThread, sceneGeneration]() {
+                auto& hud = SceneHUD::GetSingleton();
+                if (hud._sceneGeneration == sceneGeneration && hud._linkedThread == linkedThread &&
+                    hud._elements && hud.ShouldRender() &&
+                    (!hud._focused || hud._activePanel == PanelId::kNone)) {
+                    hud._elements->animSpeedOverlay.StepSpeed(hud, increase);
+                }
+            });
+        }
+        return RE::BSEventNotifyControl::kContinue;
     }
 
     void SceneHUD::Render()

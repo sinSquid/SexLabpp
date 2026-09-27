@@ -101,6 +101,7 @@ namespace Thread
         void SetCenterRefSelected(size_t a_index);
 
         void SetAnimationPlaybackSpeed(float playbackSpeed);
+        [[nodiscard]] float GetAnimationPlaybackSpeed() const { return animationPlaybackSpeed; }
         bool RestartFixedLengthTimer();
         bool AdjustFixedLengthTimer(float a_delta);
         void SetFixedLengthTimerPaused(bool a_paused);
@@ -207,7 +208,7 @@ namespace Thread
         bool playerDialoguePending{ false };
         bool playerSheatheActionSubmitted{ false };
         bool playerSheathePending{ false };
-        float animationPlaybackSpeed{ 1.0f };
+        float animationPlaybackSpeed{ 1.5f };
         FixedLengthTimer fixedLengthTimer{};
 
         // used during center selection through menu

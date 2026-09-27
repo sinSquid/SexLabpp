@@ -2309,7 +2309,7 @@ Function Initialize()
 	_ThreadTags = Utility.CreateStringArray(0)
 	_ContextTags = Utility.CreateStringArray(0)
 	_Hooks = Utility.CreateStringArray(0)
-	_AnimationSpeedBase = 1.0
+	_AnimationSpeedBase = 1.5
 	_TimerPaused = false
 	_NativeFixedLengthTimer = false
 	_QuickResetScenes = false
@@ -2664,7 +2664,7 @@ float Function CalcInstThreadAnimSpeed()
 	Else
 		animSpeed = _AnimationSpeedBase
 	EndIf
-	return animSpeed
+	return PapyrusUtil.ClampFloat(animSpeed, 0.5, 4.0)
 EndFunction
 
 Function UpdateAnimationSpeed()

@@ -19,7 +19,7 @@ namespace Thread::Interface
         kElementControl,
     };
 
-    class SceneHUD final
+    class SceneHUD final : public RE::BSTEventSink<RE::InputEvent*>
     {
       public:
         // This integration enters UI lifecycle, update, and render callbacks on the game thread.
@@ -60,6 +60,8 @@ namespace Thread::Interface
         ~SceneHUD();
 
         static void __stdcall RenderCallback();
+        RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* a_event,
+            RE::BSTEventSource<RE::InputEvent*>* a_eventSource) override;
         void Render();
 
         RE::TESQuest* _linkedThread{};
@@ -70,6 +72,8 @@ namespace Thread::Interface
         std::unique_ptr<Elements> _elements;
         PanelId _activePanel{ PanelId::kNone };
         bool _registered{ false };
+        bool _inputRegistered{ false };
+        std::uint64_t _sceneGeneration{ 0 };
         bool _focused{ false };
         bool _renderEnabled{ true };
     };
