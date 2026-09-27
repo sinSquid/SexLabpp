@@ -13,7 +13,7 @@ namespace Serialization
         ret.resize(size);
         const char* it = reinterpret_cast<char*>(&a_type);
         for (size_t i = 0, j = size - 1; i < size; i++, j--)
-            ret[j] = std::isprint(it[i]) ? it[i] : '_';
+            ret[j] = std::isprint(static_cast<unsigned char>(it[i])) ? it[i] : '_';
 
         return ret;
     }

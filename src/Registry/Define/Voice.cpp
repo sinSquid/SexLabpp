@@ -22,10 +22,10 @@ namespace Registry
           const auto& node = a_node["Actor"]["Race"];
           if (node.IsScalar())
               return { RaceKey{ node.as<std::string>() } };
-          return std::ranges::fold_left(node, decltype(races){}, [](auto acc, auto&& it) {
-              acc.emplace_back(it.template as<std::string>());
-              return acc;
-          });
+          decltype(races) result;
+          for (const auto& race : node)
+              result.emplace_back(race.as<std::string>());
+          return result;
       }()),
       pitch([&]() {
           const auto& node = a_node["Actor"]["Pitch"];

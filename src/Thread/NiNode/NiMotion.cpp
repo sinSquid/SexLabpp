@@ -3,7 +3,7 @@
 namespace Thread::NiNode
 {
     NiMotion::NiMotion(size_t capacity, size_t minMoments) :
-      _capacity(capacity), _minMoments(minMoments)
+      _capacity(std::max(capacity, size_t{ 1 })), _minMoments(minMoments)
     {
         for (auto& moment : _moments) {
             moment.resize(_capacity);
@@ -15,6 +15,9 @@ namespace Thread::NiNode
     void NiMotion::Push(const Node::NodeData& nodes, float timeStamp)
     {
         const size_t idx = _writeIndex;
+        for (auto& moment : _moments)
+            moment[idx] = RE::NiPoint3::Zero();
+        _headBounds[idx] = ObjectBound{};
         _timestamps[idx] = timeStamp;
 
         if (const auto niHead = nodes.head) {
@@ -75,14 +78,17 @@ namespace Thread::NiNode
         if (_size < 2) {
             return NiMath::Segment(_size == 1 ? GetNthMoment(c, 0) : RE::NiPoint3::Zero());
         }
-        return NiMath::BestFit(_moments[c]);
+        if (_size == 2)
+            return NiMath::Segment(GetNthMoment(c, 0), GetNthMoment(c, 1));
+        // PCA is order independent; the valid samples occupy the first _size slots.
+        return NiMath::BestFit(std::span<const RE::NiPoint3>{ _moments[c].data(), _size });
     }
 
     MotionDescriptor NiMotion::DescribeMotion(Anchor c) const
     {
         MotionDescriptor out{ GetMotion(c) };
 
-        if (!HasSufficientData()) {
+        if (!HasSufficientData() || _size < 2) {
             return out;
         }
 
@@ -105,7 +111,7 @@ namespace Thread::NiNode
 
         // Cached values for pairwise/triple calculations
         const RE::NiPoint3 *p0 = nullptr, *p1 = nullptr;
-        float t0, t1;
+        float t0 = 0.0f, t1 = 0.0f;
 
         ForEachMoment(c, [&](const RE::NiPoint3& p, float t) {
             // Positional variance (scatter around trajectory)
@@ -158,7 +164,7 @@ namespace Thread::NiNode
 
         // Finalize calculations
         out.totalDistance = totalDist;
-        out.avgSpeed = totalDist / out.duration;
+        out.avgSpeed = out.duration > 0.0f ? totalDist / out.duration : 0.0f;
         out.peakSpeed = peakSpeed;
         out.positionalVariance = posVar / static_cast<float>(_size);
         out.oscillation = static_cast<float>(signChanges) / static_cast<float>(_size - 1);

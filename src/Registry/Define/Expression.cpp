@@ -195,6 +195,8 @@ namespace Registry
 
     std::array<float, Expression::ValueType::Total> Expression::GetData(RE::SEXES::SEX a_sex, float a_strength) const
     {
+        // Non-finite strength can make the legacy index invalid or keep the scaling loops running forever.
+        const auto strength = std::isfinite(a_strength) ? a_strength : 0.0f;
         if (version < 1) {
             if (data[a_sex].empty()) {
                 logger::error("Invalid Expression Profile, {}: No data found", id);
@@ -203,8 +205,7 @@ namespace Registry
                 return ret;
             }
             const auto max = static_cast<float>(data[a_sex].size()) - 1;
-            const auto idx = static_cast<size_t>(std::floor((max * a_strength) / 100));
-            assert(idx < data[a_sex].size() && idx >= 0);
+            const auto idx = static_cast<size_t>(std::floor((max * std::clamp(strength, 0.0f, 100.0f)) / 100));
             return data[a_sex][idx];
         } else if (data[a_sex].size() != 2) {
             logger::error("Invalid Expression Profile, {}: {}/2 Profiles present", id, data[a_sex].size());
@@ -215,28 +216,37 @@ namespace Registry
         float multiplier;
         switch (scaling) {
         case Scaling::Linear:
-            multiplier = a_strength / 100.0f;
+            multiplier = strength / 100.0f;
             break;
         case Scaling::Square:
             multiplier = 0.0f;
-            for (float i = 0.0f; i <= a_strength / 100.0f; i += 0.07f) {
+            for (float i = 0.0f; i <= strength / 100.0f; i += 0.07f) {
                 const auto f = pow(i - 0.55f, 2.0f) - 0.04f;
                 multiplier += std::max<float>(0.0f, f);
+                if (multiplier >= 1.25f)
+                    break;
             }
             break;
         case Scaling::Cubic:
             multiplier = 0.0f;
-            for (float i = 0.0f; i <= a_strength / 100.0f; i += 0.05f) {
+            for (float i = 0.0f; i <= strength / 100.0f; i += 0.05f) {
                 const auto f = 1.1f * pow(i - 0.6f, 3.0f) + 0.08f;
                 multiplier += std::max<float>(0.0f, f);
+                if (multiplier >= 1.25f)
+                    break;
             }
             break;
         case Scaling::Exponential:
             multiplier = 0.0f;
-            for (float i = 0.0f; i <= a_strength / 100.0f; i += 0.05f) {
+            for (float i = 0.0f; i <= strength / 100.0f; i += 0.05f) {
                 const auto f = static_cast<float>(pow(2048, i - 1.1f));
                 multiplier += std::max<float>(0.0f, f);
+                if (multiplier >= 1.25f)
+                    break;
             }
+            break;
+        default:
+            multiplier = strength / 100.0f;
             break;
         }
         multiplier = std::min(1.25f, multiplier);
@@ -254,7 +264,6 @@ namespace Registry
     {
         if (!has_edits && !force)
             return;
-        has_edits = false;
         YAML::Node file;
         file["id"] = id.data();
         file["version"] = static_cast<int32_t>(version);
@@ -274,16 +283,25 @@ namespace Registry
         file["enabled"] = enabled;
         std::ofstream fout(std::format("{}\\{}.yaml", a_fileLocation, id));
         fout << file;
+        fout.close();
+        if (!fout)
+            throw std::runtime_error(std::format("Failed to save expression {}", id));
+        has_edits = false;
     }
 
-    void Expression::UpdateValues(bool a_female, int a_level, std::vector<float> a_values)
+    void Expression::UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values)
     {
-        has_edits = true;
-        auto& dataEntry = data[a_female];
-        while (dataEntry.size() <= a_level) {
-            dataEntry.emplace_back();
+        // Preserve legacy profiles with many levels and ignore extra values as before.
+        if (a_level < 0 || (version >= 1 && a_level > 1) || a_values.size() < Total) {
+            logger::error("Invalid expression update for {}: level {}, {} values", id, a_level, a_values.size());
+            return;
         }
-        std::copy_n(a_values.begin(), dataEntry[a_level].size(), dataEntry[a_level].begin());
+        auto& dataEntry = data[a_female];
+        const auto level = static_cast<size_t>(a_level);
+        if (dataEntry.size() <= level)
+            dataEntry.resize(level + 1);
+        std::copy_n(a_values.begin(), Total, dataEntry[level].begin());
+        has_edits = true;
     }
 
     void Expression::UpdateTags(const TagData& a_newtags)

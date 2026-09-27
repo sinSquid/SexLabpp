@@ -131,9 +131,10 @@ namespace Thread
             logger::warn("Scene {} is not compatible with center reference {}.", a_scene->id, center.GetRef()->GetFormID());
             return false;
         }
-        const auto fragments = std::ranges::fold_left(positions, std::vector<Registry::ActorFragment>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(it.data), acc);
-        });
+        std::vector<Registry::ActorFragment> fragments;
+        fragments.reserve(positions.size());
+        for (const auto& position : positions)
+            fragments.push_back(position.data);
         const auto newAssignments = a_scene->FindAssignments(fragments);
         if (newAssignments.empty()) {
             logger::warn("Scene {} has no valid assignments.", a_scene->id);

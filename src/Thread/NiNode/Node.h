@@ -120,7 +120,7 @@ namespace Thread::NiNode::Node
             RE::NiMatrix3 rot;
 
           public:
-            bool operator==(const SchlongData& a_rhs) const { return this->nodes.size() == a_rhs.nodes.size() && this->nodes.front() == a_rhs.nodes.front(); }
+            bool operator==(const SchlongData& a_rhs) const { return nodes.size() == a_rhs.nodes.size() && (nodes.empty() || nodes.front() == a_rhs.nodes.front()); }
         };
 
       public:

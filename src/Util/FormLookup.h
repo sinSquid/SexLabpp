@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cctype>
+
 namespace Util
 {
     static inline RE::FormID FormFromString(const std::string_view& a_string, int base)
@@ -8,11 +10,13 @@ namespace Util
         const auto formIdStr = a_string.substr(0, split);
         RE::FormID formid;
         const auto offset = a_string.starts_with("0x") ? 2 : 0;
-        const auto [ptr, res] = std::from_chars(
+        auto [ptr, res] = std::from_chars(
             formIdStr.data() + offset,
             formIdStr.data() + formIdStr.size(),
             formid, base);
-        if (res != std::errc()) {
+        while (ptr != formIdStr.data() + formIdStr.size() && std::isspace(static_cast<unsigned char>(*ptr)))
+            ++ptr;
+        if (res != std::errc() || ptr != formIdStr.data() + formIdStr.size()) {
             // logger::error("Invalid form ID: {} for base: {}", formIdStr, base);
             return 0;
         } else if (split == std::string_view::npos) {

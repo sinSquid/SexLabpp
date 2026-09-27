@@ -31,7 +31,7 @@ namespace Thread::Interface
         inst->SetAnimationPlaybackSpeed(next);
         Script::DispatchMethodCall(
             Script::GetScriptObject(a_hud.GetLinkedThread(), "sslThreadModel"),
-            "UpdateBaseSpeed", a_hud.GetCallback(), next);
+            "UpdateBaseSpeedFromPlayback", a_hud.GetCallback(), float{ next });
     }
 
     void AnimSpeedOverlay::StepSpeed(SceneHUD& a_hud, bool a_increase)

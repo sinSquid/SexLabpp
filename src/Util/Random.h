@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iterator>
 #include <random>
 
 template <typename T>
@@ -14,7 +15,7 @@ struct Random
 {
     Random() = delete;
 
-    static inline std::mt19937 eng{ std::random_device{}() };
+    static inline thread_local std::mt19937 eng{ std::random_device{}() };
 
     template <class T>
     static inline T draw(T a_min, T a_max)
@@ -32,7 +33,7 @@ struct Random
             throw std::out_of_range("Cannot draw from an empty container.");
         }
         std::uniform_int_distribution<size_t> dist{ 0, a_container.size() - 1 };
-        return *(a_container.begin() + dist(eng));
+        return *std::next(a_container.begin(), dist(eng));
     }
 
     template <Container V>
@@ -45,7 +46,7 @@ struct Random
     {
         constexpr std::string_view v = "0123456789abcdef";
         constexpr std::string_view templateStr{ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" };
-        std::uniform_int_distribution<size_t> dist{ 0, v.size() };
+        std::uniform_int_distribution<size_t> dist{ 0, v.size() - 1 };
 
         std::string ret{ templateStr };
         for (int i = 0; i < ret.size(); i++) {

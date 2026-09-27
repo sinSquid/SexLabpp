@@ -1,5 +1,7 @@
 #pragma once
 
+#include <span>
+
 namespace Thread::NiNode::NiMath
 {
     struct Segment : public std::pair<RE::NiPoint3, RE::NiPoint3>
@@ -30,7 +32,7 @@ namespace Thread::NiNode::NiMath
 
     /// @brief Compute the best fit line for a set of points using PCA
     /// @param points The points to fit
-    Segment BestFit(const std::vector<RE::NiPoint3>& a_points);
+    Segment BestFit(std::span<const RE::NiPoint3> a_points);
 
     /// @brief Compute the Angle between v1 and v2, in radians
     /// @param v1 The first vector

@@ -42,7 +42,7 @@ namespace Thread
             const auto removed = std::erase_if(sceneArr, [&](const auto& scene) {
                 return !scene->IsCompatibleFurniture(centerTy);
             });
-            if (sceneArr.begin() == priorityScenes.begin()) {
+            if (&sceneArr == &priorityScenes) {
                 if (sceneArr.empty())
                     throw std::runtime_error("No compatible scenes found for thread.");
                 const auto centerName = center.GetRef()->GetDisplayFullName();
@@ -83,32 +83,35 @@ namespace Thread
     std::vector<Registry::ActorFragment> Instance::InitializeScenes(const SceneMapping& a_scenes, FurniturePreference a_furniturepref)
     {
         logger::info("Initializing scenes: [{},{},{}].", a_scenes[SceneType::Primary].size(), a_scenes[SceneType::LeadIn].size(), a_scenes[SceneType::Custom].size());
-        const auto fragments = std::ranges::fold_left(positions, std::vector<Registry::ActorFragment>{}, [&](auto&& acc, const auto& it) {
-            return (acc.push_back(it.data), acc);
-        });
+        std::vector<Registry::ActorFragment> fragments;
+        fragments.reserve(positions.size());
+        for (const auto& position : positions)
+            fragments.push_back(position.data);
         for (size_t i = 0; i < SceneType::Total; i++) {
-            scenes[i] = std::ranges::fold_left(a_scenes[i], std::vector<const Registry::Scene*>{}, [&](auto&& acc, const Registry::Scene* it) {
+            auto& compatibleScenes = scenes[i];
+            compatibleScenes.reserve(a_scenes[i].size());
+            for (const auto* it : a_scenes[i]) {
                 if (it->FindAssignments(fragments).empty()) {
                     logger::warn("Scene {}, {} has no assignments.", it->id, it->name);
-                    return acc;
                 } else if (it->RequiresFurniture() && a_furniturepref == FurniturePreference::Disallow) {
                     logger::warn("Scene {}, {} requires furniture, but furniture is disallowed.", it->id, it->name);
-                    return acc;
+                } else {
+                    compatibleScenes.push_back(it);
                 }
-                acc.push_back(it);
-                return acc;
-            });
+            }
             if (i == SceneType::Primary && scenes[i].empty()) {
                 logger::warn("No primary scenes found for thread.");
                 const auto lib = Registry::Library::GetSingleton();
-                auto [pos, subm] = std::ranges::fold_left(positions, std::pair{ std::vector<RE::Actor*>(), std::vector<RE::Actor*>() }, [&](auto&& acc, const auto& it) {
-                    const auto actor = it.data.GetActor();
-                    if (it.data.IsSubmissive()) {
-                        acc.second.push_back(actor);
-                    }
-                    acc.first.push_back(actor);
-                    return acc;
-                });
+                std::vector<RE::Actor*> pos;
+                std::vector<RE::Actor*> subm;
+                pos.reserve(positions.size());
+                subm.reserve(positions.size());
+                for (const auto& position : positions) {
+                    const auto actor = position.data.GetActor();
+                    if (position.data.IsSubmissive())
+                        subm.push_back(actor);
+                    pos.push_back(actor);
+                }
                 do {
                     scenes[i] = lib->LookupScenes(pos, {}, subm);
                     if (!scenes[i].empty())

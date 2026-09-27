@@ -83,7 +83,7 @@ namespace Thread::NiNode::NiMath
     }
 
 
-    Segment BestFit(const std::vector<RE::NiPoint3>& a_points)
+    Segment BestFit(std::span<const RE::NiPoint3> a_points)
     {
         switch (a_points.size()) {
         case 0:
@@ -161,6 +161,8 @@ namespace Thread::NiNode::NiMath
 
     RE::NiMatrix3 RotateTowards(const RE::NiPoint3& v, const RE::NiPoint3& i, float maxRadians)
     {
+        if (v.SqrLength() == 0.0f || i.SqrLength() == 0.0f)
+            return RE::NiMatrix3{};
         RE::NiPoint3 axis = v.Cross(i);
         float sin_theta = axis.Length();
         float cos_theta = v.Dot(i);
@@ -261,7 +263,8 @@ namespace Thread::NiNode::NiMath
 
     RE::NiPoint3 ProjectedComponent(RE::NiPoint3 U, RE::NiPoint3 V)
     {
-        return V * (U.Dot(V) / V.SqrLength());
+        const auto lengthSquared = V.SqrLength();
+        return lengthSquared != 0.0f ? V * (U.Dot(V) / lengthSquared) : RE::NiPoint3::Zero();
     }
 
     RE::NiPoint3 OrthogonalComponent(RE::NiPoint3 U, RE::NiPoint3 V)

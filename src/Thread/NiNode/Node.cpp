@@ -219,7 +219,7 @@ namespace Thread::NiNode::Node
                         continue;
                     argV.push_back(node->world.translate);
                 }
-                return NiMath::BestFit(argV);
+                return NiMath::BestFit(std::span<const RE::NiPoint3>{ argV.data(), argV.size() });
             }
         }
     }

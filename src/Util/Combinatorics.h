@@ -11,6 +11,8 @@ namespace Combinatorics
     template <typename I>
     void ForEachCombination(const std::vector<std::vector<I>>& a_iterative, std::function<CResult(const std::vector<typename std::vector<I>::const_iterator>&)> a_iterator)
     {
+        if (a_iterative.empty() || std::ranges::any_of(a_iterative, [](const auto& values) { return values.empty(); }))
+            return;
         std::vector<typename std::vector<I>::const_iterator> it;
         for (auto& subvec : a_iterative)
             it.push_back(subvec.begin());

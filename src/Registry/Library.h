@@ -78,11 +78,13 @@ namespace Registry
 
       public:
         _NODISCARD const Expression* GetExpressionById(const RE::BSFixedString& a_id) const;
+        bool ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const;
         _NODISCARD const Expression* GetExpression(const TagDetails& a_details) const;
         bool ForEachExpression(std::function<bool(const Expression&)> a_visitor) const;
         bool CreateExpression(const RE::BSFixedString& a_id);
+        bool MarkExpressionForSave(const RE::BSFixedString& a_id);
 
-        void UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values);
+        void UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values);
         void UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags);
         void SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling);
         void SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled);
@@ -116,12 +118,24 @@ namespace Registry
 
         void SaveScenes() const noexcept;
         void SaveExpressions() const noexcept;
-        void SaveVoices() const noexcept;
+        void SaveVoices() const;
 
       private:
+        struct SceneNameCompare
+        {
+            bool operator()(const RE::BSFixedString& a_lhs, const RE::BSFixedString& a_rhs) const
+            {
+                const auto* lhs = a_lhs.c_str();
+                const auto* rhs = a_rhs.c_str();
+                return _stricmp(lhs ? lhs : "", rhs ? rhs : "") < 0;
+            }
+        };
+
         mutable std::shared_mutex _mScenes{};
         std::vector<std::unique_ptr<AnimPackage>> packages;
         std::map<RE::BSFixedString, Scene*, FixedStringCompare> sceneMap;             // SceneId -> Scene
+        std::map<RE::BSFixedString, Scene*, SceneNameCompare> sceneNameMap;           // SceneName -> first loaded Scene
+        std::unordered_map<const Scene*, const AnimPackage*> scenePackageMap;         // Scene -> owning Package
         std::unordered_map<ActorFragment::FragmentHash, std::vector<Scene*>> scenes;  // Hashes -> Scenes
 
         mutable std::shared_mutex _mVoice{};

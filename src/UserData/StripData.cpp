@@ -45,7 +45,11 @@ namespace UserData
                 }
                 _root[entry.first][entry.second] = static_cast<int32_t>(strip);
             }
-            std::ofstream{ STRIP_PATH } << _root;
+            std::ofstream output{ STRIP_PATH };
+            output << _root;
+            output.close();
+            if (!output)
+                throw std::runtime_error("Failed to write strip settings");
         } catch (const std::exception& e) {
             logger::error("Unable to save StripConfig. Error: {}", e.what());
         }

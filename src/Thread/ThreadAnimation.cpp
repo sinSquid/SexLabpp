@@ -812,6 +812,7 @@ namespace Thread
         }
         animationPlaybackSpeed = playbackSpeed;
         std::vector<std::pair<RE::BSAnimationGraphManagerPtr, std::unique_ptr<RE::BSSpinLockGuard>>> lockedGraphs;
+        lockedGraphs.reserve(positions.size());
 
         for (auto& position : positions) {
             const auto* actor = position.data.GetActor();

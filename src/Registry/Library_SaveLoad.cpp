@@ -64,52 +64,92 @@ namespace Registry
     {
         if (!FolderExists(SCENE_PATH, true))
             return;
-#ifndef SKYRIMVR
-        std::vector<std::thread> threads;
-#endif
-        for (auto& file : fs::recursive_directory_iterator{ SCENE_PATH }) {
-            if (file.path().extension() != ".slr")
-                continue;
-#ifndef SKYRIMVR
-            threads.emplace_back([this, file]() {
-#endif
-                const auto filename = file.path().filename().string();
-                try {
-                    auto package = std::make_unique<AnimPackage>(file);
-                    for (auto&& scene : package->scenes) {
-                        auto positionFragments = std::ranges::fold_left(scene->positions, std::vector<std::vector<ActorFragment>>{}, [](auto acc, const auto& pos) {
-                            acc.push_back(pos.data.Split());
-                            return std::move(acc);
-                        });
-                        Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
-                            std::vector<ActorFragment> argFragment{};
-                            argFragment.reserve(it.size());
-                            for (auto&& itF : it) {
-                                argFragment.emplace_back(*itF);
-                            }
-                            const auto key = ActorFragment::MakeFragmentHash(argFragment);
-                            const std::unique_lock lock{ _mScenes };
-                            auto& vec = scenes[key];
-                            if (!std::ranges::contains(vec, scene.get())) {
-                                vec.push_back(scene.get());
-                            }
-                            return Combinatorics::CResult::Next;
-                        });
-                        sceneMap[scene->id] = scene.get();
+        std::vector<fs::directory_entry> files;
+        try {
+            for (auto& file : fs::recursive_directory_iterator{ SCENE_PATH }) {
+                if (file.path().extension() == ".slr")
+                    files.push_back(file);
+            }
+        } catch (const std::exception& e) {
+            logger::error("InitializeScenes: Could not enumerate scene files: {}", e.what());
+            return;
+        }
+        const auto loadPackage = [this](const fs::directory_entry& file) {
+            const auto filename = file.path().filename().string();
+            try {
+                auto package = std::make_unique<AnimPackage>(file);
+                decltype(scenes) packageScenes;
+                for (auto&& scene : package->scenes) {
+                    if (scene->positions.empty() || scene->positions.size() > ActorFragment::MAX_ACTOR_COUNT) {
+                        logger::warn("InitializeScenes: Scene {} has an invalid position count ({})", scene->id, scene->positions.size());
+                        continue;
                     }
-                    logger::info("InitializeScenes: Finished parsing file {}", filename);
-                    const std::unique_lock lock{ _mScenes };
-                    packages.push_back(std::move(package));
-                } catch (const std::exception& e) {
-                    logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
+                    std::vector<std::vector<ActorFragment>> positionFragments;
+                    positionFragments.reserve(scene->positions.size());
+                    for (const auto& position : scene->positions)
+                        positionFragments.push_back(position.data.Split());
+                    std::vector<ActorFragment> argFragment;
+                    argFragment.reserve(positionFragments.size());
+                    Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
+                        argFragment.clear();
+                        for (auto&& itF : it) {
+                            argFragment.emplace_back(*itF);
+                        }
+                        const auto key = ActorFragment::MakeFragmentHash(argFragment);
+                        auto& vec = packageScenes[key];
+                        if (!std::ranges::contains(vec, scene.get())) {
+                            vec.push_back(scene.get());
+                        }
+                        return Combinatorics::CResult::Next;
+                    });
                 }
+                logger::info("InitializeScenes: Finished parsing file {}", filename);
+                const std::unique_lock lock{ _mScenes };
+                packages.push_back(std::move(package));
+                for (const auto& [key, packageMatches] : packageScenes) {
+                    auto& matches = scenes[key];
+                    for (auto* scene : packageMatches) {
+                        if (!std::ranges::contains(matches, scene))
+                            matches.push_back(scene);
+                    }
+                }
+                const auto* loadedPackage = packages.back().get();
+                for (const auto& scene : loadedPackage->scenes) {
+                    sceneMap[scene->id] = scene.get();
+                    sceneNameMap.try_emplace(RE::BSFixedString(scene->name), scene.get());
+                    scenePackageMap.emplace(scene.get(), loadedPackage);
+                }
+            } catch (const std::exception& e) {
+                logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
+            }
+        };
 #ifndef SKYRIMVR
-            });
+        std::atomic_size_t nextFile{ 0 };
+        const auto worker = [&]() {
+            while (true) {
+                const auto index = nextFile.fetch_add(1);
+                if (index >= files.size())
+                    return;
+                loadPackage(files[index]);
+            }
+        };
+        const auto workerCount = std::min(files.size(), static_cast<size_t>(std::min(4u, std::max(1u, std::thread::hardware_concurrency()))));
+        std::vector<std::thread> threads;
+        try {
+            threads.reserve(workerCount);
+            for (size_t i = 0; i < workerCount; ++i)
+                threads.emplace_back(worker);
+        } catch (const std::exception& e) {
+            logger::warn("InitializeScenes: Worker creation failed ({}); continuing on current thread", e.what());
+            worker();
         }
         for (auto& thread : threads) {
             thread.join();
-#endif
         }
+#else
+        for (const auto& file : files)
+            loadPackage(file);
+#endif
         InitializeSceneSettings();
     }
 
@@ -414,25 +454,54 @@ namespace Registry
     {
         SaveScenes();
         SaveExpressions();
-        SaveVoices();
+        try {
+            SaveVoices();
+        } catch (const std::exception& e) {
+            logger::error("Failed to save voice settings: {}", e.what());
+        }
         logger::info("Finished saving registry settings");
     }
 
     void Library::SaveScenes() const noexcept
     {
         std::shared_lock lock{ _mScenes };
-        std::vector<std::thread> threads{};
-        for (auto&& p : packages) {
-            threads.emplace_back([&]() {
-                YAML::Node data{};
-                for (auto&& scene : p->scenes) {
-                    auto node = data[scene->id];
-                    scene->Save(node);
+        std::atomic_size_t nextPackage{ 0 };
+        const auto worker = [&]() {
+            while (true) {
+                const auto index = nextPackage.fetch_add(1);
+                if (index >= packages.size())
+                    return;
+                const auto& p = packages[index];
+                try {
+                    YAML::Node data{};
+                    for (auto&& scene : p->scenes) {
+                        auto node = data[scene->id];
+                        scene->Save(node);
+                    }
+                    const auto filepath = std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, p->GetName().data(), p->GetHash());
+                    std::ofstream fout(filepath);
+                    if (!fout) {
+                        logger::error("SaveScenes: Could not open {}", filepath);
+                        continue;
+                    }
+                    fout << data;
+                    fout.close();
+                    if (!fout)
+                        logger::error("SaveScenes: Failed to write {}", filepath);
+                } catch (const std::exception& e) {
+                    logger::error("SaveScenes: Failed to save package {}: {}", p->GetName().data(), e.what());
                 }
-                const auto filepath = std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, p->GetName().data(), p->GetHash());
-                std::ofstream fout(filepath);
-                fout << data;
-            });
+            }
+        };
+        const auto workerCount = std::min(packages.size(), static_cast<size_t>(std::min(4u, std::max(1u, std::thread::hardware_concurrency()))));
+        std::vector<std::thread> threads;
+        try {
+            threads.reserve(workerCount);
+            for (size_t i = 0; i < workerCount; ++i)
+                threads.emplace_back(worker);
+        } catch (const std::exception& e) {
+            logger::warn("SaveScenes: Worker creation failed ({}); continuing on current thread", e.what());
+            worker();
         }
         for (auto&& thread : threads) {
             thread.join();
@@ -442,15 +511,21 @@ namespace Registry
 
     void Library::SaveExpressions() const noexcept
     {
-        std::shared_lock lock{ _mExpressions };
+        // Expression::Save clears the mutable has_edits flag after a successful write.
+        std::unique_lock lock{ _mExpressions };
         for (auto&& [id, expression] : expressions) {
-            expression.Save(EXPRESSION_PATH, false);
+            try {
+                expression.Save(EXPRESSION_PATH, false);
+            } catch (const std::exception& e) {
+                logger::error("Failed to save expression {}: {}", id, e.what());
+            }
         }
         logger::info("Saved expressions");
     }
 
-    void Library::SaveVoices() const noexcept
+    void Library::SaveVoices() const
     {
+        std::shared_lock lock{ _mVoice };
         const auto getSavefile = [](auto path) -> YAML::Node {
             try {
                 if (fs::exists(path))
@@ -467,6 +542,9 @@ namespace Registry
         }
         std::ofstream fout_settings(VOICE_SETTING_PATH);
         fout_settings << settings;
+        fout_settings.close();
+        if (!fout_settings)
+            throw std::runtime_error("Failed to write voice settings");
 
         auto cache = getSavefile(VOICE_SETTINGS_CACHES_PATH);
         for (auto&& [id, voice] : savedVoices) {
@@ -482,6 +560,9 @@ namespace Registry
         }
         std::ofstream fout_caches(VOICE_SETTINGS_CACHES_PATH);
         fout_caches << cache;
+        fout_caches.close();
+        if (!fout_caches)
+            throw std::runtime_error("Failed to write voice cache");
         logger::info("Saved voices");
     }
 

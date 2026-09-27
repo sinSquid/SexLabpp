@@ -76,6 +76,15 @@ void Settings::InitializeINI()
 #include "config.def"
 #undef INI_SETTING
 
+    if (!std::isfinite(fFurnitureSquare) || fFurnitureSquare < 0.0f) {
+        logger::warn("Invalid fFurnitureSquare {}; using default", fFurnitureSquare);
+        fFurnitureSquare = 32.0f;
+    }
+    if (!std::isfinite(fFurnitureSquareStepSize) || fFurnitureSquareStepSize < 1.0f) {
+        logger::warn("Invalid fFurnitureSquareStepSize {}; using default", fFurnitureSquareStepSize);
+        fFurnitureSquareStepSize = 8.0f;
+    }
+
     if (fPercentageHetero + fPercentageHomo > 100) {
         logger::error("Sexuality Percentage Settings must be at most 100.0");
         const auto total = fPercentageHetero + fPercentageHomo;
@@ -88,29 +97,34 @@ void Settings::InitializeINI()
 
 void Settings::InitializeData()
 {
-    const auto& handler = RE::TESDataHandler::GetSingleton();
-    const auto root = YAML::LoadFile(SCHLONGPATH);
-    for (auto&& i : root["Blacklist"]) {
-        const auto esp = i["ESP"].as<std::string>();
-        logger::info("Looking for non-schlongs in esp {}", esp);
-        const auto node = i["ID"];
-        if (node.IsSequence()) {
-            for (auto&& id : node) {
-                const auto formid = id.as<uint32_t>();
+    try {
+        const auto& handler = RE::TESDataHandler::GetSingleton();
+        const auto root = YAML::LoadFile(SCHLONGPATH);
+        SOS_ExcludeFactions.clear();
+        for (auto&& i : root["Blacklist"]) {
+            const auto esp = i["ESP"].as<std::string>();
+            logger::info("Looking for non-schlongs in esp {}", esp);
+            const auto node = i["ID"];
+            if (node.IsSequence()) {
+                for (auto&& id : node) {
+                    const auto formid = id.as<uint32_t>();
+                    const auto fac = handler->LookupFormID(formid, esp);
+                    if (fac) {
+                        logger::info("Adding {} / {}", esp, formid);
+                        SOS_ExcludeFactions.push_back(fac);
+                    }
+                }
+            } else {  // no sequence, simple entry
+                const auto formid = node.as<uint32_t>();
                 const auto fac = handler->LookupFormID(formid, esp);
                 if (fac) {
                     logger::info("Adding {} / {}", esp, formid);
                     SOS_ExcludeFactions.push_back(fac);
                 }
             }
-        } else {  // no sequence, simple entry
-            const auto formid = node.as<uint32_t>();
-            const auto fac = handler->LookupFormID(formid, esp);
-            if (fac) {
-                logger::info("Adding {} / {}", esp, formid);
-                SOS_ExcludeFactions.push_back(fac);
-            }
         }
+    } catch (const std::exception& e) {
+        logger::error("Unable to load {}: {}", SCHLONGPATH, e.what());
     }
 }
 
@@ -123,7 +137,11 @@ void Settings::Save()
 
     std::ofstream fout{ YAMLPATH };
     fout << settings;
-    logger::info("Finished saving user settings");
+    fout.close();
+    if (!fout)
+        logger::error("Unable to save user settings to {}", YAMLPATH);
+    else
+        logger::info("Finished saving user settings");
 }
 
 Settings::KeyType Settings::GetKeyType(uint32_t a_keyCode)

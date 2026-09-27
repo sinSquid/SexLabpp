@@ -15,6 +15,15 @@ using Offset = Registry::CoordinateType;
 
 namespace Papyrus::ThreadModel
 {
+    static std::vector<RE::BSFixedString> GetSceneIds(const std::vector<const Registry::Scene*>& a_scenes)
+    {
+        std::vector<RE::BSFixedString> ids;
+        ids.reserve(a_scenes.size());
+        for (const auto* scene : a_scenes)
+            ids.push_back(scene->id);
+        return ids;
+    }
+
 #define GET_INSTANCE(ret)                                         \
     auto instance = Thread::Instance::GetInstance(a_qst);         \
     if (!instance) {                                              \
@@ -237,9 +246,7 @@ namespace Papyrus::ThreadModel
     std::vector<RE::BSFixedString> GetPlayingScenes(QUESTARGS)
     {
         GET_INSTANCE({});
-        return std::ranges::fold_left(instance->GetThreadScenes(), std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(it->id), acc);
-        });
+        return GetSceneIds(instance->GetThreadScenes());
     }
 
     std::vector<RE::Actor*> GetPositions(QUESTARGS)
@@ -271,15 +278,18 @@ namespace Papyrus::ThreadModel
     {
         const auto library = Registry::Library::GetSingleton();
         const auto toVector = [&](const auto& a_list) {
-            return std::ranges::fold_left(a_list, std::vector<const Registry::Scene*>{}, [&](auto&& acc, const auto& it) {
+            std::vector<const Registry::Scene*> result;
+            result.reserve(a_list.size());
+            for (const auto& it : a_list) {
                 const auto scene = library->GetSceneById(it);
                 if (!scene) {
                     const auto err = std::format("Invalid scene id {}", it);
                     a_vm->TraceStack(err.c_str(), a_stackID);
-                    return acc;
+                    continue;
                 }
-                return (acc.push_back(scene), acc);
-            });
+                result.push_back(scene);
+            }
+            return result;
         };
         Thread::Instance::FurniturePreference preference{ a_furniturepref };
         Thread::Instance::SceneMapping scenes{
@@ -324,27 +334,21 @@ namespace Papyrus::ThreadModel
     {
         GET_INSTANCE({});
         const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::LeadIn);
-        return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(it->id), acc);
-        });
+        return GetSceneIds(sceneList);
     }
 
     std::vector<RE::BSFixedString> GetPrimaryScenes(QUESTARGS)
     {
         GET_INSTANCE({});
         const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Primary);
-        return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(it->id), acc);
-        });
+        return GetSceneIds(sceneList);
     }
 
     std::vector<RE::BSFixedString> GetCustomScenes(QUESTARGS)
     {
         GET_INSTANCE({});
         const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Custom);
-        return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(it->id), acc);
-        });
+        return GetSceneIds(sceneList);
     }
 
     std::vector<RE::BSFixedString> AdvanceScene(QUESTARGS, std::vector<RE::BSFixedString> a_history, RE::BSFixedString a_nextStage)
@@ -459,9 +463,10 @@ namespace Papyrus::ThreadModel
         const auto idxA = a_position ? a_position->formID : 0;
         const auto idxB = a_partner ? a_partner->formID : 0;
         const auto interactions = niInstance->GetInteractions(idxA, idxB, Thread::NiNode::NiType::Type::None);
-        const auto ret = std::ranges::fold_left(interactions, std::vector<int>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(static_cast<int>(it->GetType())), acc);
-        });
+        std::vector<int> ret;
+        ret.reserve(interactions.size());
+        for (const auto& interaction : interactions)
+            ret.push_back(static_cast<int>(interaction->GetType()));
         return ret;
     }
 

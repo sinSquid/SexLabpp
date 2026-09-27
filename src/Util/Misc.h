@@ -14,15 +14,15 @@ namespace Util
         if (a_str.empty())
             return;
         else if (a_str.size() < 1000)
-            console->Print(a_str.data());
+            console->Print("%s", a_str.c_str());
         else {  // Large strings printed to console crash the game - truncate it
             size_t i = 0;
             do {
                 constexpr auto maxchar = 950;
-                auto print = a_str.substr(i, i + maxchar);
+                auto print = a_str.substr(i, maxchar);
                 print += '\n';
                 i += maxchar;
-                console->Print(print.data());
+                console->Print("%s", print.c_str());
             } while (i < a_str.size());
         }
     }

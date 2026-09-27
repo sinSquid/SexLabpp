@@ -25,7 +25,7 @@ namespace Thread::NiNode
         if (interactions.empty()) {
             return nullptr;
         } else if (interactions.size() == 1) {
-            return &interactions.front();
+            return interactions.front().descriptor ? &interactions.front() : nullptr;
         }
 
         std::vector<float> logits;
@@ -33,10 +33,14 @@ namespace Thread::NiNode
         for (auto& interaction : interactions) {
             if (!interaction.descriptor)
                 logits.push_back(-std::numeric_limits<float>::infinity());
-            else
-                logits.push_back(interaction.descriptor->Predict());
+            else {
+                const float prediction = interaction.descriptor->Predict();
+                logits.push_back(std::isfinite(prediction) ? prediction : -std::numeric_limits<float>::infinity());
+            }
         }
         float maxLogit = *std::max_element(logits.begin(), logits.end());
+        if (!std::isfinite(maxLogit))
+            return nullptr;
 
         std::vector<float> expVals;
         expVals.reserve(logits.size());
@@ -196,10 +200,14 @@ namespace Thread::NiNode
         ADD_DATA(resG, 03)
 #undef ADD_DATA
 
-        result.interactions.emplace_back(std::move(descV), std::get<4>(*resV));
-        result.interactions.emplace_back(std::move(descA), std::get<4>(*resA));
-        result.interactions.emplace_back(std::move(descG), std::get<4>(*resG));
-        result.interactions.emplace_back(std::move(descN), 0.0f);
+        if (resV)
+            result.interactions.emplace_back(std::move(descV), std::get<4>(*resV));
+        if (resA)
+            result.interactions.emplace_back(std::move(descA), std::get<4>(*resA));
+        if (resG)
+            result.interactions.emplace_back(std::move(descG), std::get<4>(*resG));
+        if (!result.interactions.empty())
+            result.interactions.emplace_back(std::move(descN), 0.0f);
 
         return result;
     }

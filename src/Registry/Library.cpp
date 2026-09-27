@@ -7,30 +7,30 @@ namespace Registry
     std::vector<const Scene*> Library::LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
     {
         const auto tStart = std::chrono::high_resolution_clock::now();
-        ActorFragment::FragmentHash hash;
-#ifndef SKYRIMVR
-        std::thread _hashbuilder{ [&]() {
-#endif
-            std::vector<ActorFragment> fragments;
-            for (auto&& position : a_actors) {
-                if (!position) {
-                    logger::warn("Warning: NULL Actor passed to LookupScenes");
-                    continue;
-                }
-                const auto submissive = std::ranges::contains(a_submissives, position);
-                fragments.emplace_back(position, submissive);
+        std::vector<ActorFragment> fragments;
+        fragments.reserve(a_actors.size());
+        for (auto* actor : a_actors) {
+            if (!actor) {
+                logger::warn("Warning: NULL Actor passed to LookupScenes");
+                continue;
             }
-            hash = ActorFragment::MakeFragmentHash(fragments);
-#ifndef SKYRIMVR
-        } };
-#endif
+            fragments.emplace_back(actor, std::ranges::contains(a_submissives, actor));
+        }
+        if (fragments.empty() || fragments.size() > ActorFragment::MAX_ACTOR_COUNT) {
+            logger::warn("Invalid query: {} valid actors passed to LookupScenes", fragments.size());
+            return {};
+        }
+        const auto hash = ActorFragment::MakeFragmentHash(std::move(fragments));
         TagDetails tags{ a_tags };
-        const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", [&] {
-            return std::accumulate(std::next(a_tags.begin()), a_tags.end(), std::string(a_tags[0]), [](std::string a, std::string_view b) {
-                return std::move(a) + ", " + b.data();
-            });
-        }());
-        _hashbuilder.join();
+        std::string tagstr{ "[" };
+        bool firstTag = true;
+        for (const auto tag : a_tags) {
+            if (!firstTag)
+                tagstr += ", ";
+            tagstr.append(tag);
+            firstTag = false;
+        }
+        tagstr += ']';
 
         const std::shared_lock lock{ _mScenes };
         const auto where = this->scenes.find(hash);
@@ -65,9 +65,9 @@ namespace Registry
     std::vector<const Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
     {
         TagDetails tags{ a_tags };
+        const std::shared_lock lock{ _mScenes };
         std::vector<const Scene*> ret{};
         ret.reserve(sceneMap.size() >> 5);
-        const std::shared_lock lock{ _mScenes };
         for (auto&& [key, scene] : sceneMap) {
             if (!scene->IsEnabled() || scene->IsPrivate())
                 continue;
@@ -83,12 +83,8 @@ namespace Registry
     const AnimPackage* Library::GetPackageFromScene(const Scene* a_scene) const
     {
         std::shared_lock lock{ _mScenes };
-        for (auto&& package : packages) {
-            if (std::ranges::contains(package->scenes, a_scene, [](const auto& scenePtr) { return scenePtr.get(); })) {
-                return package.get();
-            }
-        }
-        return nullptr;
+        const auto where = scenePackageMap.find(a_scene);
+        return where != scenePackageMap.end() ? where->second : nullptr;
     }
 
     const Scene* Library::GetSceneById(const RE::BSFixedString& a_id) const
@@ -101,13 +97,8 @@ namespace Registry
     const Scene* Library::GetSceneByName(const RE::BSFixedString& a_name) const
     {
         std::shared_lock lock{ _mScenes };
-        for (auto&& package : packages) {
-            for (auto&& scene : package->scenes) {
-                if (a_name == RE::BSFixedString(scene->name))
-                    return scene.get();
-            }
-        }
-        return nullptr;
+        const auto where = sceneNameMap.find(a_name);
+        return where != sceneNameMap.end() ? where->second : nullptr;
     }
 
     size_t Library::GetSceneCount() const
@@ -157,12 +148,14 @@ namespace Registry
     std::vector<RE::BSFixedString> Library::GetAllVoiceIds(RaceKey a_race) const
     {
         std::shared_lock lock{ _mVoice };
-        return std::ranges::fold_left(voices, std::vector<RE::BSFixedString>{}, [&](auto acc, const auto& it) {
+        std::vector<RE::BSFixedString> result;
+        result.reserve(voices.size());
+        for (const auto& it : voices) {
             const auto& [name, voice] = it;
             if (a_race.Is(RaceKey::None) || voice.HasRace(a_race))
-                acc.push_back(name);
-            return acc;
-        });
+                result.push_back(name);
+        }
+        return result;
     }
 
     bool Library::ForEachVoice(std::function<bool(const Voice&)> a_visitor) const
@@ -177,17 +170,28 @@ namespace Registry
 
     const Voice* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)
     {
-        std::shared_lock lock{ _mVoice };
-        if (auto saved = GetSavedVoice(a_actor->GetFormID())) {
-            return saved;
+        if (!a_actor)
+            return nullptr;
+        const auto actorId = a_actor->GetFormID();
+        {
+            std::shared_lock lock{ _mVoice };
+            if (const auto saved = savedVoices.find(actorId); saved != savedVoices.end() && saved->second)
+                return saved->second;
+        }
+        std::unique_lock lock{ _mVoice };
+        if (const auto saved = savedVoices.find(actorId); saved != savedVoices.end() && saved->second)
+            return saved->second;
+        const auto base = a_actor->GetActorBase();
+        if (!base || !a_actor->GetRace()) {
+            logger::error("GetVoice: Actor {} has no actor base or race", a_actor->GetFormID());
+            return nullptr;
         }
         const RaceKey actRace{ a_actor };
         if (!actRace.IsValid()) {
             logger::error("GetVoice: Actor {} has invalid racekey", a_actor->GetFormID());
             return nullptr;
         }
-        const auto base = a_actor->GetActorBase();
-        const auto sex = base ? base->GetSex() : RE::SEXES::kMale;
+        const auto sex = base->GetSex();
         std::vector<const Voice*> ret{};
         for (auto&& [name, voice] : voices) {
             if (!voice.enabled || voice.sex != RE::SEXES::kNone && voice.sex != sex)
@@ -212,7 +216,7 @@ namespace Registry
                 }
             }
         }
-        return savedVoices[a_actor->formID] = Random::draw(ret);
+        return savedVoices[actorId] = Random::draw(ret);
     }
 
     const Voice* Library::GetVoice(const TagDetails& tags) const
@@ -270,12 +274,14 @@ namespace Registry
     std::vector<RE::Actor*> Library::GetSavedActors() const
     {
         std::shared_lock lock{ _mVoice };
-        return std::ranges::fold_left(savedVoices, std::vector<RE::Actor*>{}, [&](auto acc, const auto& it) {
+        std::vector<RE::Actor*> result;
+        result.reserve(savedVoices.size());
+        for (const auto& it : savedVoices) {
             auto act = RE::TESForm::LookupByID<RE::Actor>(it.first);
             if (act)
-                acc.push_back(act);
-            return acc;
-        });
+                result.push_back(act);
+        }
+        return result;
     }
 
     const Voice* Library::GetSavedVoice(RE::FormID a_key) const
@@ -287,10 +293,10 @@ namespace Registry
 
     void Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)
     {
-        auto v = GetVoiceById(a_voice);
         std::unique_lock lock{ _mVoice };
-        if (v) {
-            savedVoices.insert_or_assign(a_key, v);
+        const auto voice = voices.find(a_voice);
+        if (voice != voices.end()) {
+            savedVoices.insert_or_assign(a_key, &voice->second);
         } else {
             savedVoices.erase(a_key);
         }
@@ -304,35 +310,35 @@ namespace Registry
 
     RE::TESSound* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const
     {
-        auto voice = GetVoiceById(a_voice);
-        if (!voice) {
+        std::shared_lock lock{ _mVoice };
+        const auto voice = voices.find(a_voice);
+        if (voice == voices.end()) {
             logger::error("Voice {} not found", a_voice);
             return nullptr;
         }
-        std::shared_lock lock{ _mVoice };
-        return voice->PickSound(a_legacysetting);
+        return voice->second.PickSound(a_legacysetting);
     }
 
     RE::TESSound* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const
     {
-        auto voice = GetVoiceById(a_voice);
-        if (!voice) {
+        std::shared_lock lock{ _mVoice };
+        const auto voice = voices.find(a_voice);
+        if (voice == voices.end()) {
             logger::error("Voice {} not found", a_voice);
             return nullptr;
         }
-        std::shared_lock lock{ _mVoice };
-        return voice->PickSound(a_excitement, a_annotation);
+        return voice->second.PickSound(a_excitement, a_annotation);
     }
 
     RE::TESSound* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const
     {
-        auto voice = GetVoiceById(a_voice);
-        if (!voice) {
+        std::shared_lock lock{ _mVoice };
+        const auto voice = voices.find(a_voice);
+        if (voice == voices.end()) {
             logger::error("Voice {} not found", a_voice);
             return nullptr;
         }
-        std::shared_lock lock{ _mVoice };
-        return voice->PickOrgasmSound(a_annotation);
+        return voice->second.PickOrgasmSound(a_annotation);
     }
 
     void Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)
@@ -434,6 +440,16 @@ namespace Registry
         return where == expressions.end() ? nullptr : &where->second;
     }
 
+    bool Library::ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const
+    {
+        std::shared_lock lock{ _mExpressions };
+        const auto where = expressions.find(a_id);
+        if (where == expressions.end())
+            return false;
+        a_reader(where->second);
+        return true;
+    }
+
     const Expression* Library::GetExpression(const TagDetails& a_details) const
     {
         std::shared_lock lock{ _mExpressions };
@@ -468,7 +484,17 @@ namespace Registry
         return true;
     }
 
-    void Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
+    bool Library::MarkExpressionForSave(const RE::BSFixedString& a_id)
+    {
+        std::unique_lock lock{ _mExpressions };
+        const auto where = expressions.find(a_id);
+        if (where == expressions.end())
+            return false;
+        where->second.has_edits = true;
+        return true;
+    }
+
+    void Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values)
     {
         std::unique_lock lock{ _mExpressions };
         auto w = expressions.find(a_id);
@@ -538,6 +564,8 @@ namespace Registry
 
     const FurnitureDetails* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const
     {
+        if (!a_ref)
+            return nullptr;
         if (a_ref->Is(RE::FormType::ActorCharacter)) {
             return nullptr;
         }

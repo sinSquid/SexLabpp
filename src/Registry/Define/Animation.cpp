@@ -470,10 +470,10 @@ namespace Registry
             }
             const auto crt_total = std::count(a_tag.begin(), a_tag.end(), 'C');
             if (crt_total != a_males + a_females) {
-                return true;
+                return false;
             }
 
-            int count[3];
+            int count[3]{};
             for (auto&& position : positions) {
                 if (position.data.IsHuman())
                     continue;
@@ -489,7 +489,7 @@ namespace Registry
                 count[Either] -= a_males - count[Male];
                 ret = count[Female] + count[Either] == a_females;
             }
-            return true;
+            return ret;
         });
         return ret;
     }
@@ -605,9 +605,11 @@ namespace Registry
 
     std::vector<RE::BSFixedString> Scene::GetAnimationEvents(const Stage* a_stage) const
     {
-        return std::ranges::fold_left(a_stage->positions, std::vector<RE::BSFixedString>{}, [this](auto&& acc, auto&& it) {
-            return (acc.push_back(std::format("{}{}", hash, it.event)), acc);
-        });
+        std::vector<RE::BSFixedString> events;
+        events.reserve(a_stage->positions.size());
+        for (const auto& position : a_stage->positions)
+            events.emplace_back(std::format("{}{}", hash, position.event));
+        return events;
     }
 
     size_t Scene::GetNumStages() const

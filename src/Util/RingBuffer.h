@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <tuple>
 #include <vector>
 
 namespace Util
@@ -8,6 +9,8 @@ namespace Util
     template <typename T, size_t N>
     struct RingBuffer
     {
+        static_assert(N > 0, "RingBuffer capacity must be positive");
+
       public:
         RingBuffer()
         {
@@ -17,6 +20,7 @@ namespace Util
         RingBuffer(Args&&... args) :
           _head{ sizeof...(Args) % N }, _size{ sizeof...(Args) }
         {
+            static_assert(sizeof...(Args) <= N, "Too many initial RingBuffer elements");
             _buffer.reserve(N);
             (_buffer.emplace_back(std::forward<Args>(args)), ...);
         }
@@ -46,11 +50,9 @@ namespace Util
         template <typename K>
         K to() const
         {
-            K result;
-            if constexpr (requires { result[0]; result.size(); }) {
-                if constexpr (result.size() != N) {
-                    static_assert(sizeof(K) == 0, "Type K must have size() equal to N");
-                }
+            K result{};
+            if constexpr (requires { std::tuple_size<K>::value; result[0]; }) {
+                static_assert(std::tuple_size_v<K> == N, "Type K must have size equal to N");
                 for (size_t i = 0; i < _size; ++i) {
                     result[i] = (*this)[i];
                 }
@@ -98,8 +100,16 @@ namespace Util
         bool empty() const { return _size == 0; }
         bool full() const { return _size == N; }
 
-        const T& operator[](size_t index) const { return _buffer[(_head - _size + index + N) % N]; }
-        T& operator[](size_t index) { return _buffer[(_head - _size + index + N) % N]; }
+        const T& operator[](size_t index) const
+        {
+            assert(index < _size);
+            return _buffer[(_head - _size + index + N) % N];
+        }
+        T& operator[](size_t index)
+        {
+            assert(index < _size);
+            return _buffer[(_head - _size + index + N) % N];
+        }
 
       private:
         std::vector<T> _buffer;

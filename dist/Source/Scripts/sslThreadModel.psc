@@ -2650,20 +2650,33 @@ Function UpdateBaseSpeed(float afBaseSpeed)
 	_AnimationSpeedBase = afBaseSpeed
 EndFunction
 
-float Function CalcInstThreadAnimSpeed()
-	float animSpeed = 0.0
-	If (Config.SetAnimSpeedByEnjoyment)
-		int i = 0
-		While (i < _Positions.Length)
-			float actorSpeed = _AnimationSpeedBase * PapyrusUtil.ClampFloat(GetEnjoyment(_Positions[i]) as float / 90, 0.8, 1.2)
-			If (actorSpeed > animSpeed)
-				animSpeed = actorSpeed
-			EndIf
-			i += 1
-		EndWhile
+Function UpdateBaseSpeedFromPlayback(float afPlaybackSpeed)
+	float multiplier = GetAnimationSpeedMultiplier()
+	If (multiplier > 0.0)
+		_AnimationSpeedBase = PapyrusUtil.ClampFloat(afPlaybackSpeed, 0.5, 4.0) / multiplier
 	Else
-		animSpeed = _AnimationSpeedBase
+		_AnimationSpeedBase = PapyrusUtil.ClampFloat(afPlaybackSpeed, 0.5, 4.0)
 	EndIf
+EndFunction
+
+float Function GetAnimationSpeedMultiplier()
+	If (!Config.SetAnimSpeedByEnjoyment)
+		return 1.0
+	EndIf
+	float multiplier = 0.0
+	int i = 0
+	While (i < _Positions.Length)
+		float actorMultiplier = PapyrusUtil.ClampFloat(GetEnjoyment(_Positions[i]) as float / 90, 0.8, 1.2)
+		If (actorMultiplier > multiplier)
+			multiplier = actorMultiplier
+		EndIf
+		i += 1
+	EndWhile
+	return multiplier
+EndFunction
+
+float Function CalcInstThreadAnimSpeed()
+	float animSpeed = _AnimationSpeedBase * GetAnimationSpeedMultiplier()
 	return PapyrusUtil.ClampFloat(animSpeed, 0.5, 4.0)
 EndFunction
 

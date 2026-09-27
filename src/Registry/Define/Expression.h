@@ -53,7 +53,7 @@ namespace Registry
         const TagData& GetTags() const { return tags; }
         std::array<float, Total> GetData(RE::SEXES::SEX a_sex, float a_strength) const;
 
-        void UpdateValues(bool a_female, int a_level, std::vector<float> a_values);
+        void UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values);
         void UpdateTags(const TagData& a_newtags);
         void SetScaling(Expression::Scaling a_scaling);
         void SetEnabled(bool a_enabled);
