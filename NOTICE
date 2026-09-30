@@ -1,0 +1,19 @@
+SexLab p+ native code
+Copyright 2023 Scrab Joséline
+
+The native code is licensed under the GNU General Public License, version 3
+or (at your option) any later version, with the additional permissions in
+EXCEPTIONS.md. See LICENSE for the full GPL text. The Modded Code includes
+Skyrim and its variants; the Modding Libraries include SKSE and Windows.
+
+The prior Apache 2.0 license and copyright notice are retained in
+licenses/LICENSE-Apache-2.0.txt for code originally distributed under those
+terms. The native code as a whole is now distributed under the GPL terms above.
+
+CommonLibSSE-NG is statically linked and is licensed under GPL-3.0-or-later
+with its Modding Exception and GPL-3.0 Linking Exception (with Corresponding
+Source). Its COPYING.txt, EXCEPTIONS.md, and legacy MIT copyright notice are
+included in the CommonLibSSE-NG submodule and in binary packages.
+
+Original SexLab scripts and assets retain their existing permissions in
+Readme - SexLab Framework.txt. Other third-party notices remain applicable.

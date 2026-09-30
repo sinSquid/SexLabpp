@@ -40,8 +40,8 @@
 // This is a clean fix for the CrosshairRefEvent papyrus spam without changing vanilla behavior..
 // It's basically SKSE's pending fix: https://github.com/ianpatt/skse64/commit/a1a9746cabb68879edf0fb22ceae0973a240102d
 class CrosshairEventFilter final :
-    public Singleton<CrosshairEventFilter>,
-    public RE::BSTEventSink<SKSE::CrosshairRefEvent>
+  public Singleton<CrosshairEventFilter>,
+  public RE::BSTEventSink<SKSE::CrosshairRefEvent>
 {
     using EventResult = RE::BSEventNotifyControl;
 
@@ -94,7 +94,6 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
                 std::_Exit(EXIT_FAILURE);
             return;
         }
-        SKSE::AllocTrampoline(static_cast<size_t>(1) << 6);
         Thread::Hooks::Install();
         Thread::Collision::CollisionHandler::Install();
         if (Settings::bUseLegacyNiType) {
@@ -119,7 +118,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
     }
 }
 
-extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
+SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* a_skse)
 {
     constexpr auto PLUGIN_NAME = "SexLabUtil"sv;
     const auto InitLogger = [&]() -> bool {
@@ -152,8 +151,12 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
         return false;
     }
 
-    SKSE::Init(a_skse);
-    CrosshairEventFilter::GetSingleton()->Register();
+    SKSE::Init(a_skse, { .log = false, .trampoline = true, .trampolineSize = 64 });
+
+    // Fixed on newer SKSE versions
+    if (!REL::Module::IsAtLeast(SKSE::RUNTIME_SSE_1_7_99)) {
+        CrosshairEventFilter::GetSingleton()->Register();
+    }
     logger::info("{} loaded", PLUGIN_NAME);
 
     const auto msging = SKSE::GetMessagingInterface();

@@ -45,6 +45,8 @@ constexpr auto MODELDATAPATH{ "Data\\SKSE\\SexLab\\ModelData" };
 #define SCHLONGPATH CONFIGPATH("SchlongsOfSkyrim.yaml")
 #define STRIP_PATH USER_CONFIGS("Stripping.yaml")
 
+#define AE_OFFSET(a_ae, a_ae1799) (REL::Module::IsAtLeast(SKSE::RUNTIME_SSE_1_7_99) ? (a_ae1799) : (a_ae))
+
 #ifdef SKYRIM_SUPPORT_AE
 #define OFFSET(SE, AE) AE
 #else
@@ -68,7 +70,6 @@ namespace stl
     void write_thunk_call(std::uintptr_t a_src)
     {
         auto& trampoline = SKSE::GetTrampoline();
-        SKSE::AllocTrampoline(14);
 
         T::func = trampoline.write_call<5>(a_src, T::thunk);
     }

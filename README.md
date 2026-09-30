@@ -90,7 +90,11 @@ xmake papyrus.project papyrus
 
 ## License
 
-This project primarily falls under the [Apache License Version 2.0](./LICENSE). However, portions of the project derived from the original SexLab (including papyrus scripts, and various assets) remain subject to the Permissions terms found in [Readme - SexLabFramework.txt](./Readme%20-%20SexLab%20Framework.txt).
+The native code is licensed under [GPL-3.0-or-later](./LICENSE) with the [Modding Exception and GPL-3.0 Linking Exception (with Corresponding Source)](./EXCEPTIONS.md), matching the linked CommonLibSSE-NG dependency. These exceptions cover interoperation with Skyrim and linking with modding libraries such as SKSE and Windows; they also apply to this project's native code. See [NOTICE](./NOTICE) for attribution and retained license notices, including the [prior Apache 2.0 license](./licenses/LICENSE-Apache-2.0.txt).
+
+Portions derived from the original SexLab (including Papyrus scripts and various assets) retain the Permissions terms in [Readme - SexLab Framework.txt](./Readme%20-%20SexLab%20Framework.txt). Third-party code retains its own license notices.
+
+Binary distributions must provide Corresponding Source as required by the GPL and the linking exception, including the exact CommonLibSSE-NG revision and the source for the parts of Modding Libraries used.
 
 
 [PU-Nexus]: https://www.nexusmods.com/skyrimspecialedition/mods/13048
