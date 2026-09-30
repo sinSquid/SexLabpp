@@ -40,6 +40,7 @@ namespace Registry
       public:
         _NODISCARD std::vector<const Scene*> LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& tags, const std::vector<RE::Actor*>& a_submissives) const;
         _NODISCARD std::vector<const Scene*> GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const;
+        _NODISCARD std::vector<RE::BSFixedString> GetLegacyProxyIds(size_t a_limit, uint32_t a_creatureSpecifier) const;
 
         _NODISCARD const AnimPackage* GetPackageFromScene(const Scene* a_scene) const;
         _NODISCARD const Scene* GetSceneById(const RE::BSFixedString& a_id) const;
@@ -58,6 +59,7 @@ namespace Registry
         const Voice* GetVoice(const TagDetails& a_tags) const;
         const Voice* GetVoice(RaceKey a_race) const;
         const Voice* GetVoiceById(RE::BSFixedString a_voice) const;
+        bool ReadVoice(RE::BSFixedString a_voice, const std::function<void(const Voice&)>& a_reader) const;
         bool CreateVoice(RE::BSFixedString a_voice);
         void WriteVoiceToFile(RE::BSFixedString a_voice) const;
 
@@ -134,6 +136,8 @@ namespace Registry
         mutable std::shared_mutex _mScenes{};
         std::vector<std::unique_ptr<AnimPackage>> packages;
         std::map<RE::BSFixedString, Scene*, FixedStringCompare> sceneMap;             // SceneId -> Scene
+        std::array<std::vector<Scene*>, ActorFragment::MAX_ACTOR_COUNT + 1> scenePositionIndex{};
+        mutable std::map<std::pair<size_t, uint32_t>, std::vector<RE::BSFixedString>> legacyProxyCache{};
         std::map<RE::BSFixedString, Scene*, SceneNameCompare> sceneNameMap;           // SceneName -> first loaded Scene
         std::unordered_map<const Scene*, const AnimPackage*> scenePackageMap;         // Scene -> owning Package
         std::unordered_map<ActorFragment::FragmentHash, std::vector<Scene*>> scenes;  // Hashes -> Scenes

@@ -20,6 +20,8 @@ scriptname sslAnimationSlots extends Quest
 ; asPackage: The package id to filter by
 String[] Function CreateProxyArray(int aiReturnSize, int aiOnlyCreatures, String asTags = "", String asPackage = "") native global
 String[] Function GetAllPackages() native global
+bool Function ProxyIdsMatch(String[] asLeft, String[] asRight) native global
+int[] Function GetProxyIndices(String[] asScenes, String[] asProxyIDs) native global
 
 String[] _proxyid
 int property Slotted Hidden
@@ -69,39 +71,75 @@ String[] Function PickByActorsImpl(Actor[] akActors, String[] asTags) native
 
 Function SyncBackEnd()
   Alias[] aliases = GetAliases()
-  _proxyid = CreateProxyArray(aliases.Length, GetCrtSpecifier())
+  If (!aliases.Length)
+    ; CreateProxyArray(0, ...) means unlimited, not an empty alias registry.
+    _proxyid = Utility.CreateStringArray(0)
+    return
+  EndIf
+  String[] ids = CreateProxyArray(aliases.Length, GetCrtSpecifier())
+  BindProxyAliases(aliases, ids)
+  _proxyid = ids
+EndFunction
+
+; Keep explicit SyncBackEnd() as a forced rebind for external callers.
+Function EnsureBackEnd()
+  Alias[] aliases = GetAliases()
+  If (!aliases.Length)
+    _proxyid = Utility.CreateStringArray(0)
+    return
+  EndIf
+  String[] ids = CreateProxyArray(aliases.Length, GetCrtSpecifier())
+  If (ProxyIdsMatch(_proxyid, ids))
+    ; Legacy callers can clear or replace Registry without changing our ID cache.
+    BindProxyAliases(aliases, ids, true)
+    return
+  EndIf
+  BindProxyAliases(aliases, ids)
+  _proxyid = ids
+EndFunction
+
+Function BindProxyAliases(Alias[] aliases, String[] ids, bool abOnlyChanged = false)
   int i = 0
-  While (i < _proxyid.Length)
+  While (i < ids.Length && i < aliases.Length)
     sslBaseAnimation anim = aliases[i] as sslBaseAnimation
     If (anim)
-      anim.Registry = _proxyid[i]
+      If (!abOnlyChanged || anim.Registry != ids[i])
+        anim.Registry = ids[i]
+      EndIf
     EndIf
     i += 1
   EndWhile
 EndFunction
 
 sslBaseAnimation Function GetSetAnimation(String asScene)
-  SyncBackEnd()
+  EnsureBackEnd()
   int where = _proxyid.Find(asScene)
   If (where > -1)
     return GetNthAlias(where) as sslBaseAnimation
   EndIf
   ; Randomize to minimize chance of replacing the same index over and over again (without caching)
+  If (!_proxyid.Length)
+    return none
+  EndIf
   int i = Utility.RandomInt(0, _proxyid.Length - 1)
-  _proxyid[i] = asScene
   sslBaseAnimation ret = GetNthAlias(i) as sslBaseAnimation
+  If (!ret)
+    return none
+  EndIf
   ret.Registry = asScene
+  _proxyid[i] = asScene
   return ret
 EndFunction
 
 sslBaseAnimation[] Function AsBaseAnimation(String[] asSceneIDs)
   sslLog.Log("Translating " + asSceneIDs.Length + " Animations to Legacy Class (" + asSceneIDs + ")")
   sslBaseAnimation[] ret = sslUtility.AnimationArray(asSceneIDs.Length)
-  SyncBackEnd()
+  EnsureBackEnd()
+  int[] indices = GetProxyIndices(asSceneIDs, _proxyid)
   int i = 0
   int ii = 0
   While (i < ret.Length)
-    int where = _proxyid.Find(asSceneIDs[i])
+    int where = indices[i]
     If (where > -1)
       ret[ii] = GetNthAlias(where) as sslBaseAnimation
       ii += 1
@@ -210,7 +248,7 @@ EndFunction
 ; ------------------------------------------------------- ;
 
 sslBaseAnimation Function GetBySlot(int index)
-  SyncBackEnd()
+  EnsureBackEnd()
   Alias[] aliases = GetAliases()
   If (index < 0 || aliases.Length <= index)
     return none
@@ -227,12 +265,12 @@ sslBaseAnimation function GetbyRegistrar(string Registrar)
 endFunction
 
 int function FindByRegistrar(string Registrar)
-  SyncBackEnd()
+  EnsureBackEnd()
   return _proxyid.Find(Registrar)
 endFunction
 
 int function FindByName(string FindName)
-  SyncBackEnd()
+  EnsureBackEnd()
   Alias[] aliases = GetAliases()
   int i = 0
   While (i < aliases.Length)

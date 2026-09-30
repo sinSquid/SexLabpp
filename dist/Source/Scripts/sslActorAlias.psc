@@ -457,8 +457,17 @@ State Ready
 	EndFunction
 
 	Event OnDoPrepare(string asEventName, string asStringArg, float afNumArg, form akPathTo)
+		; Validate the sender's ticket BEFORE touching the current registration or actor.
+		int request = asStringArg as int
+		If (asStringArg != (request as string) || request != _Thread.StartupRequest)
+			return
+		EndIf
 		UnregisterForModEvent("SSL_PREPARE_Thread" + _Thread.tid)
+		Actor preparingActor = _ActorRef
 		WaitForPathToCenter(akPathTo)
+		If (_ActorRef != preparingActor || GetState() != STATE_SETUP || _Thread.StartupRequest != request)
+			return
+		EndIf
 		If (_sex <= 2)
 			_AnimVarIsNPC = _ActorRef.GetAnimationVariableInt("IsNPC")
 			_AnimVarbHumanoidFootIKDisable = _ActorRef.GetAnimationVariableBool("bHumanoidFootIKDisable")
@@ -487,7 +496,7 @@ State Ready
 			Log("Strapon[" + _Strapon + "] Voice[" + GetActorVoice() + "] Expression[" + GetActorExpression() + "]")
 		EndIf
 		If (asStringArg != "skip")
-			_Thread.PrepareDone()
+			_Thread.PrepareDone(request)
 		EndIf
 	EndEvent
 
@@ -502,20 +511,33 @@ State Ready
 			return
 		EndIf
 		ObjectReference target = akPathTo as ObjectReference
+		If (!target)
+			return
+		EndIf
 		float distance = _ActorRef.GetDistance(target)		
 		float target_distance = _Thread.CalcPathingTargetDistance(_raceID)
 		If(distance > target_distance && distance <= 6144.0)
 			_ActorRef.SetFactionRank(_AnimatingFaction, 2)
 			_Thread.UpdateAnimatingActorMovement(_ActorRef) ;MOVEMENT_UNLOCK
-			float fallback_timer = 15.0
-			float prev_dist = distance + 1.0
-			Utility.Wait(2.0)
-			float interval = 0.05
-			While (distance > target_distance && Math.abs(prev_dist - distance) > 0.5 && fallback_timer > 0)
-				fallback_timer -= interval
-				Utility.Wait(interval)
-				prev_dist = distance
-				distance = _ActorRef.GetDistance(target)
+			Actor walkingActor = _ActorRef
+			int request = _Thread.StartupRequest
+			float started = _Thread.GetStartupClock()
+			float lastProgress = started
+			float now = started
+			While (distance > target_distance && now - started < 15.0)
+				Utility.Wait(0.1)
+				If (_ActorRef != walkingActor || GetState() != STATE_SETUP || _Thread.StartupRequest != request)
+					return
+				EndIf
+				float previous = distance
+				distance = walkingActor.GetDistance(target)
+				now = _Thread.GetStartupClock()
+				If (Math.abs(previous - distance) > 0.5)
+					lastProgress = now
+				ElseIf (now - lastProgress >= 2.0)
+					; Allow the AI package to start, but do not wait after arrival.
+					return
+				EndIf
 			EndWhile
 		EndIf
 	EndFunction

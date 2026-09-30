@@ -137,7 +137,7 @@ namespace Registry
 
     void TagData::IntersectTags(const TagData& a_tags)
     {
-        _basetags.set((_basetags & a_tags._basetags).get());
+        _basetags = (_basetags & a_tags._basetags).get();
         std::erase_if(_extratags, [&](const auto& tag) { return !a_tags.HasTag(tag); });
         std::erase_if(_annotations, [&](const auto& tag) { return !a_tags.HasTag(tag); });
     }

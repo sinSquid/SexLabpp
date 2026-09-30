@@ -7,6 +7,8 @@ namespace Papyrus::AnimationSlots
     std::vector<RE::BSFixedString> PickByActorsImpl(VM* a_vm, StackID a_stackID, RE::TESQuest* a_qst, std::vector<RE::Actor*> a_positions, std::vector<std::string_view> a_tags);
 
     std::vector<RE::BSFixedString> GetAllPackages(RE::StaticFunctionTag*);
+    bool ProxyIdsMatch(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_left, std::vector<RE::BSFixedString> a_right);
+    std::vector<int32_t> GetProxyIndices(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_ids, std::vector<RE::BSFixedString> a_proxyIds);
     std::vector<RE::BSFixedString> CreateProxyArray(RE::StaticFunctionTag*, uint32_t a_returnsize, uint32_t crt_specifier, RE::BSFixedString a_tags, RE::BSFixedString a_package);
 
     inline bool Register(VM* a_vm)
@@ -16,6 +18,8 @@ namespace Papyrus::AnimationSlots
         REGISTERFUNC(PickByActorsImpl, "sslAnimationSlots", true);
 
         REGISTERFUNC(GetAllPackages, "sslAnimationSlots", true);
+        REGISTERFUNC(ProxyIdsMatch, "sslAnimationSlots", true);
+        REGISTERFUNC(GetProxyIndices, "sslAnimationSlots", true);
         REGISTERFUNC(CreateProxyArray, "sslAnimationSlots", true);
 
         return true;

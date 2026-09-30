@@ -23,9 +23,10 @@ namespace Papyrus::ThreadLibrary
         const auto center = a_center->GetPosition();
         std::vector<RE::TESObjectREFR*> ret{};
         Util::ForEachObjectInRange(a_center, a_radius, [&](RE::TESObjectREFR* ref) {
-            if (!ref || !ref->GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusZ > 0.0f ? (std::fabs(center.z - ref->GetPosition().z) <= a_radiusZ) : true)
-                if (Registry::FurnitureType::IsBedType(ref))
-                    ret.push_back(ref);
+            if (!ref || (a_radiusZ > 0.0f && std::fabs(center.z - ref->GetPositionZ()) > a_radiusZ))
+                return RE::BSContainer::ForEachResult::kContinue;
+            if (Registry::FurnitureType::IsBedType(ref))
+                ret.push_back(ref);
             return RE::BSContainer::ForEachResult::kContinue;
         });
         std::sort(ret.begin(), ret.end(), [&](RE::TESObjectREFR* a_refA, RE::TESObjectREFR* a_refB) {
@@ -66,6 +67,8 @@ namespace Papyrus::ThreadLibrary
             a_vm->TraceStack("Cannot find actor in negative radius", a_stackID);
             return {};
         }
+        const auto centerPosition = a_center->GetPosition();
+        const auto radiusSquared = a_radius * a_radius;
         const Registry::RaceKey targetrace{ a_targetrace.empty() ? "Human" : a_targetrace };
         const auto targetsex = [&]() {
             if (a_targetsex >= LegacySex::CrtMale || !targetrace.Is(Registry::RaceKey::Human)) {
@@ -86,6 +89,9 @@ namespace Papyrus::ThreadLibrary
                 actor.get() == ignore_ref02 ||
                 actor.get() == ignore_ref03 ||
                 actor.get() == ignore_ref04)
+                continue;
+
+            if (actor->GetPosition().GetSquaredDistance(centerPosition) > radiusSquared)
                 continue;
 
             if (!targetrace.IsCompatibleWith(actor.get()))

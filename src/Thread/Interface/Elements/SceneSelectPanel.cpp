@@ -50,29 +50,27 @@ namespace Thread::Interface
         const auto* scene = lib->GetSceneById(RE::BSFixedString{ e.id.c_str() });
         if (!scene)
             return;
-        for (const auto& a : scene->tags.GetAnnotations()) {
-            lib->EditScene(RE::BSFixedString{ e.id.c_str() }, [&](Registry::Scene* s) {
-                s->tags.RemoveAnnotation(a);
-            });
-        }
+        std::vector<RE::BSFixedString> annotations;
         std::istringstream ss(trimmed);
         std::string token;
         while (std::getline(ss, token, ',')) {
             const auto start = token.find_first_not_of(' ');
             const auto end = token.find_last_not_of(' ');
             if (start != std::string::npos) {
-                lib->EditScene(RE::BSFixedString{ e.id.c_str() }, [&](Registry::Scene* s) {
-                    s->tags.AddAnnotation(RE::BSFixedString{
-                        token.substr(start, end - start + 1).c_str() });
-                });
+                annotations.emplace_back(token.substr(start, end - start + 1));
             }
         }
+        lib->EditScene(RE::BSFixedString{ e.id.c_str() }, [&](Registry::Scene* s) {
+            s->tags.SetAnnotations({});
+            for (const auto& annotation : annotations)
+                s->tags.AddAnnotation(annotation);
+        });
     }
 
     void SceneSelectPanel::RebuildEntries(SceneHUD& a_hud)
     {
         _entries.clear();
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         const auto* active = inst->GetActiveScene();

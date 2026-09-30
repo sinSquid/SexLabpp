@@ -60,7 +60,7 @@ namespace Thread::Interface
     {
         if (!a_quest)
             return false;
-        auto* inst = Instance::GetInstance(a_quest);
+        auto inst = Instance::GetInstance(a_quest);
         if (!inst)
             return false;
 
@@ -103,7 +103,7 @@ namespace Thread::Interface
         if (a_open) {
             _graphOpen = true;
             _linkedThread = a_quest;
-            if (auto* inst = Instance::GetInstance(a_quest))
+            if (auto inst = Instance::GetInstance(a_quest))
                 BuildSceneGraph(*inst);
             _graphFitPending = true;
             SetBlocksInput(true);
@@ -117,7 +117,7 @@ namespace Thread::Interface
     {
         if (!a_quest)
             return;
-        auto* inst = Instance::GetInstance(a_quest);
+        auto inst = Instance::GetInstance(a_quest);
         if (!inst)
             return;
 
@@ -657,7 +657,7 @@ namespace Thread::Interface
             }
         }
 
-        auto* inst = Instance::GetInstance(_linkedThread);
+        auto inst = Instance::GetInstance(_linkedThread);
         if (!inst)
             return;
 

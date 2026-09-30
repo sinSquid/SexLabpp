@@ -276,6 +276,13 @@ namespace Papyrus::ThreadModel
         std::vector<RE::BSFixedString> a_scenesCustom,
         int a_furniturepref)
     {
+        const auto script = Script::GetScriptObject(a_qst, "sslThreadModel");
+        const auto requestProperty = script ? script->GetProperty("StartupRequest") : nullptr;
+        if (!requestProperty) {
+            a_vm->TraceStack("Missing StartupRequest property; install the matching sslThreadModel.pex", a_stackID);
+            return;
+        }
+        const auto request = RE::BSScript::UnpackValue<int32_t>(requestProperty);
         const auto library = Registry::Library::GetSingleton();
         const auto toVector = [&](const auto& a_list) {
             std::vector<const Registry::Scene*> result;
@@ -297,9 +304,30 @@ namespace Papyrus::ThreadModel
             toVector(a_scenesLeadIn),
             toVector(a_scenesCustom)
         };
-        std::thread([=]() {
-            Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference);
-        }).detach();
+        try {
+            std::thread([=]() {
+                Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference, request);
+            }).detach();
+        } catch (const std::exception& error) {
+            logger::error("Unable to start instance creation worker: {}", error.what());
+            Thread::Instance::DispatchContinueSetup(a_qst, false, request);
+        }
+    }
+
+    float GetStartupClock(RE::TESQuest*)
+    {
+        return Thread::Instance::GetStartupClock();
+    }
+
+    bool IsCenterSelectionPending(RE::TESQuest* a_qst)
+    {
+        return Thread::Instance::GetPendingInstance(a_qst) != nullptr;
+    }
+
+    void LogStartupPhase(RE::TESQuest* a_qst, RE::BSFixedString a_phase, float a_phaseElapsed, float a_totalElapsed)
+    {
+        if (a_qst)
+            logger::info("Startup {:X}: {} (+{:.3f}s, total {:.3f}s)", a_qst->GetFormID(), a_phase, a_phaseElapsed, a_totalElapsed);
     }
 
     void DestroyInstance(RE::TESQuest* a_qst, bool a_preservePreparedActors)
@@ -802,6 +830,25 @@ namespace Papyrus::ThreadModel
     {
         GET_INSTANCE();
         instance->SetAnimationPlaybackSpeed(a_playbackSpeed);
+    }
+
+    void CommitPlaybackBase(QUESTARGS, float a_baseSpeed, int32_t a_request, int32_t a_sequence)
+    {
+        GET_INSTANCE();
+        if (!std::isfinite(a_baseSpeed) || a_baseSpeed < 0.0f ||
+            !instance->IsStartupRequest(a_request) || !instance->IsCurrentSpeedRequest(a_sequence))
+            return;
+        const auto script = Script::GetScriptObject(a_qst, "sslThreadModel");
+        const auto request = script ? script->GetProperty("StartupRequest") : nullptr;
+        auto* base = script ? script->GetVariable("_AnimationSpeedBase") : nullptr;
+        if (!request || !base) {
+            a_vm->TraceStack("Missing speed state; install the matching sslThreadModel.pex", a_stackID);
+            return;
+        }
+        if (RE::BSScript::UnpackValue<int32_t>(request) != a_request)
+            return;
+        // Validation and commit run together on the game thread, like UI speed issuance.
+        RE::BSScript::PackValue(base, a_baseSpeed);
     }
 
     bool RestartFixedLengthTimer(QUESTARGS)

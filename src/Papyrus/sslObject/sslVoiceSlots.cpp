@@ -8,13 +8,11 @@ namespace Papyrus::VoiceSlots
     {
         bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            const auto vs = Registry::Library::GetSingleton();
-            auto it = vs->GetVoiceById(a_id);
-            if (!it) {
+            bool enabled = false;
+            if (!Registry::Library::GetSingleton()->ReadVoice(a_id, [&](const auto& voice) { enabled = voice.enabled; })) {
                 a_vm->TraceStack("Invalid voice form", a_stackID);
-                return false;
             }
-            return it->enabled;
+            return enabled;
         }
 
         void SetEnabled(RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_enabled)
@@ -25,37 +23,33 @@ namespace Papyrus::VoiceSlots
 
         std::vector<RE::BSFixedString> GetVoiceTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            const auto vs = Registry::Library::GetSingleton();
-            auto it = vs->GetVoiceById(a_id);
-            if (!it) {
+            std::vector<RE::BSFixedString> tags;
+            if (!Registry::Library::GetSingleton()->ReadVoice(a_id, [&](const auto& voice) { tags = voice.tags.AsVector(); })) {
                 a_vm->TraceStack("Invalid voice form", a_stackID);
-                return {};
             }
-            return it->tags.AsVector();
+            return tags;
         }
 
         int GetCompatibleSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            const auto vs = Registry::Library::GetSingleton();
-            auto it = vs->GetVoiceById(a_id);
-            if (!it) {
+            int sex = 0;
+            if (!Registry::Library::GetSingleton()->ReadVoice(a_id, [&](const auto& voice) {
+                    sex = voice.sex == RE::SEXES::kNone ? -1 : static_cast<int>(voice.sex);
+                })) {
                 a_vm->TraceStack("Invalid voice form", a_stackID);
-                return {};
             }
-            return it->sex == RE::SEXES::kNone ? -1 : it->sex;
+            return sex;
         }
 
         std::vector<RE::BSFixedString> GetCompatibleRaces(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            const auto vs = Registry::Library::GetSingleton();
-            auto it = vs->GetVoiceById(a_id);
-            if (!it) {
+            std::vector<RE::BSFixedString> ret;
+            if (!Registry::Library::GetSingleton()->ReadVoice(a_id, [&](const auto& voice) {
+                    ret.reserve(voice.races.size());
+                    for (const auto& race : voice.races)
+                        ret.push_back(race.AsString());
+                })) {
                 a_vm->TraceStack("Invalid voice form", a_stackID);
-                return {};
-            }
-            std::vector<RE::BSFixedString> ret{};
-            for (auto&& r : it->races) {
-                ret.push_back(r.AsString());
             }
             return ret;
         }

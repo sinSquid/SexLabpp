@@ -5,43 +5,111 @@
 #include "Thread/Hooks.h"
 #include "Thread/Interface/SceneHUD.h"
 #include "Thread/Interface/StageSelectMenu.h"
+#include "Thread/Interface/FurnSelectMenu.h"
 #include "Util/Script.h"
 
 namespace Thread
 {
-    void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference)
+    void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request)
     {
-        if (GetInstance(a_linkedQst)) {
+        const auto script = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
+        const auto request = script ? script->GetProperty("StartupRequest") : nullptr;
+        if (!request || RE::BSScript::UnpackValue<int32_t>(request) != a_request)
+            return;
+        const auto cancelled = std::make_shared<std::atomic_bool>(false);
+        bool alreadyCreating;
+        {
+            std::unique_lock lock{ _mInstances };
+            if (RE::BSScript::UnpackValue<int32_t>(request) != a_request)
+                return;
+            alreadyCreating = creatingInstances.contains(a_linkedQst) ||
+                              std::ranges::any_of(instances, [a_linkedQst](const auto& instance) { return instance->linkedQst == a_linkedQst; }) ||
+                              std::ranges::any_of(pendingInstances, [a_linkedQst](const auto& instance) { return instance->linkedQst == a_linkedQst; });
+            if (!alreadyCreating)
+                creatingInstances.emplace(a_linkedQst, cancelled);
+        }
+        if (alreadyCreating) {
             logger::warn("Thread instance already exists for quest {:X}.", a_linkedQst->formID);
-            DispatchContinueSetup(a_linkedQst, false);
+            DispatchContinueSetup(a_linkedQst, false, a_request);
             return;
         }
         try {
-            auto instance = std::make_unique<Instance>(a_linkedQst, a_submissives, a_scenes, a_furniturePreference);
+            auto instance = std::make_shared<Instance>(a_linkedQst, a_submissives, a_scenes, a_furniturePreference, a_request, cancelled);
             std::unique_lock lock{ _mInstances };
+            const auto creating = creatingInstances.find(a_linkedQst);
+            if (cancelled->load() || creating == creatingInstances.end() || creating->second != cancelled) {
+                SKSE::GetTaskInterface()->AddTask([a_linkedQst, a_request]() {
+                    Interface::FurnSelectMenu::GetSingleton().Cancel(a_linkedQst, a_request);
+                });
+                return;
+            }
+            creatingInstances.erase(creating);
             if (instance->pendingQst != nullptr) {
-                pendingInstances.emplace_back(std::move(instance));
+                pendingInstances.emplace_back(instance);
+                lock.unlock();
+                // Publish before accepting input; build and show the menu on the game thread.
+                SKSE::GetTaskInterface()->AddTask([instance]() {
+                    try {
+                        instance->ShowCenterRefMenu();
+                    } catch (const std::exception& error) {
+                        {
+                            std::unique_lock pendingLock{ _mInstances };
+                            std::erase(pendingInstances, instance);
+                        }
+                        logger::error("Unable to show center selection menu: {}", error.what());
+                        if (!instance->creationCancelled->load())
+                            DispatchContinueSetup(instance->linkedQst, false, instance->startupRequest);
+                    }
+                });
                 // DispatchContinueSetup() called by Instance::FinalizeCenterRefSelection()
             } else {
                 instances.emplace_back(std::move(instance));
-                DispatchContinueSetup(a_linkedQst, true);
+                lock.unlock();
+                DispatchContinueSetup(a_linkedQst, true, a_request);
             }
             return;
         } catch (const std::exception& e) {
+            {
+                std::unique_lock lock{ _mInstances };
+                const auto creating = creatingInstances.find(a_linkedQst);
+                if (creating != creatingInstances.end() && creating->second == cancelled)
+                    creatingInstances.erase(creating);
+                std::erase_if(pendingInstances, [a_linkedQst, a_request](const auto& instance) {
+                    return instance->linkedQst == a_linkedQst && instance->startupRequest == a_request;
+                });
+            }
             logger::error("Failed to create thread instance: {}", e.what());
-            DispatchContinueSetup(a_linkedQst, false);
+            if (!cancelled->load())
+                DispatchContinueSetup(a_linkedQst, false, a_request);
+            else
+                SKSE::GetTaskInterface()->AddTask([a_linkedQst, a_request]() {
+                    Interface::FurnSelectMenu::GetSingleton().Cancel(a_linkedQst, a_request);
+                });
             return;
         }
     }
 
     void Instance::DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors)
     {
+        std::vector<int32_t> cancelledSelections;
         {
             std::unique_lock lock{ _mInstances };
+            if (const auto creating = creatingInstances.find(a_linkedQst); creating != creatingInstances.end()) {
+                creating->second->store(true);
+                creatingInstances.erase(creating);
+            }
+            std::erase_if(pendingInstances, [&](const auto& instance) {
+                if (instance->linkedQst != a_linkedQst)
+                    return false;
+                instance->creationCancelled->store(true);
+                cancelledSelections.push_back(instance->startupRequest);
+                return true;
+            });
             std::erase_if(instances, [&](const auto& instance) {
                 if (instance->linkedQst != a_linkedQst) {
                     return false;
                 }
+                instance->creationCancelled->store(true);
                 if (!a_preservePreparedActors && instance->GetPosition(RE::PlayerCharacter::GetSingleton())) {
                     Hooks::SetWeaponDrawBlocked(false);
                 }
@@ -49,38 +117,43 @@ namespace Thread
                 return true;
             });
         }
+        for (const auto request : cancelledSelections)
+            SKSE::GetTaskInterface()->AddTask([a_linkedQst, request]() {
+                Interface::FurnSelectMenu::GetSingleton().Cancel(a_linkedQst, request);
+            });
         if (!a_preservePreparedActors) {
             RestorePreparedActors(a_linkedQst);
         }
     }
 
-    Instance* Instance::GetInstance(RE::TESQuest* a_linkedQst)
+    std::shared_ptr<Instance> Instance::GetInstance(RE::TESQuest* a_linkedQst)
     {
         std::shared_lock lock{ _mInstances };
         for (auto&& instance : instances) {
             if (instance->linkedQst == a_linkedQst) {
-                return instance.get();
+                return instance;
             }
         }
         return nullptr;
     }
 
-    Instance* Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)
+    std::shared_ptr<Instance> Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)
     {
         std::shared_lock lock{ _mInstances };
         for (auto&& instance : pendingInstances) {
             if (instance->linkedQst == a_linkedQst) {
-                return instance.get();
+                return instance;
             }
         }
         return nullptr;
     }
 
-    void Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result)
+    void Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int32_t a_request)
     {
         const auto handle = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
         Script::CallbackPtr callbackPtr{};
-        Script::DispatchMethodCall(handle, "ContinueSetup", callbackPtr, std::move(a_result));
+        if (!handle || !Script::DispatchMethodCall(handle, "ContinueSetup", callbackPtr, bool{ a_result }, int32_t{ a_request }))
+            logger::error("Failed to dispatch startup completion for quest {:X}, request {}.", a_linkedQst->GetFormID(), a_request);
     }
 
     void Instance::Center::SetReference(RE::TESObjectREFR* a_ref, Registry::FurnitureOffset a_offset)
@@ -124,7 +197,7 @@ namespace Thread
         }
     }
 
-    bool Instance::SetActiveScene(const Registry::Scene* a_scene)
+    bool Instance::SetActiveScene(const Registry::Scene* a_scene, bool a_refreshHUD)
     {
         assert(a_scene);
         if (!a_scene->IsCompatibleFurniture(center.offset.type)) {
@@ -158,7 +231,7 @@ namespace Thread
         activeScene->furnitureOffset.Apply(baseCoordinates);
         activeAssignment = assignments.begin();
 
-        if (auto* sceneHUD = Interface::SceneHUD::GetSingleton().GetForThread(linkedQst))
+        if (auto* sceneHUD = a_refreshHUD ? Interface::SceneHUD::GetSingleton().GetForThread(linkedQst) : nullptr)
             sceneHUD->RebuildSceneList();
         return true;
     }

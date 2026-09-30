@@ -716,6 +716,10 @@ EndFunction
 /;
 
 int _instanceCreationWaitLock
+int Property StartupRequest Auto Hidden
+float _startupStartedAt
+float _startupPhaseAt
+float _preparationStartedAt
 int _prepareAsyncCount
 String[] _CustomScenes
 String[] _PrimaryScenes
@@ -841,10 +845,13 @@ State Making
 
 	sslThreadController Function StartThread()
 		UnregisterForUpdate()
+		StartupRequest += 1
+		int request = StartupRequest
+		_startupStartedAt = GetStartupClock()
+		_startupPhaseAt = _startupStartedAt
 		_Positions = PapyrusUtil.RemoveActor(_Positions, none)
 		If(_Positions.Length <= 0 || _Positions.Length > POSITION_COUNT_MAX)
 			Fatal("Failed to start Thread: Thread has reached actor limit or no actors were added", "StartThread()")
-			Initialize()
 			return none
 		EndIf
 		RunHook(Config.HOOKID_STARTING)
@@ -855,22 +862,42 @@ State Making
 		Actor[] submissives = GetSubmissives()
 		_instanceCreationWaitLock = -1
 		CreateInstance(submissives, _PrimaryScenes, _LeadInScenes, _CustomScenes, _furniStatus)
-		While (_instanceCreationWaitLock < 0)
-			Utility.Wait(0.05)
+		float waited = 0.0
+		float previous = GetStartupClock()
+		While (_instanceCreationWaitLock < 0 && StartupRequest == request && GetState() == STATE_SETUP)
+			Utility.WaitMenuMode(0.1)
+			If (StartupRequest != request || GetState() != STATE_SETUP)
+				return none
+			EndIf
+			float now = GetStartupClock()
+			If (!IsCenterSelectionPending())
+				waited += now - previous
+			EndIf
+			previous = now
+			If (waited >= 60.0)
+				Fatal("Native instance creation timed out", "StartThread()")
+				return none
+			EndIf
 		EndWhile
+		If (StartupRequest != request || GetState() != STATE_SETUP)
+			return none
+		EndIf
 		If (_instanceCreationWaitLock == 0)
 			Fatal("Failed to start Thread: Unable to create thread instance. See 'Documents/My Games/Skyrim Special Edition/SKSE/SexLabUtil.log' for details", "StartThread()")
-			Initialize()
 			return none
 		EndIf
 		If (!_QuickResetScenes)
+			TraceStartupPhase("instance ready")
 			GoToState(STATE_SETUP_M)
 		EndIf
 	return self as sslThreadController
 	EndFunction
 	; Called after CreateInstance() terminates (maybe async due to center selection)
-	Function ContinueSetup(bool abContinue)
+	Function ContinueSetup(bool abContinue, int aiRequest = 0)
 		Log("ContinueSetup called with " + abContinue)
+		If (aiRequest != StartupRequest)
+			return
+		EndIf
 		_instanceCreationWaitLock = abContinue as int
 	EndFunction
 	
@@ -886,23 +913,41 @@ EndState
 ; An immediate state to disallow setting additional data while aliases process setup
 State Making_M
 	Event OnBeginState()
+		; Dialogue waiting is intentional and must not consume the preparation timeout.
+		_preparationStartedAt = -1.0
+		RegisterForSingleUpdate(1.0)
 		If (!BeginPlayerDialogueWait())
 			return
 		EndIf
+		_preparationStartedAt = GetStartupClock()
 		If (!BeginActorRecovery())
 			return
 		EndIf
 		BeginAliasPreparation()
 	EndEvent
 
-	Function OnPlayerDialogueComplete()
+	Function OnPlayerDialogueComplete(int aiRequest = 0)
+		If (aiRequest != StartupRequest)
+			return
+		EndIf
+		_preparationStartedAt = GetStartupClock()
 		If (!BeginActorRecovery())
 			return
 		EndIf
 		BeginAliasPreparation()
 	EndFunction
+	Event OnUpdate()
+		If (_preparationStartedAt >= 0.0 && GetStartupClock() - _preparationStartedAt >= 60.0)
+			OnStartupFailed(StartupRequest)
+		Else
+			RegisterForSingleUpdate(1.0)
+		EndIf
+	EndEvent
 
-	Function OnNativeActorRecoveryComplete(bool abSucceeded)
+	Function OnNativeActorRecoveryComplete(bool abSucceeded, int aiRequest = 0)
+		If (aiRequest != StartupRequest)
+			return
+		EndIf
 		If (!abSucceeded)
 			Log("Native actor recovery failed", "OnNativeActorRecoveryComplete()")
 			EndAnimation()
@@ -912,23 +957,31 @@ State Making_M
 	EndFunction
 
 	Function BeginAliasPreparation()
+		int request = StartupRequest
+		TraceStartupPhase("dialogue/recovery ready")
 		; Event to all active aliases, resync via PrepareDone() to continue startup
 		_prepareAsyncCount = 0
-		CenterRef.SendModEvent("SSL_PREPARE_Thread" + tid)
+		CenterRef.SendModEvent("SSL_PREPARE_Thread" + tid, request as string)
 		_LeadInScenes = GetLeadInScenes()
 		_PrimaryScenes = GetPrimaryScenes()
 		_CustomScenes = GetCustomScenes()
 		SortAliasesToPositions()
-		PrepareDone()
 		If (_CustomScenes.Length)
 			_ThreadTags = SexLabRegistry.GetCommonTags(_CustomScenes)
 		Else
 			_ThreadTags = SexLabRegistry.GetCommonTags(_PrimaryScenes)
 		EndIf
+		If (StartupRequest != request || GetState() != STATE_SETUP_M)
+			return
+		EndIf
+		PrepareDone(request)
 	EndFunction
 
 	; Invoked n times by Aliases and once by StartThread, then continue to next state
-	Function PrepareDone()
+	Function PrepareDone(int aiRequest = 0)
+		If (aiRequest != 0 && aiRequest != StartupRequest)
+			return
+		EndIf
 		_prepareAsyncCount += 1
 		Log("PrepareDone() called " + _prepareAsyncCount + "/" + (_Positions.Length + 1) + " times")
 		If (_prepareAsyncCount < (_Positions.Length + 1))
@@ -946,7 +999,10 @@ State Making_M
 		FinishPreparation()
 	EndFunction
 
-	Function OnPlayerSheatheComplete(bool abSucceeded)
+	Function OnPlayerSheatheComplete(bool abSucceeded, int aiRequest = 0)
+		If (aiRequest != StartupRequest)
+			return
+		EndIf
 		If (!abSucceeded)
 			Log("Player weapon sheathing timed out", "OnPlayerSheatheComplete()")
 			EndAnimation()
@@ -960,6 +1016,7 @@ State Making_M
 	EndFunction
 
 	Function FinishPreparation()
+		TraceStartupPhase("aliases/sheathing ready")
 		String activeScene = GetActiveScene()
 		LeadIn = LeadIn && _LeadInScenes.Find(activeScene) > -1
 		Log("Thread validated, playing animation: " + activeScene + ", " + SexLabRegistry.GetSceneName(activeScene), "StartThread()")
@@ -968,14 +1025,24 @@ State Making_M
 	EndFunction
 
 	Function UndressAndStripActors()
+		int request = StartupRequest
 		bool WaitForUndress = false
 		int i = 0
 		While (i < _Positions.Length)
+			If (StartupRequest != request || GetState() != STATE_SETUP_M)
+				return
+			EndIf
 			WaitForUndress= (ActorAlias[i].InitiateUndressing() || WaitForUndress)
 			i += 1
 		EndWhile
+		If (StartupRequest != request || GetState() != STATE_SETUP_M)
+			return
+		EndIf
 		If (WaitForUndress)
 			Utility.Wait(2.5)
+			If (StartupRequest != request || GetState() != STATE_SETUP_M)
+				return
+			EndIf
 		EndIf
 		If (HasPlayer)
 			If (sslSystemConfig.GetSettingInt("iUseFade") > 0)
@@ -987,21 +1054,36 @@ State Making_M
 			EndIf
 		EndIf
 		string activeScene = GetActiveScene()
+		If (StartupRequest != request || GetState() != STATE_SETUP_M)
+			return
+		EndIf
 		int[] strips_ = SexLabRegistry.GetStripDataA(activeScene, "")
 		int[] sex_ = SexLabRegistry.GetPositionSexA(activeScene)
 		int j = 0
 		While (j < _Positions.Length)
+			If (StartupRequest != request || GetState() != STATE_SETUP_M)
+				return
+			EndIf
 			ActorAlias[j].ReadyActor(strips_[j], sex_[j])
 			j += 1
 		EndWhile
+		If (StartupRequest != request || GetState() != STATE_SETUP_M)
+			return
+		EndIf
 		If (WaitForUndress)
 			Utility.Wait(1.5)
+			If (StartupRequest != request || GetState() != STATE_SETUP_M)
+				return
+			EndIf
 		EndIf
+		TraceStartupPhase("stripping ready")
+		UnregisterForUpdate()
 		GoToState(STATE_PLAYING)
 	EndFunction
 	
 	Function EndAnimation(bool Quickly = false)
 		_prepareAsyncCount = -2147483648
+		UnregisterForUpdate()
 		GoToState(STATE_END)
 	EndFunction
 
@@ -1056,7 +1138,7 @@ EndFunction
 Function SetFurnitureStatus(int aiStatus)
 	Log("Furniture status can only be set during setup", "SetFurnitureStatus()")
 EndFunction
-Function ContinueSetup(bool abContinue)
+Function ContinueSetup(bool abContinue, int aiRequest = 0)
 	Log("ContinueSetup() can only be called during setup", "ContinueSetup()")
 EndFunction
 Function UndressAndStripActors()
@@ -1067,6 +1149,22 @@ Function CreateInstance(Actor[] akSubmissives, String[] asPrimaryScenes, String[
 bool Function BeginActorRecovery() native
 bool Function BeginPlayerDialogueWait() native
 bool Function BeginPlayerSheatheWait() native
+float Function GetStartupClock() native
+bool Function IsCenterSelectionPending() native
+Function LogStartupPhase(String asPhase, float afPhaseElapsed, float afTotalElapsed) native
+
+Function TraceStartupPhase(String asPhase)
+	float now = GetStartupClock()
+	LogStartupPhase(asPhase, now - _startupPhaseAt, now - _startupStartedAt)
+	_startupPhaseAt = now
+EndFunction
+
+Function OnStartupFailed(int aiRequest)
+	If (aiRequest == StartupRequest && GetStatus() == STATUS_SETUP)
+		Log("Startup timed out; cancelling request " + aiRequest)
+		EndAnimation()
+	EndIf
+EndFunction
 String[] Function GetLeadInScenes() native
 String[] Function GetPrimaryScenes() native
 String[] Function GetCustomScenes() native
@@ -1507,7 +1605,10 @@ State Animating
 		EndIf
 	EndFunction
 
-	Function OnAnimationSyncFailed()
+	Function OnAnimationSyncFailed(int aiRequest = 0)
+		If (aiRequest != StartupRequest)
+			return
+		EndIf
 		_animationSyncPending = false
 		_sceneResetSyncPending = false
 		_nextSceneResetAt = 0.0
@@ -1516,7 +1617,10 @@ State Animating
 		EndAnimation()
 	EndFunction
 
-	Function OnNativeActorsPrepared()
+	Function OnNativeActorsPrepared(int aiRequest = 0)
+		If (aiRequest != StartupRequest)
+			return
+		EndIf
 		int i = 0
 		While (i < _Positions.Length)
 			ActorAlias[i].NativeActorLockApplied()
@@ -1524,7 +1628,10 @@ State Animating
 		EndWhile
 	EndFunction
 
-	Function OnFixedLengthStageComplete()
+	Function OnFixedLengthStageComplete(int aiRequest = 0)
+		If (aiRequest != StartupRequest)
+			return
+		EndIf
 		If (_animationSyncPending)
 			return
 		EndIf
@@ -1534,7 +1641,13 @@ State Animating
 		AdvanceFromTimer()
 	EndFunction
 
-	Function OnAnimationSynchronized()
+	Function OnAnimationSynchronized(int aiRequest = 0)
+		If (aiRequest != StartupRequest)
+			return
+		EndIf
+		If (!_animationStarted)
+			TraceStartupPhase("animation synchronized")
+		EndIf
 		_animationSyncPending = false
 		bool completedSceneReset = _sceneResetSyncPending
 		_sceneResetSyncPending = false
@@ -1638,15 +1751,15 @@ Function PlayStageAnimations()
 	RealignActors()
 EndFunction
 
-Function OnAnimationSyncFailed()
+Function OnAnimationSyncFailed(int aiRequest = 0)
 	Log("OnAnimationSyncFailed(), Function called from invalid state: " + GetState())
 EndFunction
 
-Function OnNativeActorsPrepared()
+Function OnNativeActorsPrepared(int aiRequest = 0)
 	Log("OnNativeActorsPrepared(), Function called from invalid state: " + GetState())
 EndFunction
 
-Function OnFixedLengthStageComplete()
+Function OnFixedLengthStageComplete(int aiRequest = 0)
 	Log("OnFixedLengthStageComplete(), Function called from invalid state: " + GetState())
 EndFunction
 
@@ -1654,7 +1767,7 @@ Function AdvanceFromTimer()
 	Log("AdvanceFromTimer(), Function called from invalid state: " + GetState())
 EndFunction
 
-Function OnAnimationSynchronized()
+Function OnAnimationSynchronized(int aiRequest = 0)
 	Log("OnAnimationSynchronized(), Function called from invalid state: " + GetState())
 EndFunction
 
@@ -1861,19 +1974,19 @@ bool Function ResetAnimationQuick(String asTagString = "")
 	Log("ResetAnimationQuick(), Function called from invalid state: " + GetState())
 	return false
 EndFunction
-Function PrepareDone()
+Function PrepareDone(int aiRequest = 0)
 	Log("PrepareDone(), Function called from invalid state: " + GetState())
 EndFunction
-Function OnNativeActorRecoveryComplete(bool abSucceeded)
+Function OnNativeActorRecoveryComplete(bool abSucceeded, int aiRequest = 0)
 	Log("OnNativeActorRecoveryComplete(), Function called from invalid state: " + GetState())
 EndFunction
-Function OnPlayerDialogueComplete()
+Function OnPlayerDialogueComplete(int aiRequest = 0)
 	Log("OnPlayerDialogueComplete(), Function called from invalid state: " + GetState())
 EndFunction
 Function BeginAliasPreparation()
 	Log("BeginAliasPreparation(), Function called from invalid state: " + GetState())
 EndFunction
-Function OnPlayerSheatheComplete(bool abSucceeded)
+Function OnPlayerSheatheComplete(bool abSucceeded, int aiRequest = 0)
 	Log("OnPlayerSheatheComplete(), Function called from invalid state: " + GetState())
 EndFunction
 Function FinishPreparation()
@@ -2293,9 +2406,12 @@ EndFunction
 
 ; Reset this thread to base status
 Function Initialize()
+	StartupRequest += 1
 	UnregisterForUpdate()
 	UnregisterForUpdateGameTime()
 	Config.DisableThreadControl(self as sslThreadController)
+	; Stop native work before clearing aliases that an in-flight worker may still reference.
+	DestroyInstance()
 	int i = 0
 	While(i < ActorAlias.Length)
 		ActorAlias[i].Initialize()
@@ -2320,7 +2436,6 @@ Function Initialize()
 	_queuedSceneReset = ""
 	EnjoymentPaused = false
 	; Enter thread selection pool
-	DestroyInstance()
 	GoToState(STATE_IDLE)
 EndFunction
 
@@ -2650,14 +2765,28 @@ Function UpdateBaseSpeed(float afBaseSpeed)
 	_AnimationSpeedBase = afBaseSpeed
 EndFunction
 
-Function UpdateBaseSpeedFromPlayback(float afPlaybackSpeed)
+Function UpdateBaseSpeedFromPlayback(float afPlaybackSpeed, int aiRequest = 0, int aiSequence = 0)
+	; Zero preserves the legacy one-argument API; native UI calls carry their request.
+	int request = StartupRequest
+	If (aiRequest != 0 && aiRequest != request)
+		return
+	EndIf
 	float multiplier = GetAnimationSpeedMultiplier()
+	If (StartupRequest != request)
+		return
+	EndIf
+	float baseSpeed = PapyrusUtil.ClampFloat(afPlaybackSpeed, 0.5, 4.0)
 	If (multiplier > 0.0)
-		_AnimationSpeedBase = PapyrusUtil.ClampFloat(afPlaybackSpeed, 0.5, 4.0) / multiplier
+		baseSpeed /= multiplier
+	EndIf
+	If (aiSequence > 0)
+		CommitPlaybackBase(baseSpeed, request, aiSequence)
 	Else
-		_AnimationSpeedBase = PapyrusUtil.ClampFloat(afPlaybackSpeed, 0.5, 4.0)
+		_AnimationSpeedBase = baseSpeed
 	EndIf
 EndFunction
+
+Function CommitPlaybackBase(float afBaseSpeed, int aiRequest, int aiSequence) native
 
 float Function GetAnimationSpeedMultiplier()
 	If (!Config.SetAnimSpeedByEnjoyment)

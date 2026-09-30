@@ -20,13 +20,29 @@ namespace Thread::Interface
         return true;
     }
 
-    void FurnSelectMenu::Open(RE::TESQuest* a_quest, const std::vector<Item>& a_items)
+    void FurnSelectMenu::Open(RE::TESQuest* a_quest, const std::vector<Item>& a_items, int32_t a_request)
     {
+        std::scoped_lock lock{ _stateMutex };
         if (!a_quest)
             return;
+        if (IsVisible() && (_linkedThread != a_quest || _startupRequest != a_request))
+            throw std::runtime_error("Another center selection menu is already open.");
         _linkedThread = a_quest;
+        _startupRequest = a_request;
         _items = a_items;
         Show();
+        if (!IsVisible())
+            throw std::runtime_error("Center selection window is unavailable.");
+    }
+
+    void FurnSelectMenu::Cancel(RE::TESQuest* a_quest, int32_t a_request)
+    {
+        std::scoped_lock lock{ _stateMutex };
+        if (_linkedThread != a_quest || _startupRequest != a_request)
+            return;
+        Hide();
+        _linkedThread = nullptr;
+        _items.clear();
     }
 
     void FurnSelectMenu::HandleSelection(std::size_t a_index)
@@ -36,12 +52,13 @@ namespace Thread::Interface
         _items.clear();
         if (!quest)
             return;
-        auto* inst = Instance::GetPendingInstance(quest);
-        if (!inst) {
-            logger::error("FurnSelectMenu::HandleSelection >> instance not found");
-            return;
-        }
-        inst->SetCenterRefSelected(a_index);
+        const auto request = _startupRequest;
+        SKSE::GetTaskInterface()->AddTask([quest, request, a_index]() {
+            auto inst = Instance::GetPendingInstance(quest);
+            if (!inst || !inst->IsStartupRequest(request))
+                return;
+            inst->SetCenterRefSelected(a_index);
+        });
     }
 
     void __stdcall FurnSelectMenu::RenderCallback()
@@ -51,6 +68,7 @@ namespace Thread::Interface
 
     void FurnSelectMenu::Render()
     {
+        std::scoped_lock lock{ _stateMutex };
         if (!IsVisible())
             return;
         auto& scale = SceneHUD::GetSingleton().GetScale();

@@ -3,6 +3,7 @@
 #include "Registry/Library.h"
 #include "Thread/NiNode/Legacy/LegacyNiUpdate.h"
 #include "Thread/NiNode/NiUpdate.h"
+#include "Util/RequestSequence.h"
 
 namespace Thread
 {
@@ -58,19 +59,24 @@ namespace Thread
         };
 
       public:
-        Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
+        Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request, std::shared_ptr<std::atomic_bool> a_cancelled);
         ~Instance() = default;
 
-        static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
+        static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request);
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
-        static Instance* GetInstance(RE::TESQuest* a_linkedQst);
-        static Instance* GetPendingInstance(RE::TESQuest* a_linkedQst);
-        static void FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst);
-        static void DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result);
+        static std::shared_ptr<Instance> GetInstance(RE::TESQuest* a_linkedQst);
+        static std::shared_ptr<Instance> GetPendingInstance(RE::TESQuest* a_linkedQst);
+        static void FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, int32_t a_request);
+        static void DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int32_t a_request);
         static void UpdateAnimations(float a_delta);
+        static float GetStartupClock() { return startupClock.load(std::memory_order_relaxed); }
 
       public:
+        [[nodiscard]] bool IsStartupRequest(int32_t a_request) const { return startupRequest == a_request && !creationCancelled->load(); }
+        [[nodiscard]] int32_t GetStartupRequest() const { return startupRequest; }
+        int32_t NextSpeedRequest() { return speedRequests.Next(); }
+        [[nodiscard]] bool IsCurrentSpeedRequest(int32_t a_sequence) const { return speedRequests.IsCurrent(a_sequence); }
         bool HasNiInstance() const { return niInstance != nullptr; }
         NiNode::NiInstance* GetNiInstance() { return niInstance.get(); }
         void UnregisterNiInstance() { (NiNode::NiUpdate::Unregister(linkedQst->GetFormID()), niInstance = nullptr); }
@@ -84,7 +90,7 @@ namespace Thread
         bool BeginPlayerDialogueWait();
         bool BeginPlayerSheatheWait();
         void RealignActors();
-        bool SetActiveScene(const Registry::Scene* a_scene);
+        bool SetActiveScene(const Registry::Scene* a_scene, bool a_refreshHUD = true);
         const Registry::Scene* GetActiveScene() { return activeScene; }
         const Registry::Stage* GetActiveStage() { return activeStage; }
         std::vector<const Registry::Scene*> GetThreadScenes(SceneType a_type);
@@ -188,6 +194,8 @@ namespace Thread
         };
 
         RE::TESQuest* linkedQst;
+        int32_t startupRequest;
+        std::shared_ptr<std::atomic_bool> creationCancelled;
         std::shared_ptr<NiNode::NiInstance> niInstance{ nullptr };
         std::shared_ptr<LegacyNiNode::NiInstance> niInstanceLegacy{ nullptr };
 
@@ -200,6 +208,7 @@ namespace Thread
         const Registry::Stage* activeStage{ nullptr };
         SceneMapping scenes{};
         std::vector<PendingAnimation> pendingAnimations{};
+        std::array<std::vector<ActiveClip>, Registry::ActorFragment::MAX_ACTOR_COUNT> activeClipScratch{};
         std::vector<PendingRecovery> pendingRecoveries{};
         float playerSheatheElapsed{ 0.0f };
         RE::WEAPON_STATE playerSheathePreviousState{ RE::WEAPON_STATE::kSheathed };
@@ -209,7 +218,10 @@ namespace Thread
         bool playerSheatheActionSubmitted{ false };
         bool playerSheathePending{ false };
         float animationPlaybackSpeed{ 1.5f };
+        Util::RequestSequence speedRequests;
         FixedLengthTimer fixedLengthTimer{};
+        float startupElapsed{ 0.0f };
+        bool startupFailureNotified{ false };
 
         // used during center selection through menu
         RE::TESQuest* pendingQst{ nullptr };
@@ -231,6 +243,7 @@ namespace Thread
         bool InitializeFixedCenter(RE::Actor* centerAct, std::vector<const Registry::Scene*>& prioScenes, REX::EnumSet<Registry::FurnitureType::Value> sceneTypes);
         CenterSelection GetSelectionMethod(FurniturePreference furniturePreference);
         void InitializeCenterRefMenu(const FurnitureMapping& a_furnitures, RE::Actor* a_tmpCenter);
+        void ShowCenterRefMenu();
         FurnitureMapping GetUniqueFurnituesOfTypeInBound(RE::Actor* a_centerAct, REX::EnumSet<Registry::FurnitureType::Value> a_furnitureTypes);
         bool GetActiveClips(RE::Actor* a_actor, std::vector<ActiveClip>& a_clips) const;
         bool QueueActorRecoveries(bool a_preparationBarrier);
@@ -247,8 +260,10 @@ namespace Thread
 
       private:
         static inline std::shared_mutex _mInstances{};
-        static inline std::vector<std::unique_ptr<Instance>> instances{};
-        static inline std::vector<std::unique_ptr<Instance>> pendingInstances{};
+        static inline std::atomic<float> startupClock{ 0.0f };
+        static inline std::vector<std::shared_ptr<Instance>> instances{};
+        static inline std::vector<std::shared_ptr<Instance>> pendingInstances{};
+        static inline std::map<RE::TESQuest*, std::shared_ptr<std::atomic_bool>> creatingInstances{};
     };
 
 }  // namespace Thread

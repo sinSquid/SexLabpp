@@ -88,9 +88,12 @@ namespace Registry
                 return field != source.integers->end() && field->second == 1;
             };
             expression.enabled = get("enabled");
-            for (auto&& tag : { "aggressor", "normal", "victim " })
+            for (auto&& tag : { "aggressor", "normal", "victim" })
                 if (get(tag))
                     expression.tags.AddTag(tag);
+            // Accept older exports containing the misspelled key, but store the canonical tag.
+            if (get("victim "))
+                expression.tags.AddTag("victim");
         }
         return expression;
     }

@@ -54,6 +54,9 @@ namespace Papyrus::ThreadModel
     void CreateInstance(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref);
     void DestroyInstance(RE::TESQuest* a_qst, bool a_preservePreparedActors);
     void CancelPendingAnimations(RE::TESQuest* a_qst);
+    float GetStartupClock(RE::TESQuest* a_qst);
+    bool IsCenterSelectionPending(RE::TESQuest* a_qst);
+    void LogStartupPhase(RE::TESQuest* a_qst, RE::BSFixedString a_phase, float a_phaseElapsed, float a_totalElapsed);
     bool BeginActorRecovery(QUESTARGS);
     bool BeginPlayerDialogueWait(QUESTARGS);
     bool BeginPlayerSheatheWait(QUESTARGS);
@@ -78,6 +81,7 @@ namespace Papyrus::ThreadModel
     float GetActionVelocity(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type);
 
     void SetAnimationPlaybackSpeed(QUESTARGS, float a_playbackSpeed);
+    void CommitPlaybackBase(QUESTARGS, float a_baseSpeed, int32_t a_request, int32_t a_sequence);
     bool RestartFixedLengthTimer(QUESTARGS);
     bool AdjustFixedLengthTimer(QUESTARGS, float a_delta);
     void SetFixedLengthTimerPaused(QUESTARGS, bool a_paused);
@@ -100,15 +104,19 @@ namespace Papyrus::ThreadModel
 
     inline bool Register(VM* a_vm)
     {
-        REGISTERFUNC(GetActiveScene, "sslThreadModel", true);
-        REGISTERFUNC(GetActiveStage, "sslThreadModel", true);
-        REGISTERFUNC(GetPlayingScenes, "sslThreadModel", true);
-        REGISTERFUNC(GetPositions, "sslThreadModel", true);
+        // Mutable instance state is owned by the game-thread animation/UI path.
+        REGISTERFUNC(GetActiveScene, "sslThreadModel", false);
+        REGISTERFUNC(GetActiveStage, "sslThreadModel", false);
+        REGISTERFUNC(GetPlayingScenes, "sslThreadModel", false);
+        REGISTERFUNC(GetPositions, "sslThreadModel", false);
         REGISTERFUNC(AddContextExImpl, "sslThreadModel", true);
 
         REGISTERFUNC(CreateInstance, "sslThreadModel", true);
-        REGISTERFUNC(DestroyInstance, "sslThreadModel", true);
-        REGISTERFUNC(CancelPendingAnimations, "sslThreadModel", true);
+        REGISTERFUNC(DestroyInstance, "sslThreadModel", false);
+        REGISTERFUNC(CancelPendingAnimations, "sslThreadModel", false);
+        REGISTERFUNC(GetStartupClock, "sslThreadModel", true);
+        REGISTERFUNC(IsCenterSelectionPending, "sslThreadModel", true);
+        REGISTERFUNC(LogStartupPhase, "sslThreadModel", true);
         REGISTERFUNC(BeginActorRecovery, "sslThreadModel", false);
         REGISTERFUNC(BeginPlayerDialogueWait, "sslThreadModel", false);
         REGISTERFUNC(BeginPlayerSheatheWait, "sslThreadModel", false);
@@ -116,7 +124,7 @@ namespace Papyrus::ThreadModel
         REGISTERFUNC(GetPrimaryScenes, "sslThreadModel", true);
         REGISTERFUNC(GetCustomScenes, "sslThreadModel", true);
         REGISTERFUNC(AdvanceScene, "sslThreadModel", false);
-        REGISTERFUNC(SelectNextStage, "sslThreadModel", true);
+        REGISTERFUNC(SelectNextStage, "sslThreadModel", false);
         REGISTERFUNC(SetActiveScene, "sslThreadModel", false);
         REGISTERFUNC(ReassignCenter, "sslThreadModel", false);
         REGISTERFUNC(UpdatePlacement, "sslThreadModel", false);
@@ -133,6 +141,7 @@ namespace Papyrus::ThreadModel
         REGISTERFUNC(GetActionVelocity, "sslThreadModel", true);
 
         REGISTERFUNC(SetAnimationPlaybackSpeed, "sslThreadModel", false);
+        REGISTERFUNC(CommitPlaybackBase, "sslThreadModel", false);
         REGISTERFUNC(RestartFixedLengthTimer, "sslThreadModel", false);
         REGISTERFUNC(AdjustFixedLengthTimer, "sslThreadModel", false);
         REGISTERFUNC(SetFixedLengthTimerPaused, "sslThreadModel", false);
@@ -141,16 +150,16 @@ namespace Papyrus::ThreadModel
         REGISTERFUNC(AddExperience, "sslThreadModel", true);
         REGISTERFUNC(UpdateStatistics, "sslThreadModel", true);
 
-        REGISTERFUNC(InitSceneHUDImpl, "sslThreadModel", true);
-        REGISTERFUNC(DestroySceneHUDImpl, "sslThreadModel", true);
-        REGISTERFUNC(SetFocusSceneHUDImpl, "sslThreadModel", true);
+        REGISTERFUNC(InitSceneHUDImpl, "sslThreadModel", false);
+        REGISTERFUNC(DestroySceneHUDImpl, "sslThreadModel", false);
+        REGISTERFUNC(SetFocusSceneHUDImpl, "sslThreadModel", false);
 
-        REGISTERFUNC(UpdateMenuTimerDisplay, "sslThreadModel", true);
-        REGISTERFUNC(OnStageChangedUpdateHUD, "sslThreadModel", true);
-        REGISTERFUNC(EnjBarsChangeHighlightedPartner, "sslThreadModel", true);
+        REGISTERFUNC(UpdateMenuTimerDisplay, "sslThreadModel", false);
+        REGISTERFUNC(OnStageChangedUpdateHUD, "sslThreadModel", false);
+        REGISTERFUNC(EnjBarsChangeHighlightedPartner, "sslThreadModel", false);
 
-        REGISTERFUNC(OpenStageSelectMenuImpl, "sslThreadModel", true);
-        REGISTERFUNC(SetVisibilitySceneGraphImpl, "sslThreadModel", true);
+        REGISTERFUNC(OpenStageSelectMenuImpl, "sslThreadModel", false);
+        REGISTERFUNC(SetVisibilitySceneGraphImpl, "sslThreadModel", false);
 
         return ActorAlias::Register(a_vm);
     }

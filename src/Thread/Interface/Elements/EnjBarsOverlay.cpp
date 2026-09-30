@@ -190,7 +190,7 @@ namespace Thread::Interface
     {
         if (_bars.empty())
             return;
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         auto& scale = a_hud.GetScale();

@@ -42,18 +42,20 @@ namespace Registry
 
         std::vector<const Scene*> ret{};
         ret.reserve(rawScenes.size());
-        std::copy_if(rawScenes.begin(), rawScenes.end(), std::back_inserter(ret), [&](Scene* a_scene) {
-            return a_scene->IsEnabled() && !a_scene->IsPrivate();
-        });
-        if (ret.empty()) {
+        size_t enabledCount = 0;
+        for (const auto* scene : rawScenes) {
+            if (!scene->IsEnabled() || scene->IsPrivate())
+                continue;
+            ++enabledCount;
+            if (scene->IsCompatibleTags(tags))
+                ret.push_back(scene);
+        }
+        if (enabledCount == 0) {
             logger::warn("Invalid query: [{} | {} | {}]; 0/{} animations are enabled", a_actors.size(), hash.to_string(), tagstr, where->second.size());
             return {};
         }
-        const auto removed = std::erase_if(ret, [&](const Scene* a_scene) {
-            return !a_scene->IsCompatibleTags(tags);
-        });
         if (ret.empty()) {
-            logger::warn("Invalid query: [{} | {} | {}]; 0/{} animations use requested tags", a_actors.size(), hash.to_string(), tagstr, removed);
+            logger::warn("Invalid query: [{} | {} | {}]; 0/{} animations use requested tags", a_actors.size(), hash.to_string(), tagstr, enabledCount);
             return {};
         }
         const auto tEnd = std::chrono::high_resolution_clock::now();
@@ -64,11 +66,14 @@ namespace Registry
 
     std::vector<const Scene*> Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const
     {
+        if (a_positions <= 0 || a_positions > ActorFragment::MAX_ACTOR_COUNT)
+            return {};
         TagDetails tags{ a_tags };
         const std::shared_lock lock{ _mScenes };
         std::vector<const Scene*> ret{};
-        ret.reserve(sceneMap.size() >> 5);
-        for (auto&& [key, scene] : sceneMap) {
+        const auto& candidates = scenePositionIndex[static_cast<size_t>(a_positions)];
+        ret.reserve(candidates.size());
+        for (const auto* scene : candidates) {
             if (!scene->IsEnabled() || scene->IsPrivate())
                 continue;
             if (scene->positions.size() != a_positions)
@@ -78,6 +83,40 @@ namespace Registry
             ret.push_back(scene);
         }
         return ret;
+    }
+
+    std::vector<RE::BSFixedString> Library::GetLegacyProxyIds(size_t a_limit, uint32_t a_creatureSpecifier) const
+    {
+        const auto key = std::pair{ a_limit, std::min(a_creatureSpecifier, 2u) };
+        {
+            std::shared_lock lock{ _mScenes };
+            if (const auto where = legacyProxyCache.find(key); where != legacyProxyCache.end())
+                return where->second;
+        }
+        std::unique_lock lock{ _mScenes };
+        if (const auto where = legacyProxyCache.find(key); where != legacyProxyCache.end())
+            return where->second;
+        std::vector<const Scene*> selected;
+        for (const auto& [id, scene] : sceneMap) {
+            if ((key.second == 0 && scene->HasCreatures()) || (key.second == 1 && !scene->HasCreatures()))
+                continue;
+            selected.push_back(scene);
+            if (a_limit > 0 && selected.size() == a_limit)
+                break;
+        }
+        // Preserve the legacy selection limit and its original name ordering.
+        std::sort(selected.begin(), selected.end(), [](const auto* lhs, const auto* rhs) {
+            return lhs->name < rhs->name;
+        });
+        std::vector<RE::BSFixedString> ids;
+        ids.reserve(selected.size());
+        for (const auto* scene : selected)
+            ids.emplace_back(scene->id);
+        // Normal callers use only two alias limits. Bound storage for arbitrary external queries.
+        if (legacyProxyCache.size() >= 32)
+            legacyProxyCache.clear();
+        legacyProxyCache.emplace(key, ids);
+        return ids;
     }
 
     const AnimPackage* Library::GetPackageFromScene(const Scene* a_scene) const
@@ -122,7 +161,17 @@ namespace Registry
     {
         std::unique_lock lock{ _mScenes };
         const auto scene = const_cast<Scene*>(a_scene);
+        const auto oldCount = scene->positions.size();
         a_func(scene);
+        legacyProxyCache.clear();
+        if (oldCount != scene->positions.size()) {
+            for (auto& bucket : scenePositionIndex)
+                bucket.clear();
+            for (const auto& [id, entry] : sceneMap) {
+                if (!entry->positions.empty() && entry->positions.size() <= ActorFragment::MAX_ACTOR_COUNT)
+                    scenePositionIndex[entry->positions.size()].push_back(entry);
+            }
+        }
     }
 
     bool Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const
@@ -224,7 +273,7 @@ namespace Registry
         std::shared_lock lock{ _mVoice };
         std::vector<const Voice*> ret{};
         for (const auto& [_, voice] : voices) {
-            if (!tags.MatchTags(voice.tags))
+            if (!voice.enabled || !tags.MatchTags(voice.tags))
                 continue;
             ret.push_back(&voice);
         }
@@ -236,7 +285,7 @@ namespace Registry
         std::shared_lock lock{ _mVoice };
         std::vector<const Voice*> ret{};
         for (auto&& [_, voice] : voices) {
-            if (!voice.HasRace(a_race))
+            if (!voice.enabled || !voice.HasRace(a_race))
                 continue;
             ret.push_back(&voice);
         }
@@ -248,6 +297,16 @@ namespace Registry
         std::shared_lock lock{ _mVoice };
         auto v = voices.find(a_voice);
         return v == voices.end() ? nullptr : &v->second;
+    }
+
+    bool Library::ReadVoice(RE::BSFixedString a_voice, const std::function<void(const Voice&)>& a_reader) const
+    {
+        std::shared_lock lock{ _mVoice };
+        const auto voice = voices.find(a_voice);
+        if (voice == voices.end())
+            return false;
+        a_reader(voice->second);
+        return true;
     }
 
     bool Library::CreateVoice(RE::BSFixedString a_voice)
@@ -263,12 +322,13 @@ namespace Registry
 
     void Library::WriteVoiceToFile(RE::BSFixedString a_voice) const
     {
-        auto voice = GetVoiceById(a_voice);
-        if (!voice) {
+        std::optional<Voice> snapshot;
+        if (!ReadVoice(a_voice, [&](const Voice& voice) { snapshot.emplace(voice); })) {
             logger::error("Voice {} not found", a_voice);
             return;
         }
-        voice->SaveToFile(VOICE_PATH);
+        // Disk I/O uses a consistent copy without blocking voice queries or edits.
+        snapshot->SaveToFile(VOICE_PATH);
     }
 
     std::vector<RE::Actor*> Library::GetSavedActors() const
@@ -361,20 +421,21 @@ namespace Registry
             return;
         }
         auto& voice = v->second;
-        if (voice.extrasets.empty()) {
-            logger::error("Voice {} has no extrasets", a_voice);
-            return;
-        }
         switch (a_legacysetting) {
         case LegacyVoice::Mild:
             voice.defaultset.SetSound(true, a_sound);
             break;
         case LegacyVoice::Medium:
+            if (voice.extrasets.empty()) {
+                logger::error("Voice {} has no extrasets", a_voice);
+                break;
+            }
             voice.extrasets.front().SetSound(true, a_sound);
             break;
         case LegacyVoice::Hot:
             voice.defaultset.SetSound(false, a_sound);
-            voice.extrasets.front().SetSound(false, a_sound);
+            if (!voice.extrasets.empty())
+                voice.extrasets.front().SetSound(false, a_sound);
             break;
         }
     }
@@ -455,7 +516,7 @@ namespace Registry
         std::shared_lock lock{ _mExpressions };
         std::vector<const Expression*> ret{};
         for (auto&& [id, expression] : expressions) {
-            if (a_details.MatchTags(expression.GetTags())) {
+            if (expression.IsEnabled() && a_details.MatchTags(expression.GetTags())) {
                 ret.push_back(&expression);
             }
         }

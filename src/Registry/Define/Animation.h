@@ -118,6 +118,7 @@ namespace Registry
         _NODISCARD const PositionInfo* GetNthPosition(size_t n) const;
 
         _NODISCARD REX::EnumSet<FurnitureType::Value> GetFurnitureTypes() const;
+        _NODISCARD bool HasCompatibleAssignment(const std::vector<ActorFragment>& a_fragments) const;
         _NODISCARD std::vector<std::vector<RE::Actor*>> FindAssignments(const std::vector<ActorFragment>& a_fragments) const;
 
         _NODISCARD size_t GetNumStages() const;

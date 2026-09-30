@@ -5,6 +5,7 @@
 #include "Registry/Util/Decode.h"
 #include "Util/Combinatorics.h"
 #include "Util/StringUtil.h"
+#include "Util/Assignment.h"
 
 namespace Registry
 {
@@ -494,6 +495,26 @@ namespace Registry
         return ret;
     }
 
+
+    bool Scene::HasCompatibleAssignment(const std::vector<ActorFragment>& a_fragments) const
+    {
+        const auto count = a_fragments.size();
+        if (count != positions.size() || count > ActorFragment::MAX_ACTOR_COUNT)
+            return false;
+
+        std::array<size_t, ActorFragment::MAX_ACTOR_COUNT> compatible{};
+        for (size_t actor = 0; actor < count; ++actor) {
+            for (size_t position = 0; position < count; ++position) {
+                if (positions[position].data.GetCompatibilityScore(a_fragments[actor]) != 0)
+                    compatible[actor] |= size_t{ 1 } << position;
+            }
+            if (compatible[actor] == 0)
+                return false;
+        }
+
+        // Reachability over at most 32 subsets; no assignment allocation or sorting.
+        return Util::HasPerfectAssignment(compatible, count);
+    }
 
     std::vector<std::vector<RE::Actor*>> Scene::FindAssignments(const std::vector<ActorFragment>& a_fragments) const
     {

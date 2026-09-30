@@ -84,6 +84,8 @@ namespace Papyrus::AnimationSlots
 
     std::vector<RE::BSFixedString> CreateProxyArray(RE::StaticFunctionTag*, uint32_t a_returnsize, uint32_t crt_specifier, RE::BSFixedString a_tags, RE::BSFixedString a_package)
     {
+        if (a_tags.empty() && a_package.empty())
+            return Registry::Library::GetSingleton()->GetLegacyProxyIds(a_returnsize, crt_specifier);
         std::vector<const Registry::Scene*> ret{};
         if (a_returnsize > 0)
             ret.reserve(a_returnsize);
@@ -116,6 +118,25 @@ namespace Papyrus::AnimationSlots
         ids.reserve(ret.size());
         std::ranges::transform(ret, std::back_inserter(ids), [](const auto& it) { return it->id; });
         return ids;
+    }
+
+    bool ProxyIdsMatch(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_left, std::vector<RE::BSFixedString> a_right)
+    {
+        return a_left == a_right;
+    }
+
+    std::vector<int32_t> GetProxyIndices(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_ids, std::vector<RE::BSFixedString> a_proxyIds)
+    {
+        std::map<RE::BSFixedString, int32_t, Registry::FixedStringCompare> indices;
+        for (size_t i = 0; i < a_proxyIds.size(); ++i)
+            indices.try_emplace(a_proxyIds[i], static_cast<int32_t>(i));
+        std::vector<int32_t> result;
+        result.reserve(a_ids.size());
+        for (const auto& id : a_ids) {
+            const auto where = indices.find(id);
+            result.push_back(where == indices.end() ? -1 : where->second);
+        }
+        return result;
     }
 
 }  // namespace Papyrus::AnimationSlots

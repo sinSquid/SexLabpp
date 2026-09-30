@@ -12,6 +12,13 @@ namespace Thread
 {
     namespace
     {
+        std::string_view GetClipAnimationName(const RE::hkbClipGenerator* a_clip)
+        {
+            const auto address = std::bit_cast<std::uintptr_t>(a_clip->animationName) & ~std::uintptr_t{ RE::hkStringPtr::kManaged };
+            const auto name = reinterpret_cast<const char*>(address);
+            return name ? std::string_view{ name } : std::string_view{};
+        }
+
         enum ActorStatus : int32_t
         {
             Unconscious = -5,
@@ -287,7 +294,7 @@ namespace Thread
         if (preparationBarrier) {
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnNativeActorRecoveryComplete", callbackPtr, bool{ !recoveryFailed })) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnNativeActorRecoveryComplete", callbackPtr, bool{ !recoveryFailed }, int32_t{ startupRequest })) {
                 logger::error("Failed to notify Papyrus of native actor recovery completion for thread {:X}.", linkedQst->GetFormID());
             }
         } else if (recoveryFailed) {
@@ -295,7 +302,7 @@ namespace Thread
             pendingAnimations.clear();
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSyncFailed", callbackPtr)) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSyncFailed", callbackPtr, int32_t{ startupRequest })) {
                 logger::error("Failed to notify Papyrus of actor recovery failure for thread {:X}.", linkedQst->GetFormID());
             }
         }
@@ -329,7 +336,7 @@ namespace Thread
     bool Instance::StartFixedLengthTimer()
     {
         fixedLengthTimer.state = FixedLengthTimer::State::Stopped;
-        if (!activeStage || activeStage->fixedlength == 0.0f) {
+        if (!activeStage || !std::isfinite(activeStage->fixedlength) || activeStage->fixedlength <= 0.0f) {
             return false;
         }
         const auto duration = activeStage->fixedlength / 1000.0f;
@@ -352,7 +359,8 @@ namespace Thread
 
     bool Instance::AdjustFixedLengthTimer(float a_delta)
     {
-        if (fixedLengthTimer.state == FixedLengthTimer::State::Stopped) {
+        if (fixedLengthTimer.state == FixedLengthTimer::State::Stopped || !std::isfinite(a_delta) ||
+            !std::isfinite(fixedLengthTimer.remaining + a_delta)) {
             return false;
         }
         fixedLengthTimer.remaining += a_delta;
@@ -391,14 +399,15 @@ namespace Thread
         }
         const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
         Script::CallbackPtr callbackPtr{};
-        if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnFixedLengthStageComplete", callbackPtr)) {
+        if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnFixedLengthStageComplete", callbackPtr, int32_t{ startupRequest })) {
             logger::error("Failed to notify Papyrus of fixed-length timer completion for thread {:X}.", linkedQst->GetFormID());
         }
     }
 
     void Instance::UpdateAnimations(float a_delta)
     {
-        const auto timeoutDelta = Util::IsGamePausedOrFrozen() ? 0.0f : a_delta;
+        const auto timeoutDelta = Util::IsGamePausedOrFrozen() || !std::isfinite(a_delta) ? 0.0f : std::max(0.0f, a_delta);
+        startupClock.fetch_add(timeoutDelta, std::memory_order_relaxed);
         std::shared_lock lock{ _mInstances };
         for (auto&& instance : instances) {
             instance->UpdateFixedLengthTimer(timeoutDelta);
@@ -410,36 +419,46 @@ namespace Thread
     {
         RE::BSAnimationGraphManagerPtr graphManager;
         if (!a_actor->GetAnimationGraphManager(graphManager) || !graphManager) {
+            a_clips.clear();
             return false;
         }
 
         auto& runtime = graphManager->GetRuntimeData();
         RE::BSSpinLockGuard lock{ runtime.updateLock };
         if (runtime.activeGraph >= graphManager->graphs.size()) {
+            a_clips.clear();
             return false;
         }
 
         const auto animationGraph = graphManager->graphs[runtime.activeGraph].get();
         if (!animationGraph || !animationGraph->behaviorGraph || !animationGraph->behaviorGraph->isActive) {
+            a_clips.clear();
             return false;
         }
 
         const auto activeNodes = *reinterpret_cast<RE::hkArray<RE::hkbNodeInfo>**>(&animationGraph->behaviorGraph->activeNodes);
         if (!activeNodes) {
+            a_clips.clear();
             return true;
         }
 
+        size_t clipCount = 0;
         const auto addClip = [&](RE::hkbClipGenerator* a_clip) {
-            if (!a_clip || std::ranges::contains(a_clips, a_clip, &ActiveClip::generator)) {
+            if (!a_clip) {
                 return;
             }
-            const auto animationNameAddress = std::bit_cast<std::uintptr_t>(a_clip->animationName) & ~std::uintptr_t{ RE::hkStringPtr::kManaged };
-            const auto animationName = reinterpret_cast<const char*>(animationNameAddress);
-            a_clips.emplace_back(
-                a_clip,
-                animationName ? std::string{ animationName } : std::string{},
-                a_clip->localTime,
-                a_clip->animationControl ? a_clip->animationControl->weight : 1.0f);
+            for (size_t i = 0; i < clipCount; ++i) {
+                if (a_clips[i].generator == a_clip)
+                    return;
+            }
+            if (clipCount == a_clips.size())
+                a_clips.emplace_back();
+            auto& clip = a_clips[clipCount++];
+            clip.generator = a_clip;
+            // Retain each string's capacity without changing case-sensitive name comparisons.
+            clip.animationName.assign(GetClipAnimationName(a_clip));
+            clip.localTime = a_clip->localTime;
+            clip.weight = a_clip->animationControl ? a_clip->animationControl->weight : 1.0f;
         };
 
         for (const auto& activeNode : *activeNodes) {
@@ -452,12 +471,13 @@ namespace Thread
                 addClip(synchronizedClip->clipGenerator);
             }
         }
+        a_clips.resize(clipCount);
         return true;
     }
 
     void Instance::TryStartAnimations()
     {
-        std::vector<std::vector<ActiveClip>> activeClips(pendingAnimations.size());
+        auto& activeClips = activeClipScratch;
 
         for (auto& pending : pendingAnimations) {
             if (!pending.transitionAcknowledged && pending.retryDelay <= 0.0f) {
@@ -501,7 +521,7 @@ namespace Thread
             actorPreparationApplied = true;
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnNativeActorsPrepared", callbackPtr)) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnNativeActorsPrepared", callbackPtr, int32_t{ startupRequest })) {
                 logger::warn("Failed to notify Papyrus of native actor preparation for thread {:X}.", linkedQst->GetFormID());
             }
             return;
@@ -548,7 +568,7 @@ namespace Thread
                 pending.retryDelay = 0.1f;
                 continue;
             }
-            pending.previousClips = std::move(activeClips[i]);
+            pending.previousClips.swap(activeClips[i]);
             pending.transitionAcknowledged = true;
             const auto readinessElapsed = pending.elapsed;
             pending.elapsed = 0.0f;
@@ -581,7 +601,7 @@ namespace Thread
                     clip = synchronizedClip->clipGenerator;
                 }
             }
-            if (clip != a_pending.observedGenerator) {
+            if (!clip || clip != a_pending.observedGenerator || GetClipAnimationName(clip) != a_pending.observedAnimation) {
                 continue;
             }
             clip->playbackSpeed = 0.0f;
@@ -639,7 +659,7 @@ namespace Thread
                         clip = synchronizedClip->clipGenerator;
                     }
                 }
-                if (clip != pending.observedGenerator) {
+                if (!clip || clip != pending.observedGenerator || GetClipAnimationName(clip) != pending.observedAnimation) {
                     continue;
                 }
                 clip->localTime = clip->startTime;
@@ -662,6 +682,26 @@ namespace Thread
         constexpr float minimumClipWeight = 0.01f;
         constexpr float minimumTimeChange = 0.0001f;
 
+        if (creationCancelled->load())
+            return;
+        // An open dialogue is intentional user waiting, not stalled actor preparation.
+        if (playerDialoguePending && IsPlayerDialogueActive())
+            return;
+        if (!activeStage) {
+            startupElapsed += a_delta;
+            if (startupElapsed >= 60.0f) {
+                if (!startupFailureNotified) {
+                    startupFailureNotified = true;
+                    logger::error("Actor preparation timed out for quest {:X}, request {}.", linkedQst->GetFormID(), startupRequest);
+                    const auto script = Script::GetScriptObject(linkedQst, "sslThreadModel");
+                    Script::CallbackPtr callback{};
+                    if (!script || !Script::DispatchMethodCall(script, "OnStartupFailed", callback, int32_t{ startupRequest }))
+                        logger::error("Failed to dispatch actor preparation timeout.");
+                }
+                return;
+            }
+        }
+
         if (playerDialoguePending) {
             if (IsPlayerDialogueActive()) {
                 return;
@@ -670,7 +710,7 @@ namespace Thread
             logger::info("Player dialogue finished; continuing actor preparation.");
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnPlayerDialogueComplete", callbackPtr)) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnPlayerDialogueComplete", callbackPtr, int32_t{ startupRequest })) {
                 logger::error("Failed to notify Papyrus of player dialogue completion for thread {:X}.", linkedQst->GetFormID());
             }
             return;
@@ -719,7 +759,7 @@ namespace Thread
                 }
                 const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
                 Script::CallbackPtr callbackPtr{};
-                if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnPlayerSheatheComplete", callbackPtr, bool{ sheathed })) {
+                if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnPlayerSheatheComplete", callbackPtr, bool{ sheathed }, int32_t{ startupRequest })) {
                     logger::error("Failed to notify Papyrus of player weapon sheath completion for thread {:X}.", linkedQst->GetFormID());
                 }
             }
@@ -750,7 +790,7 @@ namespace Thread
                 continue;
             }
 
-            std::vector<ActiveClip> activeClips;
+            auto& activeClips = activeClipScratch[pending.position];
             if (GetActiveClips(pending.actor, activeClips)) {
                 for (const auto& clip : activeClips) {
                     if (clip.animationName.empty() || clip.weight <= minimumClipWeight) {
@@ -784,7 +824,7 @@ namespace Thread
             pendingAnimations.clear();
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSyncFailed", callbackPtr)) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSyncFailed", callbackPtr, int32_t{ startupRequest })) {
                 logger::error("Failed to notify Papyrus of animation synchronization failure for thread {:X}.", linkedQst->GetFormID());
             }
             return;
@@ -799,7 +839,7 @@ namespace Thread
             StartFixedLengthTimer();
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSynchronized", callbackPtr)) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSynchronized", callbackPtr, int32_t{ startupRequest })) {
                 logger::error("Failed to notify Papyrus of animation synchronization completion for thread {:X}.", linkedQst->GetFormID());
             }
         }
@@ -807,13 +847,12 @@ namespace Thread
 
     void Instance::SetAnimationPlaybackSpeed(float playbackSpeed)
     {
+        if (!std::isfinite(playbackSpeed) || playbackSpeed < 0.0f)
+            return;
         if (animationPlaybackSpeed == playbackSpeed) {
             return;
         }
         animationPlaybackSpeed = playbackSpeed;
-        std::vector<std::pair<RE::BSAnimationGraphManagerPtr, std::unique_ptr<RE::BSSpinLockGuard>>> lockedGraphs;
-        lockedGraphs.reserve(positions.size());
-
         for (auto& position : positions) {
             const auto* actor = position.data.GetActor();
             if (!actor) {
@@ -826,14 +865,13 @@ namespace Thread
             }
 
             auto& runtime = graphMgr->GetRuntimeData();
-            lockedGraphs.emplace_back(
-                graphMgr,
-                std::make_unique<RE::BSSpinLockGuard>(runtime.updateLock));
-        }
-
-        for (auto& [graphMgr, lock] : lockedGraphs) {
-            auto& runtime = graphMgr->GetRuntimeData();
+            // Release before locking the next actor: synchronization uses assignment order,
+            // which need not match this positions order.
+            RE::BSSpinLockGuard lock{ runtime.updateLock };
             auto activeGraph = runtime.activeGraph;
+
+            if (activeGraph >= graphMgr->graphs.size())
+                continue;
 
             RE::BShkbAnimationGraph* animationGraph = graphMgr->graphs[activeGraph].get();
             if (!animationGraph || !animationGraph->behaviorGraph) {
@@ -850,9 +888,15 @@ namespace Thread
                 if (!activeNode.nodeClone) {
                     continue;
                 }
-                if (auto* clip = skyrim_cast<RE::hkbClipGenerator*>(activeNode.nodeClone)) {
+                auto* clip = skyrim_cast<RE::hkbClipGenerator*>(activeNode.nodeClone);
+                if (!clip) {
+                    if (const auto synchronizedClip = skyrim_cast<RE::BSSynchronizedClipGenerator*>(activeNode.nodeClone))
+                        clip = synchronizedClip->clipGenerator;
+                }
+                if (clip) {
                     const bool held = std::ranges::any_of(pendingAnimations, [&](const auto& pending) {
-                        return pending.playbackHeld && pending.observedGenerator == clip;
+                        return pending.playbackHeld && pending.observedGenerator == clip &&
+                               GetClipAnimationName(clip) == pending.observedAnimation;
                     });
                     clip->playbackSpeed = held ? 0.0f : playbackSpeed;
                     if (clip->animationControl) {

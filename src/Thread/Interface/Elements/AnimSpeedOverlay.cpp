@@ -21,7 +21,7 @@ namespace Thread::Interface
 
     void AnimSpeedOverlay::OnSpeedChange(SceneHUD& a_hud, float a_delta)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         const float current = inst->GetAnimationPlaybackSpeed();
@@ -29,9 +29,10 @@ namespace Thread::Interface
         if (next == current)
             return;
         inst->SetAnimationPlaybackSpeed(next);
+        const auto sequence = inst->NextSpeedRequest();
         Script::DispatchMethodCall(
             Script::GetScriptObject(a_hud.GetLinkedThread(), "sslThreadModel"),
-            "UpdateBaseSpeedFromPlayback", a_hud.GetCallback(), float{ next });
+            "UpdateBaseSpeedFromPlayback", a_hud.GetCallback(), float{ next }, int32_t{ inst->GetStartupRequest() }, int32_t{ sequence });
     }
 
     void AnimSpeedOverlay::StepSpeed(SceneHUD& a_hud, bool a_increase)
@@ -41,7 +42,7 @@ namespace Thread::Interface
 
     void AnimSpeedOverlay::Render(SceneHUD& a_hud)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         auto& scale = a_hud.GetScale();

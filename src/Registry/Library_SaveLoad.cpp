@@ -151,6 +151,15 @@ namespace Registry
             loadPackage(file);
 #endif
         InitializeSceneSettings();
+        // Build from the authoritative ID map, preserving its ordering and duplicate-ID semantics.
+        std::unique_lock lock{ _mScenes };
+        for (auto& bucket : scenePositionIndex)
+            bucket.clear();
+        for (const auto& [id, scene] : sceneMap) {
+            if (!scene->positions.empty() && scene->positions.size() <= ActorFragment::MAX_ACTOR_COUNT)
+                scenePositionIndex[scene->positions.size()].push_back(scene);
+        }
+        legacyProxyCache.clear();
     }
 
     void Library::InitializeSceneSettings() noexcept
