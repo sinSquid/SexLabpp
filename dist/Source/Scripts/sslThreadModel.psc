@@ -1464,6 +1464,14 @@ State Animating
 			RegisterForSingleUpdate(ANIMATING_UPDATE_INTERVAL)
 			return
 		EndIf
+		; Recover a native completion notification that could not be dispatched.
+		; The native consume operation makes this mutually exclusive with its callback.
+		If (_NativeFixedLengthTimer && !_TimerPaused && !_animationSyncPending)
+			If (ConsumeFixedLengthTimerExpiration())
+				AdvanceFromTimer()
+				return
+			EndIf
+		EndIf
 		If (_initialRealignTicks > 0)
 			_initialRealignTicks -= 1
 			If (_initialRealignTicks == 3 || _initialRealignTicks == 0)

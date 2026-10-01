@@ -26,9 +26,15 @@ sslThreadController[] Property Threads Auto
 
 sslThreadModel Function PickModel(float TimeOut = 5.0)
   GoToState("Locked")
+  ; Preserve all 15 saved slots/API indices, but admit at most three scenes.
+  ; Existing scenes in other slots may finish normally after upgrading.
+  If (ActiveThreads() >= 3)
+    GoToState("Ready")
+    return none
+  EndIf
   int i = 0
-  While (i < Threads.Length)
-    If (!Threads[i].IsLocked)
+  While (i < Threads.Length && i < 3)
+    If (Threads[i] && !Threads[i].IsLocked)
       Threads[i].Make()
       GoToState("Ready")
       return Threads[i]
@@ -168,10 +174,14 @@ State Locked
   EndFunction
 
   sslThreadModel Function PickModel(float TimeOut = 5.0)
+    float deadline = Utility.GetCurrentRealTime() + TimeOut
     While (GetState() == "Locked")
+      If (Utility.GetCurrentRealTime() >= deadline)
+        return none
+      EndIf
       Utility.WaitMenuMode(0.1)
     EndWhile
-    PickModel()
+    return PickModel(TimeOut)
   EndFunction
 EndState
 
