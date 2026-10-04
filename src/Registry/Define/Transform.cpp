@@ -14,7 +14,7 @@ namespace Registry
       location(a_x, a_y, a_z), rotation(a_rotation) {}
     Coordinate::Coordinate(const std::vector<float>& a_coordinates) :
       location(glm::vec3{ a_coordinates[0], a_coordinates[1], a_coordinates[2] }), rotation(a_coordinates[3]) {}
-    Coordinate::Coordinate(std::ifstream& a_stream) :
+    Coordinate::Coordinate(Decode::Reader& a_stream) :
       location([&]() {
           glm::vec3 ret{};
           Decode::Read(a_stream, ret.x);
@@ -46,7 +46,7 @@ namespace Registry
     Transform::Transform(const Coordinate& a_rawoffset) :
       _raw(a_rawoffset), _offset(a_rawoffset) {}
 
-    Transform::Transform(std::ifstream& a_binarystream) :
+    Transform::Transform(Decode::Reader& a_binarystream) :
       _raw(a_binarystream), _offset(_raw) {}
 
     const Coordinate& Transform::GetRawOffset() const

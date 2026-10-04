@@ -1,5 +1,10 @@
 #pragma once
 
+namespace Decode
+{
+    class Reader;
+}
+
 namespace Registry
 {
     enum class Tag : uint64_t
@@ -73,7 +78,7 @@ namespace Registry
                 AddTag(it);
             }
         }
-        TagData(std::ifstream& a_stream);
+        TagData(Decode::Reader& a_stream);
         TagData() = default;
         ~TagData() = default;
 

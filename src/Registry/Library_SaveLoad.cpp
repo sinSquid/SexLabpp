@@ -259,7 +259,7 @@ namespace Registry
                 auto succ = expressions.emplace(profile.GetId(), std::move(profile));
                 if (succ.second) {
                     succ.first->second.Save(EXPRESSION_PATH, true);
-                    logger::info("InitializeExpressions: Added legacy expression {}. This file may now be deleted", filename);
+                    logger::info("InitializeExpressions: Queued legacy expression migration for {}; retain the source file", filename);
                 }
             } catch (const std::exception& e) {
                 logger::error("InitializeExpressions: Failed to load {}: {}", filename, e.what());

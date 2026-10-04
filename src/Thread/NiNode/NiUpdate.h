@@ -16,6 +16,14 @@ namespace Thread::NiNode
         };
 
       public:
+        struct MLTrainingStatus
+        {
+            NiType::Type type;
+            bool enabled;
+            size_t frameInterval;
+            size_t frameCount;
+            size_t recordedRows;
+        };
         static void Install();
         static float GetDeltaTime();
 
@@ -26,7 +34,7 @@ namespace Thread::NiNode
         static void SetMLTrainingFrameInterval(size_t interval);
         static void ClearMLTrainingData();
         static bool IsMLTrainingEnabled();
-        static MLTrainingState GetMLTrainingState();
+        static MLTrainingStatus GetMLTrainingState();
 
       private:
         static bool InitializeDescriptors();

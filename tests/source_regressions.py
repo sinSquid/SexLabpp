@@ -74,12 +74,43 @@ int main() {
             assert(scene.GetLongestPath(&node).size() == longest);
         }
     }
+    // Every directed four-node graph, including cycles: compare exact results
+    // below the budget with independent exhaustive simple-path enumeration.
+    for(unsigned mask=0;mask<4096;++mask) {
+        Scene scene; unsigned bit=0;
+        for(int a=0;a<4;++a) {
+            auto& edges=scene.graph[&nodes[a]];
+            for(int b=0;b<4;++b) if(a!=b) { if(mask & (1u<<bit)) edges.push_back(&nodes[b]); ++bit; }
+        }
+        for(int start=0;start<4;++start) {
+            size_t expected=0;std::set<const Stage*> active;
+            std::function<void(const Stage*)> brute=[&](const Stage* n) {
+                if(!active.insert(n).second)return;
+                expected=std::max(expected,active.size());
+                for(auto next:scene.graph[n])brute(next);
+                active.erase(n);
+            };
+            brute(&nodes[start]);
+            const auto actual=scene.GetLongestPath(&nodes[start]);
+            assert(actual.size()==expected);
+            assert(std::set<const Stage*>(actual.begin(),actual.end()).size()==actual.size());
+        }
+    }
     Stage denseNodes[32]; Scene dense; dense.start_animation=&denseNodes[0];
     for (int a=0;a<32;++a) {
         auto& edges=dense.graph[&denseNodes[a]];
         for(int b=a+1;b<32;++b)edges.push_back(&denseNodes[b]);
     }
     assert(dense.GetLongestPath(&denseNodes[0]).size()==32);
+    std::vector<Stage> chainNodes(4096); Scene chain;
+    for(size_t i=0;i<chainNodes.size();++i) {
+        auto& edges=chain.graph[&chainNodes[i]];
+        if(i+1<chainNodes.size()) edges.push_back(&chainNodes[i+1]);
+    }
+    assert(chain.GetLongestPath(&chainNodes[0]).size()==4096);
+    Scene parallel;
+    parallel.graph={{&nodes[0],{&nodes[1],&nodes[1]}},{&nodes[1],{}},{&nodes[2],{&nodes[2]}}};
+    assert(parallel.GetLongestPath(&nodes[0]).size()==2);
     Scene cyclic; cyclic.start_animation = &nodes[0];
     cyclic.graph = {{&nodes[0], {&nodes[1]}}, {&nodes[1], {&nodes[0], &nodes[2]}}, {&nodes[2], {}}};
     assert(cyclic.GetShortestPath(&nodes[0]).size() == 3);

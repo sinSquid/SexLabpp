@@ -186,10 +186,10 @@ namespace Thread::NiNode
         return mlTrainingState.type != NiType::Type::None;
     }
 
-    NiUpdate::MLTrainingState NiUpdate::GetMLTrainingState()
+    NiUpdate::MLTrainingStatus NiUpdate::GetMLTrainingState()
     {
         std::scoped_lock lk{ _mlMutex };
-        return mlTrainingState;
+        return { mlTrainingState.type, mlTrainingState.enabled, mlTrainingState.frameInterval, mlTrainingState.frameCount, mlTrainingState.recordedData.size() };
     }
 
 }  // namespace Thread::NiNode

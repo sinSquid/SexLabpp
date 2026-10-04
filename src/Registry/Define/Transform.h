@@ -1,5 +1,10 @@
 #pragma once
 
+namespace Decode
+{
+    class Reader;
+}
+
 namespace Registry
 {
     enum CoordinateType : uint8_t
@@ -19,7 +24,7 @@ namespace Registry
         Coordinate(const RE::NiPoint3& a_point, float a_rotation);
         Coordinate(float a_x, float a_y, float a_z, float a_rotation);
         Coordinate(const std::vector<float>& a_coordinates);
-        Coordinate(std::ifstream& a_stream);
+        Coordinate(Decode::Reader& a_stream);
         ~Coordinate() = default;
 
         void Apply(Coordinate& a_coordinate) const;
@@ -42,7 +47,7 @@ namespace Registry
     {
       public:
         Transform(const Coordinate& a_rawcoordinates);
-        Transform(std::ifstream& a_binarystream);
+        Transform(Decode::Reader& a_binarystream);
         Transform() = default;
         ~Transform() = default;
 

@@ -24,8 +24,19 @@ frame mutex; archive filename gaps/concurrent publishers and failure recovery;
 edit-version save receipts; encounter saturation/v2 roundtrip; bounded dense
 cyclic graph search. Real yaml-cpp parsing and Windows/game execution are separate.
 
-Behavior limits: cyclic longest-path searches stop after 100000 node expansions
+Behavior limits: cyclic longest-path searches stop after 100000 edge visits
 and return the best discovered simple path, with a warning. Failed ML batches
 remain in memory, retry on the next training-state change and once at orderly
 queue shutdown. Persistent disk failure or process termination can still lose
 unsaved batches; Flush waits for attempted writes and is not a success receipt.
+
+Third-review coverage: actual Decode.h allocation-before-validation guards,
+truncated integers, bounded string/count reads, and signed fixed-point decoding.
+ML status snapshots are trivially copyable and do not include recorded samples.
+SLR caps: strings 1 MiB, package scenes 100000, tags/annotations per list 4096.
+These reject oversized packages; full game asset loading remains an integration check.
+
+Fourth-review coverage: raw and typed SLR reads share one cached byte budget;
+readers initialized at a nonzero offset, raw overruns, 4096-node chains, parallel
+graph edges and unreachable cycles. Reader construction measures the remaining
+file length once; all package constructors now consume Decode::Reader.

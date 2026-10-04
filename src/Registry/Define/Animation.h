@@ -1,5 +1,10 @@
 #pragma once
 
+namespace Decode
+{
+    class Reader;
+}
+
 #include "Registry/Define/Fragment.h"
 #include "Registry/Define/Furniture.h"
 #include "Registry/Define/RaceKey.h"
@@ -27,7 +32,7 @@ namespace Registry
         };
 
       public:
-        Position(std::ifstream& a_stream, uint8_t a_version);
+        Position(Decode::Reader& a_stream, uint8_t a_version);
         ~Position() = default;
 
         void Save(YAML::Node& a_node) const;
@@ -45,7 +50,7 @@ namespace Registry
     struct Stage
     {
       public:
-        Stage(std::ifstream& a_stream, uint8_t a_version);
+        Stage(Decode::Reader& a_stream, uint8_t a_version);
         ~Stage() = default;
 
         void Save(YAML::Node& a_node) const;
@@ -62,7 +67,7 @@ namespace Registry
 
     struct PositionInfo
     {
-        PositionInfo(std::ifstream& a_stream, uint8_t a_version);
+        PositionInfo(Decode::Reader& a_stream, uint8_t a_version);
         ~PositionInfo() = default;
 
         _NODISCARD bool IsHuman() const { return data.IsHuman(); }
@@ -98,7 +103,7 @@ namespace Registry
         };
 
       public:
-        Scene(std::ifstream& a_stream, std::string_view a_hash, uint8_t a_version);
+        Scene(Decode::Reader& a_stream, std::string_view a_hash, uint8_t a_version);
         ~Scene() = default;
 
         _NODISCARD bool IsEnabled() const;
@@ -126,7 +131,7 @@ namespace Registry
         _NODISCARD Stage* GetStageByID(const RE::BSFixedString& a_stage);
         _NODISCARD const Stage* GetStageByID(const RE::BSFixedString& a_stage) const;
         // Exact for DAGs; cyclic graphs return the best discovered simple path
-        // after at most 100000 node expansions (a warning reports truncation).
+        // after at most 100000 edge visits (a warning reports truncation).
         _NODISCARD std::vector<const Stage*> GetLongestPath(const Stage* a_src) const;
         _NODISCARD std::vector<const Stage*> GetShortestPath(const Stage* a_src) const;
         void ForEachStage(std::function<bool(Stage*)> a_visitor);

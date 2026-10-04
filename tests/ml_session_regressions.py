@@ -18,7 +18,9 @@ struct NiType {
 };
 namespace magic_enum {inline std::string enum_name(NiType::Type){return "type";} inline std::string enum_name(NiType::Cluster c){return c==NiType::Cluster::AB?"AB":"C";}}
 struct NiUpdate {
- struct State {NiType::Type type=NiType::Type::None; std::vector<std::string> recordedData; bool enabled=false;size_t frameCount=0;};
+ struct State {NiType::Type type=NiType::Type::None; std::vector<std::string> recordedData; bool enabled=false;size_t frameCount=0;size_t frameInterval=20;};
+ struct MLTrainingStatus {NiType::Type type;bool enabled;size_t frameInterval;size_t frameCount;size_t recordedRows;};
+ static MLTrainingStatus GetMLTrainingState();
  static std::mutex _mlMutex;
  static State mlTrainingState;
  static void UpdateMLTrainingState(NiType::Type,bool);
@@ -40,12 +42,15 @@ struct SaveQueue {
 };
 }
 '''
-code='#include <thread>\n'+code+function(source,'void NiUpdate::UpdateMLTrainingState')+r'''
+code='#include <thread>\n'+code+function(source,'void NiUpdate::UpdateMLTrainingState')+function(source,'NiUpdate::MLTrainingStatus NiUpdate::GetMLTrainingState')+r'''
 int main(){
  using T=NiType::Type;
  NiUpdate::UpdateMLTrainingState(T::A,true);
  NiUpdate::mlTrainingState.recordedData={"header","old"};
  NiUpdate::UpdateMLTrainingState(T::B,false);
+ const auto status=NiUpdate::GetMLTrainingState();
+ static_assert(std::is_trivially_copyable_v<decltype(status)>);
+ assert(status.type==T::B && !status.enabled && status.recordedRows==2 && status.frameInterval==20);
  assert(NiUpdate::mlTrainingState.recordedData.size()==2);
  assert(Util::SaveQueue::Get().batches.empty());
  NiUpdate::UpdateMLTrainingState(T::C,true);

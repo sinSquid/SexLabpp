@@ -6,7 +6,7 @@ import sys
 import tempfile
 ROOT=Path(__file__).resolve().parents[1]
 with tempfile.TemporaryDirectory(prefix='sexlab-tests-') as tmp:
-    for name in ('assignment_matching','request_sequence','core_utilities'):
+    for name in ('assignment_matching','request_sequence','core_utilities','decode_bounds'):
         binary=Path(tmp)/name
         subprocess.run([os.environ.get('CXX','clang++'),'-std=c++20','-O2','-pthread',str(ROOT/'tests'/f'{name}.cpp'),'-o',str(binary)],check=True)
         subprocess.run([str(binary)],check=True)

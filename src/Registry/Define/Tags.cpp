@@ -73,10 +73,11 @@ namespace Registry
 
 #undef MAPENTRY
 
-    TagData::TagData(std::ifstream& a_stream)
+    TagData::TagData(Decode::Reader& a_stream)
     {
         uint64_t tag_count;
         Decode::Read(a_stream, tag_count);
+        Decode::ValidateCount(a_stream, tag_count, 8, Decode::MAX_TAGS);
         for (size_t j = 0; j < tag_count; j++) {
             RE::BSFixedString tag;
             Decode::Read(a_stream, tag);

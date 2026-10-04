@@ -27,6 +27,9 @@ jobs:
       - name: Test Windows atomic replacement and core algorithms
         shell: cmd
         run: cl /nologo /std:c++20 /EHsc /O2 tests\core_utilities.cpp /Fe:core_utilities.exe && core_utilities.exe
+      - name: Test SLR decode bounds
+        shell: cmd
+        run: cl /nologo /std:c++20 /EHsc /O2 tests\decode_bounds.cpp /Fe:decode_bounds.exe && decode_bounds.exe
       - name: Check source callback contracts
         shell: pwsh
         run: ./tests/review_invariants.ps1
