@@ -6,6 +6,8 @@ RE::NiPointer<RE::NiCollisionObject> ObjectBound::GetCollisionNodeRecurse(RE::Ni
 {
     static constexpr size_t MAX_RECURSE = 10;
 
+    if (!a_node)
+        return nullptr;
     if (a_node->collisionObject) {
         return a_node->collisionObject;
     }
@@ -60,7 +62,7 @@ std::optional<ObjectBound> ObjectBound::MakeBoundingBox(RE::NiNode* a_niobj)
     rigidbody->GetPosition(bhkBodyPosition);
     // just gets the data out of the register Havok uses into a more usable format
     float bodyPosition[4];
-    _mm_store_ps(bodyPosition, bhkBodyPosition.quad);
+    _mm_storeu_ps(bodyPosition, bhkBodyPosition.quad);
 
     RE::hkTransform shapeTransform;
     // use identity matrix for the BB of the unrotated object
@@ -73,11 +75,12 @@ std::optional<ObjectBound> ObjectBound::MakeBoundingBox(RE::NiNode* a_niobj)
     hkpShape->GetAabbImpl(shapeTransform, 0.0f, boundingBoxLocal);
 
     float boundMinLocal[4];
-    _mm_store_ps(boundMinLocal, boundingBoxLocal.min.quad);
+    _mm_storeu_ps(boundMinLocal, boundingBoxLocal.min.quad);
     float boundMaxLocal[4];
-    _mm_store_ps(boundMaxLocal, boundingBoxLocal.max.quad);
+    _mm_storeu_ps(boundMaxLocal, boundingBoxLocal.max.quad);
 
     RE::hkVector4 rigidBodyLocalTranslation;
+    rigidBodyLocalTranslation.quad = _mm_setzero_ps();
     glm::vec3 rigidBodyLocalRotation(0.0f);
 
     auto rigidBodyT = skyrim_cast<bhkRigidBodyT*>(rigidbody);
@@ -91,7 +94,7 @@ std::optional<ObjectBound> ObjectBound::MakeBoundingBox(RE::NiNode* a_niobj)
         // don't forget that bhkRigidBodyT also has a local rotation!
         auto hkLocalRot = rigidBodyT->rotation;
         float localRotArr[4];
-        _mm_store_ps(localRotArr, hkLocalRot.vec.quad);
+        _mm_storeu_ps(localRotArr, hkLocalRot.vec.quad);
 
         rigidBodyLocalRotation = Misc::Math::QuatToEuler(glm::quat(
             Misc::Math::MakeValid(localRotArr[3], 0.0f),
@@ -101,7 +104,7 @@ std::optional<ObjectBound> ObjectBound::MakeBoundingBox(RE::NiNode* a_niobj)
     }
 
     float localTranslation[4];
-    _mm_store_ps(localTranslation, rigidBodyLocalTranslation.quad);
+    _mm_storeu_ps(localTranslation, rigidBodyLocalTranslation.quad);
 
     // for some reason still requires adding local rotation offset. Rotation is accurate for most
     // objects, but some are weird: eg. books, wooden handle of mills (somehow on the mill object,
@@ -139,9 +142,13 @@ glm::vec3 ObjectBound::GetCenterWorld() const
 
 bool ObjectBound::IsPointInside(float a_x, float a_y, float a_z) const
 {
-    return (a_x >= worldBoundMin.x && a_x <= worldBoundMax.x &&
-            a_y >= worldBoundMin.y && a_y <= worldBoundMax.y &&
-            a_z >= worldBoundMin.z && a_z <= worldBoundMax.z);
+    if (!IsValid())
+        return false;
+    // worldBoundMin/Max are rotated opposite corners, not axis-aligned bounds.
+    const auto orientation = glm::mat3(glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z));
+    const auto local = glm::transpose(orientation) * (glm::vec3{ a_x, a_y, a_z } - GetCenterWorld());
+    const auto halfSize = (boundMax - boundMin) * 0.5f;
+    return std::abs(local.x) <= halfSize.x && std::abs(local.y) <= halfSize.y && std::abs(local.z) <= halfSize.z;
 }
 
 bool ObjectBound::IsPointInside(const glm::vec3& a_point) const

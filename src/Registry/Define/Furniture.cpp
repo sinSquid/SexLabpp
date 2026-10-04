@@ -4,8 +4,22 @@
 #include "Registry/Util/RayCast/ObjectBound.h"
 #include "Util/StringUtil.h"
 
+#include <cmath>
+
 namespace Registry
 {
+
+    namespace
+    {
+        uint32_t FurnitureScanSteps(float radius, float step)
+        {
+            if (!std::isfinite(radius) || !std::isfinite(step) || radius < 0.0f || step < 1.0f)
+                return 0;
+            const double count = std::floor(2.0 * radius / step) + 1.0;
+            // Bound work per candidate; extreme INI values must not hang the game.
+            return count <= 256.0 ? static_cast<uint32_t>(count) : 0;
+        }
+    }
 
 #define MAPENTRY(value)                     \
     {                                       \
@@ -153,6 +167,15 @@ namespace Registry
 
     std::vector<FurnitureOffset> FurnitureDetails::GetCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter) const
     {
+        if (!a_ref)
+            return {};
+        const auto radius = Settings::fFurnitureSquare;
+        const auto step = Settings::fFurnitureSquareStepSize;
+        const auto scanSteps = FurnitureScanSteps(radius, step);
+        if (!scanSteps) {
+            logger::error("GetCoordinatesInBound: Invalid or excessive scan grid: radius {}, step {}", radius, step);
+            return {};
+        }
         if (a_ref->GetAngleX() > Settings::fFurnitureTiltTolerance || a_ref->GetAngleY() > Settings::fFurnitureTiltTolerance) {
             logger::error("GetCoordinatesInBound: Reference {} is tilted too much. X: {}, Y: {}", a_ref->GetFormID(), a_ref->GetAngleX(), a_ref->GetAngleY());
             return {};
@@ -176,7 +199,7 @@ namespace Registry
         const Coordinate referenceCoordinates{ a_ref };
         std::vector<RE::NiAVObject*> hitList{ niObj };
         const auto castRay = [&](glm::vec4 start, const glm::vec4& end) {
-            do {
+            for (size_t attempt = 0; attempt < 64; ++attempt) {
                 auto res = Raycast::hkpCastRay(start, end, hitList);
                 if (!res.hit) {
                     return true;
@@ -191,9 +214,11 @@ namespace Registry
                     logger::error("GetCoordinatesInBound: No 3D object found for reference {}", hitRef->GetFormID());
                     break;
                 }
+                if (std::ranges::find(hitList, res.hitObject) != hitList.end())
+                    break;
                 hitList.push_back(res.hitObject);
                 start = res.hitPos;
-            } while (true);
+            }
             return false;
         };
         std::vector<FurnitureOffset> ret{};
@@ -202,15 +227,19 @@ namespace Registry
             if (!a_filter.any(type.value)) {
                 continue;
             }
-            constexpr auto& radius = Settings::fFurnitureSquare;
-            constexpr auto& step = Settings::fFurnitureSquareStepSize;
             const auto offsetLocation = referenceCoordinates.ApplyReturn(offset);
             auto raycastTarget = offsetLocation.AsVec4(0.0f), raycastStart = offsetLocation.AsVec4(0.0f);
             raycastTarget.z += Settings::fFurnitureSquareHeight;
             raycastStart.z += Settings::fFurnitureSquareFloorSkip;
             // check the place surrounding the center to see if there is anything occupying it (walls, furniture, etc)
-            for (float x = raycastStart.x - radius; x <= raycastStart.x + radius; x += step) {
-                for (float y = raycastStart.y - radius; y <= raycastStart.y + radius; y += step) {
+            if (!std::isfinite(raycastStart.x - radius) || !std::isfinite(raycastStart.x + radius) ||
+                !std::isfinite(raycastStart.y - radius) || !std::isfinite(raycastStart.y + radius) ||
+                !std::isfinite(raycastStart.z) || !std::isfinite(raycastTarget.z))
+                continue;
+            for (uint32_t ix = 0; ix < scanSteps; ++ix) {
+                const auto x = static_cast<float>(double(raycastStart.x) - radius + double(ix) * step);
+                for (uint32_t iy = 0; iy < scanSteps; ++iy) {
+                    const auto y = static_cast<float>(double(raycastStart.y) - radius + double(iy) * step);
                     glm::vec4 point(x, y, raycastStart.z, 0.0f);
                     if (glm::distance(point, raycastStart) > radius)
                         continue;

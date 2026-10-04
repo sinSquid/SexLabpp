@@ -30,7 +30,7 @@ namespace Util
         uint64_t Count(uint32_t minimumBytes = 1)
         {
             const auto count = Read<uint64_t>();
-            if (count > remaining / minimumBytes)
+            if (minimumBytes == 0 || count > remaining / minimumBytes)
                 throw std::runtime_error("Invalid serialization count");
             return count;
         }
@@ -63,11 +63,15 @@ namespace Util
     template <class Stream, class String>
     void WriteRecordString(Stream* stream, const String& value)
     {
-        const auto size = static_cast<uint64_t>(value.length()) + 1;
-        if (size > 1024 * 1024)
+        const auto length = value.length();
+        if (length >= 1024 * 1024)
             throw std::runtime_error("Serialization string exceeds limit");
+        const auto size = static_cast<uint64_t>(length) + 1;
         WriteRecord(stream, size);
-        if (!stream->WriteRecordData(value.data(), static_cast<uint32_t>(size)))
+        // String views need not have an accessible terminator, and empty
+        // engine strings may have a null data pointer. Preserve the wire NUL.
+        if (length && !stream->WriteRecordData(value.data(), static_cast<uint32_t>(length)))
             throw std::runtime_error("Unable to write serialization string");
+        WriteRecord(stream, char{ '\0' });
     }
 }

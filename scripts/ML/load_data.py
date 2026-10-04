@@ -64,12 +64,17 @@ def load_data(
 
     dataframes: dict[str, list[pd.DataFrame]] = defaultdict(list)
     for cluster_dir in sorted(p for p in model_root.iterdir() if p.is_dir()):
+        expected_header = None
         for csv_path in sorted(cluster_dir.glob("*.csv")):
             with csv_path.open(newline="", encoding="utf-8") as source:
                 rows = csv.reader(source)
                 header = next(rows, [])
                 if not header or len(set(header)) != len(header):
                     raise ValueError(f"Invalid CSV header: {csv_path}")
+                if expected_header is None:
+                    expected_header = header
+                elif set(header) != set(expected_header):
+                    raise ValueError(f"CSV schema mismatch across files in {cluster_dir.name}: {csv_path}")
                 for line, row in enumerate(rows, 2):
                     if len(row) != len(header):
                         raise ValueError(f"CSV schema mismatch: {csv_path}:{line}: expected {len(header)} columns, got {len(row)}")

@@ -1,6 +1,14 @@
 #pragma once
 
 #include "RayCast/ObjectBound.h"
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
+#endif
+#include <array>
+#include <glm/gtx/euler_angles.hpp>
+#include <limits>
+#include <optional>
+#include <vector>
 
 namespace SAT
 {
@@ -14,26 +22,18 @@ namespace SAT
 				return ret ? *ret : ObjectBound{}; }()) {}
         ~OrientedObjectBound() = default;
 
-        std::vector<glm::vec3> GetCorners() const
+        std::array<glm::vec3, 8> GetCorners() const
         {
             const auto center = box.GetCenterWorld();
-            const auto halfsize = glm::abs(box.worldBoundMax - center);
-            const auto& rotate = origin->world.rotate;
-            const auto x = rotate.GetVectorX(), y = rotate.GetVectorY(), z = rotate.GetVectorZ();
-            const auto ex = halfsize.x * glm::vec3{ x.x, x.y, x.z };
-            const auto ey = halfsize.y * glm::vec3{ y.x, y.y, y.z };
-            const auto ez = halfsize.z * glm::vec3{ z.x, z.y, z.z };
-
-            std::vector<glm::vec3> corners;
-            corners.push_back(center - ex - ey - ez);
-            corners.push_back(center + ex - ey - ez);
-            corners.push_back(center - ex + ey - ez);
-            corners.push_back(center + ex + ey - ez);
-            corners.push_back(center - ex - ey + ez);
-            corners.push_back(center + ex - ey + ez);
-            corners.push_back(center - ex + ey + ez);
-            corners.push_back(center + ex + ey + ez);
-            return corners;
+            const auto halfsize = (box.boundMax - box.boundMin) * 0.5f;
+            const auto rotate = glm::mat3(glm::eulerAngleXYZ(box.rotation.x, box.rotation.y, box.rotation.z));
+            const auto ex = rotate[0] * halfsize.x;
+            const auto ey = rotate[1] * halfsize.y;
+            const auto ez = rotate[2] * halfsize.z;
+            return { center - ex - ey - ez, center + ex - ey - ez,
+                center - ex + ey - ez, center + ex + ey - ez,
+                center - ex - ey + ez, center + ex - ey + ez,
+                center - ex + ey + ez, center + ex + ey + ez };
         }
 
         RE::NiNode* origin;
@@ -48,24 +48,22 @@ namespace SAT
 
     inline std::vector<glm::vec3> GetAxes(const OrientedObjectBound& a_obb1, const OrientedObjectBound& a_obb2)
     {
-        const auto& rot1 = a_obb1.origin->world.rotate.entry;
-        const auto& rot2 = a_obb2.origin->world.rotate.entry;
-        std::array<std::array<glm::vec3, 3>, 2> rotations;
-        for (int i = 0; i < rotations[0].size(); i++) {
-            rotations[0][i] = glm::vec3(rot1[i][0], rot1[i][1], rot1[i][2]);
-            rotations[1][i] = glm::vec3(rot2[i][0], rot2[i][1], rot2[i][2]);
-        }
+        const auto& r1 = a_obb1.box.rotation;
+        const auto& r2 = a_obb2.box.rotation;
+        const std::array rotations{ glm::mat3(glm::eulerAngleXYZ(r1.x, r1.y, r1.z)),
+            glm::mat3(glm::eulerAngleXYZ(r2.x, r2.y, r2.z)) };
 
         std::vector<glm::vec3> axes;
+        axes.reserve(15);
         for (size_t n = 0; n < rotations.size(); n++) {
-            for (int i = 0; i < rotations[0].size(); i++) {
+            for (int i = 0; i < 3; i++) {
                 axes.push_back(glm::normalize(rotations[n][i]));
             }
         }
-        for (int i = 0; i < rotations[0].size(); i++) {
-            for (int j = 0; j < rotations[0].size(); j++) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
                 glm::vec3 axis = glm::cross(rotations[0][i], rotations[1][j]);
-                if (glm::length(axis) > 0) {
+                if (glm::dot(axis, axis) > 1e-12f) {
                     axes.push_back(glm::normalize(axis));
                 }
             }
@@ -75,13 +73,15 @@ namespace SAT
 
     inline std::optional<SATResult> SAT(const OrientedObjectBound& a_obb1, const OrientedObjectBound& a_obb2)
     {
+        if (!a_obb1.box.IsValid() || !a_obb2.box.IsValid())
+            return std::nullopt;
         const auto corner1 = a_obb1.GetCorners(), corner2 = a_obb2.GetCorners();
         const auto axes = GetAxes(a_obb1, a_obb2);
 
         SATResult ret;
         for (auto&& axis : axes) {
-            const auto project = [&axis](const std::vector<glm::vec3>& points) -> std::pair<float, float> {
-                float min = std::numeric_limits<float>::max(), max = 0.0f;
+            const auto project = [&axis](const std::array<glm::vec3, 8>& points) -> std::pair<float, float> {
+                float min = std::numeric_limits<float>::max(), max = std::numeric_limits<float>::lowest();
                 for (const auto& point : points) {
                     float projection = glm::dot(axis, point);
                     min = std::min(projection, min);
@@ -93,14 +93,16 @@ namespace SAT
             const auto [start1, end1] = project(corner1);
             const auto [start2, end2] = project(corner2);
 
-            const auto minend = std::min(end1, end2), maxstart = std::max(start1, start2);
-            const auto overlap = minend - maxstart;
-            if (overlap > 0)
+            if (end1 < start2 || end2 < start1)
                 return std::nullopt;
-
+            // Include containment: moving either box out may require more
+            // than the width of the interval intersection.
+            const auto negative = end1 - start2;
+            const auto positive = end2 - start1;
+            const auto overlap = std::min(negative, positive);
             if (ret.mtv > overlap) {
                 ret.mtv = overlap;
-                ret.mtv_axis = axis;
+                ret.mtv_axis = negative < positive ? -axis : axis;
             }
         }
         return ret;

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#include <optional>
+
 struct ObjectBound
 {
     static RE::NiPointer<RE::NiCollisionObject> GetCollisionNodeRecurse(RE::NiNode* a_node, size_t a_recurse);
@@ -18,9 +21,9 @@ struct ObjectBound
     bool IsPointInside(const RE::NiPoint3& a_point) const;
     bool IsValid() const;
 
-    glm::vec3 boundMin{ glm::vec3() };
-    glm::vec3 boundMax{ glm::vec3() };
-    glm::vec3 worldBoundMin{ glm::vec3() };
-    glm::vec3 worldBoundMax{ glm::vec3() };
-    glm::vec3 rotation{ glm::vec3() };
+    glm::vec3 boundMin{ 0.0f };
+    glm::vec3 boundMax{ 0.0f };
+    glm::vec3 worldBoundMin{ 0.0f };
+    glm::vec3 worldBoundMax{ 0.0f };
+    glm::vec3 rotation{ 0.0f };
 };

@@ -46,3 +46,27 @@ with byte-stream and engine stand-ins, every truncation, count/delimiter corrupt
 concurrent callback snapshots, 1000 randomized geometry cases, default coordinates,
 legacy voice selection and copy-free lookup, and min/max edge cases. Failed-start
 Papyrus cleanup and ImGui clip restoration are source contracts, not runtime tests.
+
+Second full file review: full_second_review.py covers PCA seed degeneracy and tiny
+motions, antiparallel rotation limits, projected angles, 200 rotated object-bound
+and SAT cases, containment displacement, cross-file CSV schemas, and audio
+conversion failure/success using a mocked converter. Geometry uses engine/GLM
+stand-ins; Havok initialization and Papyrus install registration are source-only
+contracts. Real GLM/Havok, xmake, ffmpeg and game integration remain separate.
+
+Third full file review: full_third_review.py tests production FX filename parsing,
+vanished-directory recovery, sparse scene-setting lookup, five-stage registry
+initialization in normal/VR branches, and injected worker launch failure. Engine
+methods/YAML are stand-ins; thread fault injection replaces only the thread type.
+Real sklearn tests cover small/rare classes, independent export directories and
+atomic INI publication failures. No Windows/game/VR integration is performed.
+Training exports now live under out/models/run-*/ so merges use this run only.
+
+Fourth full file review: full_fourth_review.py exercises the production async
+consumer with real threads, deterministic shutdown and injected launch failure.
+It uses C++23 move_only_function where available and a move-only callable stand-in
+on Apple libc++ versions without it. Record string/view boundaries, write failures,
+form parsing and furniture grid limits are behavioral tests. Theme publication and
+physics retry wiring are source contracts; the existing AtomicWrite suite tests
+replacement behavior separately. Furniture grids exceeding 256 samples per axis
+are rejected, with at most 64 hit-skipping attempts per ray. No game runtime test.

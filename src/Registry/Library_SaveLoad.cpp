@@ -5,28 +5,35 @@
 #include "Util/Combinatorics.h"
 #include "Util/StringUtil.h"
 
+#include <thread>
+
 namespace Registry
 {
     void Library::Initialize() noexcept
     {
         logger::info("Loading Library");
         const auto tStart = std::chrono::high_resolution_clock::now();
+        constexpr std::array initializers{ &Library::InitializeScenes, &Library::InitializeVoice,
+            &Library::InitializeExpressions, &Library::InitializeFurnitures, &Library::InitializeCumFx };
 #ifndef SKYRIMVR
-        std::array threads{
-            std::thread{ [this]() { InitializeScenes(); } },
-            std::thread{ [this]() { InitializeVoice(); } },
-            std::thread{ [this]() { InitializeExpressions(); } },
-            std::thread{ [this]() { InitializeFurnitures(); } },
-            std::thread{ [this]() { InitializeCumFx(); } }
-        };
-        for (auto& thread : threads) {
-            thread.join();
+        std::vector<std::jthread> threads;
+        size_t next = 0;
+        try {
+            threads.reserve(initializers.size());
+            for (; next < initializers.size(); ++next) {
+                const auto initialize = initializers[next];
+                threads.emplace_back([this, initialize] { (this->*initialize)(); });
+            }
+        } catch (const std::exception& error) {
+            logger::warn("Registry worker creation failed: {}; completing remaining initializers synchronously", error.what());
+            for (; next < initializers.size(); ++next)
+                (this->*initializers[next])();
         }
+        for (auto& thread : threads)
+            thread.join();
 #else
-        InitializeScenes();
-        InitializeVoice();
-        InitializeExpressions();
-        InitializeFurnitures();
+        for (const auto initialize : initializers)
+            (this->*initialize)();
 #endif
 
         const auto tEnd = std::chrono::high_resolution_clock::now();
@@ -45,7 +52,9 @@ namespace Registry
     bool Library::FolderExists(const char* path, bool notifyUser) const noexcept
     {
         std::error_code ec{};
-        if (!fs::exists(path, ec) || fs::is_empty(path, ec)) {
+        const auto exists = fs::exists(path, ec);
+        const auto empty = exists && !ec ? fs::is_empty(path, ec) : true;
+        if (ec || !exists || empty) {
             const auto msg = ec ? std::format("An error occured while initializing {}: {}", path, ec.message()) :
                                   std::format("Unable to open {}. Folder is empty or does not exist.", path);
             if (notifyUser) {
@@ -158,49 +167,57 @@ namespace Registry
 
     void Library::InitializeSceneSettings() noexcept
     {
-        if (!FolderExists(SCENE_USER_CONFIG, false))
-            return;
-        std::unique_lock lock{ _mScenes };
-        for (auto& file : fs::directory_iterator{ SCENE_USER_CONFIG }) {
-            if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
-                continue;
-            const auto filename = file.path().filename().string();
-            try {
-                const auto root = YAML::LoadFile(file.path().string());
-                for (auto&& [key, scene] : sceneMap) {
-                    const auto node = root[scene->id];
-                    if (!node.IsDefined())
-                        continue;
-                    scene->Load(node);
+        try {
+            if (!FolderExists(SCENE_USER_CONFIG, false))
+                return;
+            std::unique_lock lock{ _mScenes };
+            for (auto& file : fs::directory_iterator{ SCENE_USER_CONFIG }) {
+                if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
+                    continue;
+                const auto filename = file.path().filename().string();
+                try {
+                    const auto root = YAML::LoadFile(file.path().string());
+                    for (const auto& entry : root) {
+                        const auto id = entry.first.as<std::string>();
+                        const auto scene = sceneMap.find(RE::BSFixedString(id));
+                        if (scene != sceneMap.end())
+                            scene->second->Load(entry.second);
+                    }
+                    logger::info("InitializeScenes: Finished parsing file {}", filename);
+                } catch (const std::exception& e) {
+                    logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
                 }
-                logger::info("InitializeScenes: Finished parsing file {}", filename);
-            } catch (const std::exception& e) {
-                logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
             }
+        } catch (const std::exception& error) {
+            logger::error("InitializeSceneSettings: Resource loading failed: {}", error.what());
         }
     }
 
     void Library::InitializeFurnitures() noexcept
     {
-        if (!FolderExists(FURNITURE_PATH, false))
-            return;
-        const std::unique_lock lock{ _mFurniture };
-        for (auto& file : fs::recursive_directory_iterator{ FURNITURE_PATH }) {
-            if (auto ext = file.path().extension(); ext != ".yml" && ext != ".yaml") {
-                continue;
-            }
-            const auto filename = file.path().filename().string();
-            try {
-                YAML::Node root = YAML::LoadFile(file.path().string());
-                for (auto&& it : root) {
-                    furnitures.emplace(
-                        RE::BSFixedString(it.first.as<std::string>()),
-                        std::make_unique<FurnitureDetails>(it.second));
+        try {
+            if (!FolderExists(FURNITURE_PATH, false))
+                return;
+            const std::unique_lock lock{ _mFurniture };
+            for (auto& file : fs::recursive_directory_iterator{ FURNITURE_PATH }) {
+                if (auto ext = file.path().extension(); ext != ".yml" && ext != ".yaml") {
+                    continue;
                 }
-                logger::info("RegisterFurniture: Finished parsing file {}", filename);
-            } catch (const std::exception& e) {
-                logger::error("RegisterFurniture: Failed to load {}: {}", filename, e.what());
+                const auto filename = file.path().filename().string();
+                try {
+                    YAML::Node root = YAML::LoadFile(file.path().string());
+                    for (auto&& it : root) {
+                        furnitures.emplace(
+                            RE::BSFixedString(it.first.as<std::string>()),
+                            std::make_unique<FurnitureDetails>(it.second));
+                    }
+                    logger::info("RegisterFurniture: Finished parsing file {}", filename);
+                } catch (const std::exception& e) {
+                    logger::error("RegisterFurniture: Failed to load {}: {}", filename, e.what());
+                }
             }
+        } catch (const std::exception& error) {
+            logger::error("InitializeFurnitures: Resource loading failed: {}", error.what());
         }
     }
 
@@ -224,46 +241,54 @@ namespace Registry
 
     void Library::InitializeExpressionsImpl() noexcept
     {
-        if (!FolderExists(EXPRESSION_PATH, false))
-            return;
-        for (auto& file : fs::recursive_directory_iterator{ EXPRESSION_PATH }) {
-            const auto extension = file.path().extension();
-            if (extension != ".yaml" && extension != ".yml")
-                continue;
-            const auto filename = file.path().filename().string();
-            try {
-                const auto yaml = YAML::LoadFile(file.path().string());
-                auto profile = Expression{ yaml };
-                if (expressions.emplace(profile.GetId(), std::move(profile)).second) {
-                    logger::info("InitializeExpressions: Added expression {}", filename);
-                } else {
-                    logger::warn("InitializeExpressions: Expression {} already exists, skipping", filename);
+        try {
+            if (!FolderExists(EXPRESSION_PATH, false))
+                return;
+            for (auto& file : fs::recursive_directory_iterator{ EXPRESSION_PATH }) {
+                const auto extension = file.path().extension();
+                if (extension != ".yaml" && extension != ".yml")
+                    continue;
+                const auto filename = file.path().filename().string();
+                try {
+                    const auto yaml = YAML::LoadFile(file.path().string());
+                    auto profile = Expression{ yaml };
+                    if (expressions.emplace(profile.GetId(), std::move(profile)).second) {
+                        logger::info("InitializeExpressions: Added expression {}", filename);
+                    } else {
+                        logger::warn("InitializeExpressions: Expression {} already exists, skipping", filename);
+                    }
+                } catch (const std::exception& e) {
+                    logger::error("InitializeExpressions: Failed to load {}: {}", filename, e.what());
                 }
-            } catch (const std::exception& e) {
-                logger::error("InitializeExpressions: Failed to load {}: {}", filename, e.what());
             }
+        } catch (const std::exception& error) {
+            logger::error("InitializeExpressionsImpl: Resource loading failed: {}", error.what());
         }
     }
 
     void Library::InitializeExpressionsLegacy() noexcept
     {
-        if (!FolderExists(EXPRESSION_LEGACY_CONFIG, false))
-            return;
-        for (auto& file : fs::directory_iterator{ EXPRESSION_LEGACY_CONFIG }) {
-            auto filename = file.path().filename().string();
-            Util::ToLower(filename);
-            if (!filename.starts_with("expression"))
-                continue;
-            try {
-                auto profile = Expression::FromLegacyFile(file.path());
-                auto succ = expressions.emplace(profile.GetId(), std::move(profile));
-                if (succ.second) {
-                    succ.first->second.Save(EXPRESSION_PATH, true);
-                    logger::info("InitializeExpressions: Queued legacy expression migration for {}; retain the source file", filename);
+        try {
+            if (!FolderExists(EXPRESSION_LEGACY_CONFIG, false))
+                return;
+            for (auto& file : fs::directory_iterator{ EXPRESSION_LEGACY_CONFIG }) {
+                auto filename = file.path().filename().string();
+                Util::ToLower(filename);
+                if (!filename.starts_with("expression"))
+                    continue;
+                try {
+                    auto profile = Expression::FromLegacyFile(file.path());
+                    auto succ = expressions.emplace(profile.GetId(), std::move(profile));
+                    if (succ.second) {
+                        succ.first->second.Save(EXPRESSION_PATH, true);
+                        logger::info("InitializeExpressions: Queued legacy expression migration for {}; retain the source file", filename);
+                    }
+                } catch (const std::exception& e) {
+                    logger::error("InitializeExpressions: Failed to load {}: {}", filename, e.what());
                 }
-            } catch (const std::exception& e) {
-                logger::error("InitializeExpressions: Failed to load {}: {}", filename, e.what());
             }
+        } catch (const std::exception& error) {
+            logger::error("InitializeExpressionsLegacy: Resource loading failed: {}", error.what());
         }
     }
 
@@ -278,60 +303,68 @@ namespace Registry
 
     void Library::InitializeVoiceImpl() noexcept
     {
-        if (!FolderExists(VOICE_PATH, true))
-            return;
-        for (auto& file : fs::recursive_directory_iterator{ VOICE_PATH }) {
-            if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
-                continue;
-            const auto filename = file.path().filename().string();
-            try {
-                const auto root = YAML::LoadFile(file.path().string());
-                auto voice = Voice{ root };
-                if (voices.emplace(voice.GetId(), std::move(voice)).second) {
-                    logger::info("InitializeVoice: Added voice {}", filename);
-                } else {
-                    logger::warn("InitializeVoice: Voice {} already exists, skipping", filename);
+        try {
+            if (!FolderExists(VOICE_PATH, true))
+                return;
+            for (auto& file : fs::recursive_directory_iterator{ VOICE_PATH }) {
+                if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
+                    continue;
+                const auto filename = file.path().filename().string();
+                try {
+                    const auto root = YAML::LoadFile(file.path().string());
+                    auto voice = Voice{ root };
+                    if (voices.emplace(voice.GetId(), std::move(voice)).second) {
+                        logger::info("InitializeVoice: Added voice {}", filename);
+                    } else {
+                        logger::warn("InitializeVoice: Voice {} already exists, skipping", filename);
+                    }
+                } catch (const std::exception& e) {
+                    logger::error("InitializeVoice: Error while loading scene settings from file {}: {}", filename, e.what());
                 }
-            } catch (const std::exception& e) {
-                logger::error("InitializeVoice: Error while loading scene settings from file {}: {}", filename, e.what());
             }
+        } catch (const std::exception& error) {
+            logger::error("InitializeVoiceImpl: Resource loading failed: {}", error.what());
         }
     }
 
     void Library::InitializeVoicePitches() noexcept
     {
-        if (!FolderExists(VOICE_PATH_PITCH, false))
-            return;
-        for (auto& file : fs::recursive_directory_iterator{ VOICE_PATH_PITCH }) {
-            if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
-                continue;
-            const auto filename = file.path().filename().string();
-            try {
-                const auto root = YAML::LoadFile(file.path().string());
-                for (auto&& it : root) {
-                    auto formIdStr = it.first.as<std::string>();
-                    auto id = Util::FormFromString(formIdStr);
-                    if (id == 0) {
-                        logger::error("InitializeVoicePitches: Invalid form ID: {} in file {}", formIdStr, filename);
-                        continue;
-                    }
-                    const auto pitchStr = it.second.as<std::string>();
-                    auto pitch = magic_enum::enum_cast<Pitch>(pitchStr);
-                    if (!pitch.has_value()) {
-                        auto voice = voices.find(pitchStr);
-                        if (voice == voices.end()) {
-                            logger::error("InitializeVoicePitches: Unknown Pitch {} in file {}", pitchStr, filename);
+        try {
+            if (!FolderExists(VOICE_PATH_PITCH, false))
+                return;
+            for (auto& file : fs::recursive_directory_iterator{ VOICE_PATH_PITCH }) {
+                if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
+                    continue;
+                const auto filename = file.path().filename().string();
+                try {
+                    const auto root = YAML::LoadFile(file.path().string());
+                    for (auto&& it : root) {
+                        auto formIdStr = it.first.as<std::string>();
+                        auto id = Util::FormFromString(formIdStr);
+                        if (id == 0) {
+                            logger::error("InitializeVoicePitches: Invalid form ID: {} in file {}", formIdStr, filename);
                             continue;
                         }
-                        savedPitches.insert_or_assign(id, &voice->second);
-                    } else {
-                        savedPitches.insert_or_assign(id, pitch.value());
+                        const auto pitchStr = it.second.as<std::string>();
+                        auto pitch = magic_enum::enum_cast<Pitch>(pitchStr);
+                        if (!pitch.has_value()) {
+                            auto voice = voices.find(pitchStr);
+                            if (voice == voices.end()) {
+                                logger::error("InitializeVoicePitches: Unknown Pitch {} in file {}", pitchStr, filename);
+                                continue;
+                            }
+                            savedPitches.insert_or_assign(id, &voice->second);
+                        } else {
+                            savedPitches.insert_or_assign(id, pitch.value());
+                        }
                     }
+                    logger::info("InitializeVoicePitches: Finished parsing file {}", filename);
+                } catch (const std::exception& e) {
+                    logger::error("InitializeVoicePitches: Error while loading voice pitches from file {}: {}", filename, e.what());
                 }
-                logger::info("InitializeVoicePitches: Finished parsing file {}", filename);
-            } catch (const std::exception& e) {
-                logger::error("InitializeVoicePitches: Error while loading voice pitches from file {}: {}", filename, e.what());
             }
+        } catch (const std::exception& error) {
+            logger::error("InitializeVoicePitches: Resource loading failed: {}", error.what());
         }
     }
 
@@ -383,74 +416,90 @@ namespace Registry
 
     void Library::InitializeCumFx() noexcept
     {
-        std::unique_lock lock{ _mCumFx };
-        if (!FolderExists(CUM_FX_PATH, true))
-            return;
-        const auto fxTypes = magic_enum::enum_entries<Registry::Library::FxType>();
-        for (auto&& [value, name] : fxTypes) {
-            logger::info("Initializing FX type: {}", name);
-            const auto path = std::format("{}{}", CUM_FX_PATH, name);
-            if (fs::exists(path) && !fs::is_empty(path)) {
-                for (auto& profileEntry : fs::directory_iterator(path)) {
-                    if (!profileEntry.is_directory())
-                        continue;
-                    const auto typeCount = InitializeCumFxType(profileEntry);
-                    if (typeCount == 0) {
-                        logger::error("Failed to parse profile: {}", profileEntry.path().string());
-                        continue;
+        try {
+            std::unique_lock lock{ _mCumFx };
+            if (!FolderExists(CUM_FX_PATH, true))
+                return;
+            const auto fxTypes = magic_enum::enum_entries<Registry::Library::FxType>();
+            for (auto&& [value, name] : fxTypes) {
+                logger::info("Initializing FX type: {}", name);
+                const auto path = std::format("{}{}", CUM_FX_PATH, name);
+                if (fs::exists(path) && !fs::is_empty(path)) {
+                    for (auto& profileEntry : fs::directory_iterator(path)) {
+                        if (!profileEntry.is_directory())
+                            continue;
+                        const auto typeCount = InitializeCumFxType(profileEntry);
+                        if (typeCount == 0) {
+                            logger::error("Failed to parse profile: {}", profileEntry.path().string());
+                            continue;
+                        }
+                        const auto profileName = profileEntry.path().filename().string();
+                        fxList[static_cast<size_t>(value)].emplace_back(RE::BSFixedString(profileName), typeCount);
+                        logger::info("Loaded profile: {}", profileName);
                     }
-                    const auto profileName = profileEntry.path().filename().string();
-                    fxList[static_cast<size_t>(value)].emplace_back(RE::BSFixedString(profileName), typeCount);
-                    logger::info("Loaded profile: {}", profileName);
+                }
+                if (fxList[static_cast<size_t>(value)].empty()) {
+                    logger::error("No valid FX profiles found for type: {}", name);
                 }
             }
-            if (fxList[static_cast<size_t>(value)].empty()) {
-                logger::error("No valid FX profiles found for type: {}", name);
-            }
+        } catch (const std::exception& error) {
+            logger::error("InitializeCumFx: Resource loading failed: {}", error.what());
         }
     }
 
     uint8_t Library::InitializeCumFxType(const fs::directory_entry& a_typePath) const noexcept
     {
-        std::vector<uint8_t> fxFiles;
-        for (const auto& file : fs::directory_iterator(a_typePath.path())) {
-            if (!file.is_regular_file() || file.path().extension() != ".dds") {
-                logger::warn("Invalid file type: {}. Expected .dds", file.path().string());
-                continue;
-            }
-            std::string fileName = file.path().filename().string();
-            size_t dotPos = fileName.find_last_of('.');
-            std::string numberPart = fileName.substr(0, dotPos);
-            try {
-                size_t number = std::stoul(numberPart);
-                if (number > std::numeric_limits<uint8_t>::max()) {
-                    logger::warn("File number {} exceeds maximum value of 255", number);
+        try {
+            std::vector<uint8_t> fxFiles;
+            for (const auto& file : fs::directory_iterator(a_typePath.path())) {
+                if (!file.is_regular_file() || file.path().extension() != ".dds") {
+                    logger::warn("Invalid file type: {}. Expected .dds", file.path().string());
                     continue;
                 }
-                fxFiles.push_back(static_cast<uint8_t>(number));
-            } catch (const std::exception& e) {
-                logger::warn("Invalid number in file name: {}. Error: {}", numberPart, e.what());
-                continue;
+                std::string fileName = file.path().filename().string();
+                size_t dotPos = fileName.find_last_of('.');
+                std::string numberPart = fileName.substr(0, dotPos);
+                try {
+                    size_t consumed = 0;
+                    const auto number = std::stoul(numberPart, &consumed);
+                    // Runtime builds the path as <number>.dds; aliases such as
+                    // 01.dds, +1.dds or 1extra.dds would point to nonexistent files.
+                    if (consumed != numberPart.size() || numberPart != std::to_string(number) || number == 0) {
+                        logger::warn("Invalid FX file number: {}", numberPart);
+                        continue;
+                    }
+                    if (number > std::numeric_limits<uint8_t>::max()) {
+                        logger::warn("File number {} exceeds maximum value of 255", number);
+                        continue;
+                    }
+                    fxFiles.push_back(static_cast<uint8_t>(number));
+                } catch (const std::exception& e) {
+                    logger::warn("Invalid number in file name: {}. Error: {}", numberPart, e.what());
+                    continue;
+                }
             }
-        }
-        if (fxFiles.empty()) {
-            logger::error("No valid files found in directory: {}", a_typePath.path().string());
-            return 0;
-        }
-        std::sort(fxFiles.begin(), fxFiles.end());
-        if (fxFiles.front() != 1) {
-            logger::error("First file number is not 1 in directory: {}", a_typePath.path().string());
-            return 0;
-        }
-        uint8_t expectedFileNumber = 1;
-        for (const auto fileNumber : fxFiles) {
-            if (fileNumber != expectedFileNumber) {
-                logger::error("Missing file number {} in directory: {}", expectedFileNumber, a_typePath.path().string());
+            if (fxFiles.empty()) {
+                logger::error("No valid files found in directory: {}", a_typePath.path().string());
                 return 0;
             }
-            ++expectedFileNumber;
+            std::sort(fxFiles.begin(), fxFiles.end());
+            if (fxFiles.front() != 1) {
+                logger::error("First file number is not 1 in directory: {}", a_typePath.path().string());
+                return 0;
+            }
+            size_t expectedFileNumber = 1;
+            for (const auto fileNumber : fxFiles) {
+                if (fileNumber != expectedFileNumber) {
+                    logger::error("Missing file number {} in directory: {}", expectedFileNumber, a_typePath.path().string());
+                    return 0;
+                }
+                ++expectedFileNumber;
+            }
+            return static_cast<uint8_t>(fxFiles.size());
+        } catch (const std::exception& error) {
+            logger::error("InitializeCumFxType: Resource loading failed: {}", error.what());
+            return 0;
         }
-        return static_cast<uint8_t>(fxFiles.size());
     }
 
     void Library::Save() const noexcept

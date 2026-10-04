@@ -118,34 +118,38 @@ namespace Thread::NiNode::NiMath
                 }
             }
         }
-        float invN = 1.0f / a_points.size();
-        cov = cov * invN;
+        // Scaling does not change eigenvectors. Normalize by the largest
+        // diagonal to keep tiny but nonzero trajectories numerically useful.
+        const float scale = std::max({ cov.entry[0][0], cov.entry[1][1], cov.entry[2][2] });
+        if (scale <= 0.0f)
+            return { centroid, centroid };
+        cov = cov * (1.0f / scale);
 
-        // 3) Power iteration for principal eigenvector
         constexpr int PCA_MAX_ITERATIONS = 50;
         constexpr float PCA_DIRECTION_TOLERANCE_SQR = 1e-6f;
         constexpr float PCA_MIN_VECTOR_NORM_SQR = 1e-12f;
-
-        RE::NiPoint3 dir{ 1.0f, 1.0f, 1.0f };
-        dir.Unitize();
-
-        for (int i = 0; i < PCA_MAX_ITERATIONS; ++i) {
-            RE::NiPoint3 newDir = cov * dir;
-            if (newDir.SqrLength() < PCA_MIN_VECTOR_NORM_SQR) {
-                // Covariance matrix is near-zero; fall back to a default axis.
-                dir = RE::NiPoint3{ 1.0f, 0.0f, 0.0f };
-                break;
+        RE::NiPoint3 dir{ 1.0f, 0.0f, 0.0f };
+        float bestVariance = -1.0f;
+        // A single seed may be orthogonal to the principal eigenspace. At
+        // least one of these three independent seeds has a component in it.
+        for (size_t seed = 0; seed < 3; ++seed) {
+            RE::NiPoint3 candidate{ 0.0f, 0.0f, 0.0f };
+            candidate[seed] = 1.0f;
+            for (int i = 0; i < PCA_MAX_ITERATIONS; ++i) {
+                auto next = cov * candidate;
+                if (next.SqrLength() < PCA_MIN_VECTOR_NORM_SQR)
+                    break;
+                next.Unitize();
+                const auto diff = next - candidate;
+                candidate = next;
+                if (diff.SqrLength() < PCA_DIRECTION_TOLERANCE_SQR)
+                    break;
             }
-
-            newDir.Unitize();
-
-            RE::NiPoint3 diff = newDir - dir;
-            if (diff.SqrLength() < PCA_DIRECTION_TOLERANCE_SQR) {
-                dir = newDir;
-                break;
+            const auto variance = candidate.Dot(cov * candidate);
+            if (variance > bestVariance) {
+                bestVariance = variance;
+                dir = candidate;
             }
-
-            dir = newDir;
         }
 
         // 4) Find line extents
@@ -164,35 +168,27 @@ namespace Thread::NiNode::NiMath
 
     RE::NiMatrix3 RotateTowards(const RE::NiPoint3& v, const RE::NiPoint3& i, float maxRadians)
     {
+        const RE::NiMatrix3 identity{ { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
         if (v.SqrLength() == 0.0f || i.SqrLength() == 0.0f)
-            return RE::NiMatrix3{};
-        RE::NiPoint3 axis = v.Cross(i);
-        float sin_theta = axis.Length();
-        float cos_theta = v.Dot(i);
-
-        if (sin_theta < FLT_EPSILON && cos_theta > 0.0f) {
-            return RE::NiMatrix3{};  // parallel or zero
-        } else if (sin_theta < FLT_EPSILON && cos_theta < 0.0f) {
-            // antiparallel
-            RE::NiPoint3 perp = v.Cross(RE::NiPoint3{ 1, 0, 0 });
-            if (perp.SqrLength() < 1e-6f)
-                perp = v.Cross(RE::NiPoint3{ 0, 1, 0 });
-            perp.Unitize();
-
-            // 180° rotation: R = -I + 2 * k kᵀ
-            RE::NiMatrix3 m{};
-            for (size_t r = 0; r < 3; ++r) {
-                for (size_t c = 0; c < 3; ++c) {
-                    m.entry[r][c] = (r == c) ? -1.0f : 0.0f;
-                    m.entry[r][c] += 2.0f * perp[r] * perp[c];
-                }
-            }
-            return m;
+            return identity;
+        auto from = v, to = i;
+        from.Unitize();
+        to.Unitize();
+        RE::NiPoint3 axis = from.Cross(to);
+        const float sin_theta = axis.Length();
+        const float cos_theta = std::clamp(from.Dot(to), -1.0f, 1.0f);
+        if (sin_theta < FLT_EPSILON) {
+            if (cos_theta >= 0.0f)
+                return identity;
+            axis = from.Cross(RE::NiPoint3{ 1, 0, 0 });
+            if (axis.SqrLength() < 1e-6f)
+                axis = from.Cross(RE::NiPoint3{ 0, 1, 0 });
+            axis.Unitize();
+        } else {
+            axis /= sin_theta;
         }
-        float theta = std::atan2(sin_theta, cos_theta);
-        float step = maxRadians != 0.0f ? std::min(theta, maxRadians) : theta;
-
-        axis /= sin_theta;  // normalize
+        const float theta = std::atan2(sin_theta, cos_theta);
+        const float step = maxRadians != 0.0f ? std::clamp(maxRadians, 0.0f, theta) : theta;
 
         RE::NiMatrix3 K{
             { 0, -axis.z, axis.y },
@@ -200,19 +196,19 @@ namespace Thread::NiNode::NiMath
             { -axis.y, axis.x, 0 }
         };
 
-        return RE::NiMatrix3{} + K * std::sinf(step) + (K * K) * (1.0f - std::cosf(step));
+        return identity + K * std::sin(step) + (K * K) * (1.0f - std::cos(step));
     }
 
     float GetAngle(const RE::NiPoint3& v1, const RE::NiPoint3& v2)
     {
-        return std::acosf(GetAngleCos(v1, v2));
+        return std::acos(GetAngleCos(v1, v2));
     }
 
     float GetAngleCos(const RE::NiPoint3& v1, const RE::NiPoint3& v2)
     {
         const auto dot = v1.Dot(v2);
         const auto l = v1.Length() * v2.Length();
-        return std::clamp(dot / l, -1.0f, 1.0f);
+        return l > 0.0f ? std::clamp(dot / l, -1.0f, 1.0f) : 1.0f;
     }
 
     float GetAngleDegree(const RE::NiPoint3& v1, const RE::NiPoint3& v2)
@@ -251,17 +247,17 @@ namespace Thread::NiNode::NiMath
 
     float GetAngleXZ(const RE::NiPoint3& u, const RE::NiPoint3& v)
     {
-        return GetAngleCos(ProjectToXZ(u), ProjectToXZ(v));
+        return GetAngle(ProjectToXZ(u), ProjectToXZ(v));
     }
 
     float GetAngleXY(const RE::NiPoint3& u, const RE::NiPoint3& v)
     {
-        return GetAngleCos(ProjectToXY(u), ProjectToXY(v));
+        return GetAngle(ProjectToXY(u), ProjectToXY(v));
     }
 
     float GetAngleYZ(const RE::NiPoint3& u, const RE::NiPoint3& v)
     {
-        return GetAngleCos(ProjectToYZ(u), ProjectToYZ(v));
+        return GetAngle(ProjectToYZ(u), ProjectToYZ(v));
     }
 
     RE::NiPoint3 ProjectedComponent(RE::NiPoint3 U, RE::NiPoint3 V)

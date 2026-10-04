@@ -26,7 +26,7 @@ namespace Thread::NiNode::NiMath
     /// @brief Compute the rotation matrix that rotates vector v towards vector i
     /// @param v The vector to rotate
     /// @param i The vector to rotate towards
-    /// @param maxRadians The maximum angle to rotate; i.e. rotation = min(maxRadians, angle between v and i)
+    /// @param maxRadians The maximum angle to rotate; zero means unlimited, negative means no rotation
     /// @return The rotation matrix that rotates v towards i (V = R * V)
     RE::NiMatrix3 RotateTowards(const RE::NiPoint3& v, const RE::NiPoint3& i, float maxRadians = 0.f);
 
@@ -39,6 +39,7 @@ namespace Thread::NiNode::NiMath
     /// @param v2 The second vector
     /// @return The angle, in radians
     float GetAngle(const RE::NiPoint3& v1, const RE::NiPoint3& v2);
+    // Zero-length vectors use a neutral angle of zero (cosine one).
     float GetAngleCos(const RE::NiPoint3& v1, const RE::NiPoint3& v2);
     float GetAngleDegree(const RE::NiPoint3& v1, const RE::NiPoint3& v2);
 

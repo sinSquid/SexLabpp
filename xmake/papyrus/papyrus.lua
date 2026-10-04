@@ -84,9 +84,9 @@ function on_config(target)
 
     local batch = target:sourcebatches().papyrus
     local sourcefiles = batch and batch.sourcefiles or {}
+    target:add("installfiles", sourcefiles, {prefixdir = "Source/Scripts"})
     for _, v in ipairs(sourcefiles) do
         local objectfile = _objectfile(target, v)
-        target:add("installfiles", sourcefiles, {prefixdir = "Source/Scripts"})
         target:add("installfiles", objectfile, {prefixdir = "Scripts"})
     end
 

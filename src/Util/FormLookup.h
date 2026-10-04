@@ -6,10 +6,12 @@ namespace Util
 {
     static inline RE::FormID FormFromString(const std::string_view& a_string, int base)
     {
+        if (a_string.empty() || base < 2 || base > 36)
+            return 0;
         const auto split = a_string.find('|');
         const auto formIdStr = a_string.substr(0, split);
         RE::FormID formid;
-        const auto offset = a_string.starts_with("0x") ? 2 : 0;
+        const auto offset = base == 16 && (formIdStr.starts_with("0x") || formIdStr.starts_with("0X")) ? 2 : 0;
         auto [ptr, res] = std::from_chars(
             formIdStr.data() + offset,
             formIdStr.data() + formIdStr.size(),
@@ -28,7 +30,7 @@ namespace Util
 
     static inline RE::FormID FormFromString(const std::string_view& a_string)
     {
-        const auto base = a_string.starts_with("0x") ? 16 : 10;
+        const auto base = (a_string.starts_with("0x") || a_string.starts_with("0X")) ? 16 : 10;
         return FormFromString(a_string, base);
     }
 
@@ -42,7 +44,7 @@ namespace Util
     template <typename T, typename = std::enable_if_t<!std::is_pointer_v<T>>>
     static inline T* FormFromString(const std::string_view& a_string)
     {
-        const auto base = a_string.starts_with("0x") ? 16 : 10;
+        const auto base = (a_string.starts_with("0x") || a_string.starts_with("0X")) ? 16 : 10;
         return FormFromString<T>(a_string, base);
     }
 

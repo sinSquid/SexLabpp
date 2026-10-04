@@ -1,4 +1,6 @@
 import argparse
+import math
+import tempfile
 from pathlib import Path
 
 import joblib
@@ -60,6 +62,17 @@ def _build_binary_target(label_series, interaction: str):
     return (normalized == interaction).astype(int)
 
 
+def _training_split(X, y, description: str):
+    counts = y.value_counts()
+    if len(counts) < 2 or counts.min() < 2:
+        print(f"Skipping {description}: need at least two samples per class for held-out evaluation.")
+        return None
+    # For small multiclass data, the usual 20% test set can have fewer rows
+    # than classes. Reserve enough rows on both sides of the split.
+    test_count = min(max(math.ceil(len(y) * 0.2), len(counts)), len(y) - len(counts))
+    return train_test_split(X, y, test_size=test_count, stratify=y, random_state=RANDOM_STATE)
+
+
 def train_binary_model(df, cluster: str, out_path: str | Path):
     df = _drop_non_features(df)
 
@@ -69,7 +82,7 @@ def train_binary_model(df, cluster: str, out_path: str | Path):
     models = {}
 
     interactions = get_interactions(df)
-    for interaction in interactions:
+    for interaction in sorted(interactions):
         y = _build_binary_target(df[LABEL_COLUMN], interaction)
 
         # Only use that type's features
@@ -83,16 +96,17 @@ def train_binary_model(df, cluster: str, out_path: str | Path):
 
         X = df[feature_cols]
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, stratify=y, random_state=RANDOM_STATE
-        )
+        split = _training_split(X, y, interaction)
+        if split is None:
+            continue
+        X_train, X_test, y_train, y_test = split
 
         model = _build_pipeline(max_iter=1000)
 
         model.fit(X_train, y_train)
 
         print(f"\n=== {interaction} Binary Model ===")
-        print(classification_report(y_test, model.predict(X_test)))
+        print(classification_report(y_test, model.predict(X_test), zero_division=0))
 
         joblib.dump(model, out_path / f"{interaction.lower()}_binary_{cluster}.pkl")
         models[interaction] = model
@@ -110,16 +124,17 @@ def train_softmax_model(df, cluster: str, out_path: str | Path):
         print("Skipping softmax: only one class present.")
         return None
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, stratify=y, random_state=RANDOM_STATE
-    )
+    split = _training_split(X, y, f"softmax {cluster}")
+    if split is None:
+        return None
+    X_train, X_test, y_train, y_test = split
 
     model = _build_pipeline(max_iter=2000)
 
     model.fit(X_train, y_train)
 
     print(f"\n=== Softmax Model ({cluster}) ===")
-    print(classification_report(y_test, model.predict(X_test)))
+    print(classification_report(y_test, model.predict(X_test), zero_division=0))
 
     out_path = Path(out_path)
     out_path.mkdir(parents=True, exist_ok=True)
@@ -137,6 +152,9 @@ def _run_training(mods_path: str | Path = None, out_dir: str = None) -> Path:
 
     df_map = load_data(mods_path, table_path)
     model_path.mkdir(parents=True, exist_ok=True)
+    # Merge only this run's exports; an earlier run may contain models that
+    # were skipped or use a different schema in the current training session.
+    model_path = Path(tempfile.mkdtemp(prefix="run-", dir=model_path))
 
     for cluster, df in df_map.items():
         df[LABEL_COLUMN] = (

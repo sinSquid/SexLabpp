@@ -19,19 +19,21 @@ namespace Util::AsyncIO
             {
                 _worker.request_stop();
                 _condition.notify_all();
+                if (_worker.joinable())
+                    _worker.join();
             }
 
             void Submit(std::move_only_function<void()> a_task)
             {
                 {
                     std::lock_guard lock{ _mutex };
-                    _tasks.emplace_back(std::move(a_task));
                     if (!_running) {
                         if (_worker.joinable())
                             _worker.join();
-                        _running = true;
                         _worker = std::jthread([this](std::stop_token a_stopToken) { Run(a_stopToken); });
+                        _running = true;
                     }
+                    _tasks.emplace_back(std::move(a_task));
                 }
                 _condition.notify_one();
             }
@@ -40,15 +42,12 @@ namespace Util::AsyncIO
             void Run(std::stop_token a_stopToken)
             {
                 std::unique_lock lock{ _mutex };
-                while (!a_stopToken.stop_requested()) {
+                for (;;) {
                     if (_tasks.empty() &&
                         !_condition.wait_for(lock, a_stopToken, 2s, [this]() { return !_tasks.empty(); })) {
                         _running = false;
                         return;
                     }
-                    if (a_stopToken.stop_requested())
-                        break;
-
                     auto task = std::move(_tasks.front());
                     _tasks.pop_front();
                     lock.unlock();
@@ -61,7 +60,6 @@ namespace Util::AsyncIO
                     }
                     lock.lock();
                 }
-                _running = false;
             }
 
             std::mutex _mutex;

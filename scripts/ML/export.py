@@ -1,4 +1,6 @@
 import configparser
+import os
+import tempfile
 from pathlib import Path
 
 import joblib
@@ -18,6 +20,21 @@ def _ensure_ini_path(ini_path: str | Path) -> Path:
     if ini_path.suffix != ".ini":
         raise ValueError(f"INI path must have .ini extension: {ini_path}")
     return ini_path
+
+def _write_ini(config: configparser.ConfigParser, out_path: str | Path) -> None:
+    out_path = _ensure_ini_path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=out_path.parent,
+                                         prefix=f".{out_path.name}.", suffix=".tmp", delete=False) as output:
+            temporary = Path(output.name)
+            config.write(output)
+        os.replace(temporary, out_path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
 
 def _normalize_feature_name(feature_name: str) -> str:
     return feature_name.split("_")[-1] if "_" in feature_name else feature_name
@@ -52,8 +69,7 @@ def export_binary_model_to_ini(model, interaction_name: str, out_path: str | Pat
     for name, weight in zip(normalized, w_raw):
         config[interaction_name][name] = str(weight)
 
-    with open(out_path, "w") as f:
-        config.write(f)
+    _write_ini(config, out_path)
 
     print(f"Exported {interaction_name} to {out_path}")
 
@@ -105,8 +121,7 @@ def export_softmax_model_to_ini(model_or_path, out_path: str | Path) -> None:
 
         print(f"Exported class {class_name}")
 
-    with open(out_path, "w") as f:
-        config.write(f)
+    _write_ini(config, out_path)
 
     print(f"Softmax model exported to {out_path}")
 
@@ -122,20 +137,25 @@ def unify_ini_files(ini_path: str | Path, out_path: str | Path) -> None:
     else:
         raise ValueError(f"INI path must be a directory or .ini file: {ini_root}")
 
+    ini_files = [path for path in ini_files if path.resolve() != out_path.resolve()]
+    if not ini_files:
+        print("No new INI exports; existing model configuration left unchanged.")
+        return
     unified_config = configparser.ConfigParser()
     if out_path.exists():
-        unified_config.read(out_path)
+        with out_path.open(encoding="utf-8") as source:
+            unified_config.read_file(source)
 
     for ini_file in ini_files:
         if ini_file.resolve() == out_path.resolve():
             continue
         config = configparser.ConfigParser()
-        config.read(ini_file)
+        with ini_file.open(encoding="utf-8") as source:
+            config.read_file(source)
         for section in config.sections():
             # Replace the section so old schemas/coefficients cannot survive retraining.
             unified_config[section] = dict(config[section])
 
-    with open(out_path, "w") as f:
-        unified_config.write(f)
+    _write_ini(unified_config, out_path)
 
     print(f"Unified INI file exported to {out_path}")
