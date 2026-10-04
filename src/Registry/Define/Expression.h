@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Registry/Define/Tags.h"
+#include "Util/DirtyFlag.h"
 
 namespace Registry
 {
@@ -64,7 +65,7 @@ namespace Registry
         RE::BSFixedString id;
         uint8_t version{ 0 };
         bool enabled{ true };
-        mutable bool has_edits{ false };
+        mutable Util::DirtyFlag has_edits{ false };
 
         TagData tags{};
         Scaling scaling{ Scaling::Linear };

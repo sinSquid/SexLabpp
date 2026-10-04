@@ -15,7 +15,11 @@ namespace logger
     template <class... T>
     void error(T&&...)
     {}
+    template <class... T>
+    void info(T&&...)
+    {}
 }
+#include "../src/Util/DirtyFlag.h"
 #include "../src/Util/SaveQueue.h"
 
 struct Stream
@@ -157,6 +161,49 @@ int main()
         failed = true;
     }
     assert(failed && std::filesystem::exists(directory / "blocked" / "keep"));
+    // An older snapshot must never acknowledge an edit made after it was captured.
+    Util::DirtyFlag dirty(true);
+    const auto old = dirty;
+    dirty = true;
+    Util::SaveQueue::Get().Submit(path, "old", old.Receipt());
+    Util::SaveQueue::Get().Flush();
+    assert(!old && dirty);
+    Util::SaveQueue::Get().Submit(path, "new", dirty.Receipt());
+    Util::SaveQueue::Get().Flush();
+    assert(!dirty);
+    dirty = true;
+    Util::SaveQueue::Get().Submit(directory / "blocked", "failed", dirty.Receipt());
+    Util::SaveQueue::Get().Flush();
+    assert(dirty);
+
+    const auto archive = directory / "training";
+    std::filesystem::create_directory(archive);
+    Util::AtomicWrite(archive / "ML_TrainingData_0.csv", "original0");
+    Util::AtomicWrite(archive / "ML_TrainingData_2.csv", "original2");
+    std::vector<std::thread> archivers;
+    for (int i = 0; i < 4; ++i) archivers.emplace_back([&] { Util::ArchiveWrite(archive, { "header", "new" }); });
+    for (auto& writer : archivers) writer.join();
+    auto read = [](const auto& p) { std::ifstream f(p); return std::string(std::istreambuf_iterator<char>(f), {}); };
+    assert(read(archive / "ML_TrainingData_0.csv") == "original0");
+    assert(read(archive / "ML_TrainingData_2.csv") == "original2");
+    size_t csvCount = 0;
+    for (const auto& entry : std::filesystem::directory_iterator(archive))
+        if (entry.path().extension() == ".csv")
+            ++csvCount;
+    assert(csvCount == 6);
+    // A non-directory parent forces failure. The batch survives, keeps its
+    // cluster directory, and is written after recovery without losing new data.
+    const auto blockedParent = directory / "unavailable";
+    Util::AtomicWrite(blockedParent, "block");
+    Util::SaveQueue::Get().SubmitArchive(blockedParent / "OldCluster", { "header", "old session" });
+    Util::SaveQueue::Get().Flush();
+    assert(Util::SaveQueue::Get().FailedArchiveCount() == 1);
+    std::filesystem::remove(blockedParent);
+    Util::SaveQueue::Get().SubmitArchive(blockedParent / "NewCluster", { "header", "new session" });
+    Util::SaveQueue::Get().Flush();
+    assert(Util::SaveQueue::Get().FailedArchiveCount() == 0);
+    assert(read(blockedParent / "OldCluster" / "ML_TrainingData_0.csv") == "header\nold session\n");
+    assert(read(blockedParent / "NewCluster" / "ML_TrainingData_0.csv") == "header\nnew session\n");
     std::filesystem::remove_all(directory);
     std::cout << "PASS: required matching, exact index equivalence, record bounds, serialized atomic saving\n";
 }

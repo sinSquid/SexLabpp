@@ -39,6 +39,7 @@ def graph_test():
 #include <queue>
 #include <set>
 #include <vector>
+namespace logger { inline int warnings=0; template<class... T> void warn(T&&...) { ++warnings; } }
 struct Stage { int id; };
 struct Scene {
     enum class NodeType { None, Root, Sink, Default };
@@ -84,6 +85,13 @@ int main() {
     assert(cyclic.GetShortestPath(&nodes[0]).size() == 3);
     assert(cyclic.GetLongestPath(&nodes[0]).size() == 3);
     assert(cyclic.GetLongestPath(nullptr).empty());
+    Scene hardCycle;
+    for(int a=0;a<12;++a) for(int b=0;b<12;++b) if(a!=b) hardCycle.graph[&denseNodes[a]].push_back(&denseNodes[b]);
+    const auto bounded=hardCycle.GetLongestPath(&denseNodes[0]);
+    assert(logger::warnings==1 && bounded.size()==12);
+    assert(std::set<const Stage*>(bounded.begin(),bounded.end()).size()==bounded.size());
+    for(size_t i=1;i<bounded.size();++i) { const auto& edges=hardCycle.graph[bounded[i-1]]; assert(std::find(edges.begin(),edges.end(),bounded[i])!=edges.end()); }
+    assert(hardCycle.GetLongestPath(&denseNodes[0])==bounded);
     std::cout << "PASS: production path functions, 1024 DAGs/all roots and cycle\n";
 }
 '''
@@ -186,6 +194,16 @@ int main() {
     stats->AddEncounter(&b,&c,ActorEncounter::EncounterType::Any);
     stats->AddEncounter(&a,&missing,ActorEncounter::EncounterType::Any);
     assert(stats->GetMostRecentEncounter(&b,ActorEncounter::EncounterType::Any)==&c);
+    stats->Revert(nullptr);
+    for(int i=0;i<300;++i) stats->AddEncounter(&a,&b,ActorEncounter::EncounterType::Aggressor);
+    assert(stats->GetEncounter(&a,&b)->GetTimesMet()==255);
+    assert(stats->GetEncounter(&a,&b)->GetTimesDominant(1)==255);
+    assert(stats->GetEncounter(&a,&b)->GetTimesAssailant(1)==255);
+    assert(stats->GetMostRecentEncounter(&a,ActorEncounter::EncounterType::Dominant)==&b);
+    SKSE::SerializationInterface saturated;
+    stats->Save(&saturated); stats->Revert(nullptr);
+    stats->Load(&saturated,2,static_cast<uint32_t>(saturated.bytes.size()));
+    assert(stats->GetEncounter(&a,&b)->GetTimesMet()==255);
     // Legacy v1 fixture: unresolved first actor, then string and raw MSVC variant.
     SKSE::SerializationInterface old;
     Util::WriteRecord(&old,uint64_t{2});

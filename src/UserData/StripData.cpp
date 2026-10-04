@@ -8,19 +8,23 @@ namespace UserData
         std::scoped_lock lock{ _m };
         try {
             const auto handler = RE::TESDataHandler::GetSingleton();
-            _root = YAML::LoadFile(STRIP_PATH);
-            for (const auto&& mod : _root) {
+            auto root = YAML::LoadFile(STRIP_PATH);
+            decltype(strips) loaded;
+            for (const auto& mod : root) {
                 const auto esp = mod.first.as<std::string>();
                 if (handler->LookupModByName(esp) == nullptr) {
                     logger::info("Cannot load strip settings for {}. Plugin is not found", esp);
                     continue;
                 }
-                for (const auto&& i : mod.second) {
+                for (const auto& i : mod.second) {
                     const auto id = i.first.as<uint32_t>();
                     const auto formid = handler->LookupFormID(id, esp);
-                    strips[formid] = Strip(i.second.as<int32_t>());
+                    if (formid)
+                        loaded[formid] = Strip(i.second.as<int32_t>());
                 }
             }
+            _root = std::move(root);
+            strips = std::move(loaded);
         } catch (const std::exception& e) {
             logger::error("Unable to load data. Error: {}", e.what());
         }
@@ -31,6 +35,15 @@ namespace UserData
     {
         std::scoped_lock lock{ _m };
         try {
+            YAML::Node snapshot(YAML::NodeType::Map);
+            const auto handler = RE::TESDataHandler::GetSingleton();
+            // Preserve unavailable plugins; rebuild loaded plugins from live state,
+            // including deletions and a complete reset.
+            for (const auto& mod : _root) {
+                const auto name = mod.first.as<std::string>();
+                if (!handler->LookupModByName(name))
+                    snapshot[name] = YAML::Clone(mod.second);
+            }
             for (auto&& [formid, strip] : strips) {
                 const auto entry = [&]() -> std::pair<std::string, uint32_t> {
                     const auto modidx = formid >> 24;
@@ -46,9 +59,10 @@ namespace UserData
                     logger::error("Unable to find mod for formid {}", formid);
                     continue;
                 }
-                _root[entry.first][entry.second] = static_cast<int32_t>(strip);
+                snapshot[entry.first][entry.second] = static_cast<int32_t>(strip);
             }
-            Util::SaveQueue::Get().Submit(STRIP_PATH, YAML::Dump(_root));
+            Util::SaveQueue::Get().Submit(STRIP_PATH, YAML::Dump(snapshot));
+            _root = std::move(snapshot);
         } catch (const std::exception& e) {
             logger::error("Unable to save StripConfig. Error: {}", e.what());
         }

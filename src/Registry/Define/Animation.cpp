@@ -722,16 +722,21 @@ namespace Registry
         if (!cyclic)
             return path;
 
+        constexpr size_t searchBudget = 100000;
+        size_t remaining = searchBudget;
         std::set<const Stage*> visited{};
         std::function<std::vector<const Stage*>(const Stage*)> DFS = [&](const Stage* src) -> std::vector<const Stage*> {
-            if (visited.contains(src))
+            if (!remaining || visited.contains(src))
                 return {};
+            --remaining;
             visited.insert(src);
 
             std::vector<const Stage*> longest_path{ src };
             const auto& neighbours = this->graph.find(src);
             assert(neighbours != this->graph.end());
             for (auto&& n : neighbours->second) {
+                if (!remaining)
+                    break;
                 const auto cmp = DFS(n);
                 if (cmp.size() + 1 > longest_path.size()) {
                     longest_path.assign(cmp.begin(), cmp.end());
@@ -741,7 +746,10 @@ namespace Registry
             visited.erase(src);
             return longest_path;
         };
-        return DFS(a_src);
+        auto result = DFS(a_src);
+        if (!remaining)
+            logger::warn("Cyclic longest-path search exhausted {} expansions; returning best discovered simple path", searchBudget);
+        return result;
     }
 
     std::vector<const Stage*> Scene::GetShortestPath(const Stage* a_src) const

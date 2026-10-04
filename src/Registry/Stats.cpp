@@ -239,21 +239,22 @@ namespace Registry::Statistics
     void ActorEncounter::Update(EncounterType a_type)
     {
         _lastmet = RE::Calendar::GetSingleton()->GetCurrentGameTime();
-        _timesmet++;
+        const auto increment = [](uint8_t& count) { if (count < 255) ++count; };
+        increment(_timesmet);
         switch (a_type) {
         case EncounterType::Any:
             break;
         case EncounterType::Aggressor:
-            _timesaggressor++;
+            increment(_timesaggressor);
             __fallthrough;
         case EncounterType::Dominant:
-            _timesdominant++;
+            increment(_timesdominant);
             break;
         case EncounterType::Victim:
-            _timesvictim++;
+            increment(_timesvictim);
             __fallthrough;
         case EncounterType::Submissive:
-            _timessubmissive++;
+            increment(_timessubmissive);
             break;
         }
     }

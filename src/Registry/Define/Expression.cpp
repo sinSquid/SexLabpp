@@ -268,6 +268,8 @@ namespace Registry
     {
         if (!has_edits && !force)
             return;
+        if (force)
+            has_edits = true;
         YAML::Node file;
         file["id"] = id.data();
         file["version"] = static_cast<int32_t>(version);
@@ -285,8 +287,7 @@ namespace Registry
             }
         }
         file["enabled"] = enabled;
-        Util::SaveQueue::Get().Submit(std::format("{}\\{}.yaml", a_fileLocation, id), YAML::Dump(file));
-        has_edits = false;
+        Util::SaveQueue::Get().Submit(std::format("{}\\{}.yaml", a_fileLocation, id), YAML::Dump(file), has_edits.Receipt());
     }
 
     void Expression::UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values)

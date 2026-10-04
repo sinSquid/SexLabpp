@@ -3,6 +3,7 @@
 #include <SimpleIni.h>
 
 #include "NiDescriptor.h"
+#include "Util/SaveQueue.h"
 
 namespace Thread::NiNode
 {
@@ -142,43 +143,25 @@ namespace Thread::NiNode
 
     void NiUpdate::UpdateMLTrainingState(NiType::Type a_type, bool enabled)
     {
-        std::scoped_lock lk{ _mlMutex };
-        const auto oldCluster = NiType::GetClusterForType(mlTrainingState.type);
-        const auto newCluster = NiType::GetClusterForType(a_type);
-        if (oldCluster != newCluster && mlTrainingState.recordedData.size() > 0) {
-            // Clear recorded data when changing to a different interaction type
-            const auto oldStateStr = magic_enum::enum_name(oldCluster);
-            const auto newStateStr = magic_enum::enum_name(newCluster);
-            logger::info("ML Training State changing from {} to {}, clearing recorded data with {} rows", oldStateStr, newStateStr, mlTrainingState.recordedData.size());
-            const auto csvFile = std::ranges::fold_left(mlTrainingState.recordedData, "", [](std::string&& acc, const std::string& row) {
-                return acc.empty() ? row : std::move(acc) + "\n" + row;
-            });
-            const auto folderPath = std::format("{}\\{}", MODELDATAPATH, oldStateStr);
-            size_t uniqueFileId = 0;
-            if (!fs::exists(folderPath)) {
-                fs::create_directories(folderPath);
-            } else {
-                for (const auto& entry : fs::directory_iterator(folderPath)) {
-                    if (entry.is_regular_file() && entry.path().extension() == ".csv") {
-                        uniqueFileId++;
-                    }
-                }
+        std::vector<std::string> rows;
+        std::string cluster;
+        {
+            std::scoped_lock lk{ _mlMutex };
+            const auto oldCluster = NiType::GetClusterForType(mlTrainingState.type);
+            if (oldCluster != NiType::GetClusterForType(a_type) && !mlTrainingState.recordedData.empty()) {
+                cluster = magic_enum::enum_name(oldCluster);
+                rows.swap(mlTrainingState.recordedData);
             }
-            const auto finalPath = std::format("{}\\ML_TrainingData_{}.csv", folderPath, uniqueFileId);
-            std::ofstream outFile(finalPath);
-            if (outFile.is_open()) {
-                outFile << csvFile;
-                outFile.close();
-                logger::info("Saved ML training data to {}", finalPath);
-                Util::PrintConsole(std::format("Saved ML training data to {}", finalPath));
-            } else {
-                logger::error("Failed to save ML training data to {}", finalPath);
-            }
-            mlTrainingState.recordedData.clear();
+            mlTrainingState.type = a_type;
+            mlTrainingState.enabled = enabled;
+            mlTrainingState.frameCount = 0;
         }
-        mlTrainingState.type = a_type;
-        mlTrainingState.enabled = enabled;
-        mlTrainingState.frameCount = 0;  // reset frame count when changing state
+        // Each immutable batch keeps its original cluster. Formatting and disk
+        // access run on the writer, without holding the frame-update mutex.
+        if (!rows.empty())
+            Util::SaveQueue::Get().SubmitArchive(fs::path(MODELDATAPATH) / cluster, std::move(rows));
+        else
+            Util::SaveQueue::Get().RetryArchives();
         logger::info("ML Training State updated: Type={}, Enabled={}", magic_enum::enum_name(a_type), enabled);
     }
 

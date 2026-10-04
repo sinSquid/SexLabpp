@@ -41,3 +41,6 @@ exports require the updated DLL. Binary exports retain schema=legacy. Re-export
 from the trained model (or retrain); overwritten legacy coefficients cannot be
 recovered from the old INI alone. Replacing INI sections removes stale schema and
 coefficient fields; classes absent from training are explicitly suppressed.
+
+Second review: encounter counters retain the v2 uint8 wire format and saturate
+at 255 instead of wrapping. Values above 255 are not accumulated in this format.

@@ -498,8 +498,8 @@ namespace Registry
                     if (expression.has_edits)
                         snapshots.push_back(expression);
             }
-            // Keep originals dirty: a failed asynchronous write can be retried on the next save,
-            // and a later edit must never be cleared by an older snapshot.
+            // Snapshots share the acknowledgement for their edit version only.
+            // Successful writes acknowledge that version; failures remain dirty.
             for (const auto& expression : snapshots)
                 expression.Save(EXPRESSION_PATH, false);
         } catch (const std::exception& e) {
