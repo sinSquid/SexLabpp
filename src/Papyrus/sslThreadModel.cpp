@@ -494,7 +494,7 @@ namespace Papyrus::ThreadModel
         std::vector<int> ret;
         ret.reserve(interactions.size());
         for (const auto& interaction : interactions)
-            ret.push_back(static_cast<int>(interaction->GetType()));
+            ret.push_back(static_cast<int>(interaction.GetType()));
         return ret;
     }
 
@@ -534,17 +534,17 @@ namespace Papyrus::ThreadModel
         return niInstance->GetInteractionPartners(idxA, Thread::NiNode::NiType::Type(a_type));
     }
 
-    RE::Actor* GetPartnerByTypeRevML(QUESTARGS, RE::Actor* a_position, int a_type)
+    RE::Actor* GetPartnerByActionRevML(QUESTARGS, RE::Actor* a_position, int a_type)
     {
         if (!a_position) {
             a_vm->TraceStack("Actor is none", a_stackID);
             return nullptr;
         }
-        const auto ret = GetPartnersByTypeRev(a_vm, a_stackID, a_qst, a_position, a_type);
+        const auto ret = GetPartnersByActionRev(a_vm, a_stackID, a_qst, a_position, a_type);
         return ret.empty() ? nullptr : ret.front();
     }
 
-    std::vector<RE::Actor*> GetPartnersByTypeRevML(QUESTARGS, RE::Actor* a_position, int a_type)
+    std::vector<RE::Actor*> GetPartnersByActionRevML(QUESTARGS, RE::Actor* a_position, int a_type)
     {
         GET_INSTANCE({});
         auto niInstance = instance->GetNiInstance();
@@ -577,7 +577,7 @@ namespace Papyrus::ThreadModel
         const auto idxB = a_partner ? a_partner->formID : 0;
         const auto interactions = niInstance->GetInteractions(idxA, idxB, Thread::NiNode::NiType::Type(a_type));
         if (!interactions.empty()) {
-            ret = interactions.front()->velocity;
+            ret = interactions.front().velocity;
         } else {
             a_vm->TraceStack("No such interaction found", a_stackID);
         }
@@ -692,7 +692,7 @@ namespace Papyrus::ThreadModel
         return ret;
     }
 
-    RE::Actor* GetPartnerByTypeRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)
+    RE::Actor* GetPartnerByActionRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)
     {
         if (!a_position) {
             a_vm->TraceStack("Actor is none", a_stackID);
@@ -720,7 +720,7 @@ namespace Papyrus::ThreadModel
         return ret;
     }
 
-    std::vector<RE::Actor*> GetPartnersByTypeRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)
+    std::vector<RE::Actor*> GetPartnersByActionRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)
     {
         GET_INSTANCE({});
         auto niInstance = instance->GetNiInstanceLegacy();
@@ -808,14 +808,14 @@ namespace Papyrus::ThreadModel
         return Settings::bUseLegacyNiType ? GetPartnersByActionLegacy(a_vm, a_stackID, a_qst, a_position, a_type) : GetPartnersByActionML(a_vm, a_stackID, a_qst, a_position, a_type);
     }
 
-    RE::Actor* GetPartnerByTypeRev(QUESTARGS, RE::Actor* a_position, int a_type)
+    RE::Actor* GetPartnerByActionRev(QUESTARGS, RE::Actor* a_position, int a_type)
     {
-        return Settings::bUseLegacyNiType ? GetPartnerByTypeRevLegacy(a_vm, a_stackID, a_qst, a_position, a_type) : GetPartnerByTypeRevML(a_vm, a_stackID, a_qst, a_position, a_type);
+        return Settings::bUseLegacyNiType ? GetPartnerByActionRevLegacy(a_vm, a_stackID, a_qst, a_position, a_type) : GetPartnerByActionRevML(a_vm, a_stackID, a_qst, a_position, a_type);
     }
 
-    std::vector<RE::Actor*> GetPartnersByTypeRev(QUESTARGS, RE::Actor* a_position, int a_type)
+    std::vector<RE::Actor*> GetPartnersByActionRev(QUESTARGS, RE::Actor* a_position, int a_type)
     {
-        return Settings::bUseLegacyNiType ? GetPartnersByTypeRevLegacy(a_vm, a_stackID, a_qst, a_position, a_type) : GetPartnersByTypeRevML(a_vm, a_stackID, a_qst, a_position, a_type);
+        return Settings::bUseLegacyNiType ? GetPartnersByActionRevLegacy(a_vm, a_stackID, a_qst, a_position, a_type) : GetPartnersByActionRevML(a_vm, a_stackID, a_qst, a_position, a_type);
     }
 
     float GetActionVelocity(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)
@@ -900,7 +900,8 @@ namespace Papyrus::ThreadModel
             if (!p)
                 continue;
 
-            auto& stats = statdata->GetStatistics(p);
+            auto lockedStats = statdata->GetStatistics(p);
+            auto& stats = *lockedStats;
             stats.AddStatistic(stats.XP_Vaginal, vaginal * 1.25f);
             stats.AddStatistic(stats.XP_Anal, anal * 1.25f);
             stats.AddStatistic(stats.XP_Oral, oral * 1.25f);
@@ -921,7 +922,8 @@ namespace Papyrus::ThreadModel
             a_vm->TraceStack("Position cound does not match scene position count", a_stackID);
             return;
         }
-        auto& stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+        auto lockedStats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+        auto& stats = *lockedStats;
         stats.SetStatistic(stats.LastUpdate_GameTime, RE::Calendar::GetSingleton()->GetCurrentGameTime());
         stats.AddStatistic(stats.SecondsInScene, a_time);
         stats.AddStatistic(stats.TimesTotal, 1);
@@ -937,7 +939,8 @@ namespace Papyrus::ThreadModel
                     continue;
                 if (a_positions[i] == a_actor) {
                     const auto& p = scene->GetNthPosition(i);
-                    sub = p->IsSubmissive();
+                    if (p->IsSubmissive())
+                        sub = 1;
                     continue;
                 }
                 if (sub != 1 && scene->GetNthPosition(i)->IsSubmissive()) {

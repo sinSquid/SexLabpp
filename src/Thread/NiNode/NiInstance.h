@@ -12,6 +12,12 @@ namespace Thread::NiNode
         constexpr static inline int8_t IDX_UNSPECIFIED = -1;
 
       public:
+        struct InteractionSnapshot
+        {
+            NiType::Type type;
+            float velocity;
+            NiType::Type GetType() const { return type; }
+        };
         struct PairInteractionState
         {
             std::array<NiInteractionCluster, NiType::NUM_CLUSTERS> interactionClusters{};
@@ -33,7 +39,7 @@ namespace Thread::NiNode
             RE::FormID a_idA = 0, RE::FormID a_idB = 0, NiType::Cluster a_cluster = NiType::Cluster::None) const;
 
         /// @brief Wrapper functions for ForEachInteraction
-        std::vector<const NiInteraction*> GetInteractions(RE::FormID a_idA, RE::FormID a_idB, NiType::Type a_type) const;
+        std::vector<InteractionSnapshot> GetInteractions(RE::FormID a_idA, RE::FormID a_idB, NiType::Type a_type) const;
         std::vector<RE::Actor*> GetInteractionPartners(RE::FormID a_idA, NiType::Type a_type) const;
         std::vector<RE::Actor*> GetInteractionPartnersRev(RE::FormID a_idB, NiType::Type a_type) const;
 

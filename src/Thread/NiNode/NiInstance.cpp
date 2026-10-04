@@ -41,12 +41,12 @@ namespace Thread::NiNode
         }
     }
 
-    std::vector<const NiInteraction*> NiInstance::GetInteractions(RE::FormID a_idA, RE::FormID a_idB, NiType::Type a_type) const
+    std::vector<NiInstance::InteractionSnapshot> NiInstance::GetInteractions(RE::FormID a_idA, RE::FormID a_idB, NiType::Type a_type) const
     {
-        std::vector<const NiInteraction*> ret{};
+        std::vector<InteractionSnapshot> ret{};
         ForEachInteraction([&](RE::ActorPtr, RE::ActorPtr, const NiInteraction& interaction) {
             if (interaction.active)
-                ret.push_back(&interaction);
+                ret.push_back({ interaction.GetType(), interaction.velocity });
         },
             a_idA, a_idB, a_type);
         return ret;
@@ -143,19 +143,30 @@ namespace Thread::NiNode
         if (!mA.HasSufficientData() || !mB.HasSufficientData())
             return;
 
+        const auto replace = [&](NiType::Cluster type, NiInteractionCluster next) {
+            auto& previous = state.interactionClusters[static_cast<size_t>(type)];
+            for (auto& interaction : next.interactions) {
+                const auto old = std::ranges::find(previous.interactions, interaction.GetType(), &NiInteraction::GetType);
+                if (old != previous.interactions.end()) {
+                    interaction.active = old->active;
+                    interaction.timeActive = old->timeActive;
+                }
+            }
+            previous = std::move(next);
+        };
         if (b.IsSex(Registry::Sex::Male)) {
-            state.interactionClusters[static_cast<size_t>(NiType::Cluster::Crotch)] = EvaluateCrotchInteractions(mA, mB);
-            state.interactionClusters[static_cast<size_t>(NiType::Cluster::Head)] = EvaluateHeadInteractions(mA, mB);
+            replace(NiType::Cluster::Crotch, EvaluateCrotchInteractions(mA, mB));
+            replace(NiType::Cluster::Head, EvaluateHeadInteractions(mA, mB));
         }
         if (a == b) {
             return;
         }
-        state.interactionClusters[static_cast<size_t>(NiType::Cluster::KissingCl)] = EvaluateKissingCluster(mA, mB);
+        replace(NiType::Cluster::KissingCl, EvaluateKissingCluster(mA, mB));
     }
 
     void NiInstance::UpdateHysteresis(PairInteractionState& a_state, float a_timeStamp)
     {
-        const float delta = a_timeStamp - a_state.lastUpdateTime;
+        const float delta = a_state.lastUpdateTime > 0.0f ? std::max(0.0f, a_timeStamp - a_state.lastUpdateTime) : 0.0f;
         for (auto&& cluster : a_state.interactionClusters) {
             if (cluster.IsBinary()) {
                 auto& it = cluster.interactions.front();

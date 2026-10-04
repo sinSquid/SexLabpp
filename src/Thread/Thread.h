@@ -4,6 +4,7 @@
 #include "Thread/NiNode/Legacy/LegacyNiUpdate.h"
 #include "Thread/NiNode/NiUpdate.h"
 #include "Util/RequestSequence.h"
+#include "Util/SharedSnapshot.h"
 
 namespace Thread
 {
@@ -77,13 +78,13 @@ namespace Thread
         [[nodiscard]] int32_t GetStartupRequest() const { return startupRequest; }
         int32_t NextSpeedRequest() { return speedRequests.Next(); }
         [[nodiscard]] bool IsCurrentSpeedRequest(int32_t a_sequence) const { return speedRequests.IsCurrent(a_sequence); }
-        bool HasNiInstance() const { return niInstance != nullptr; }
-        NiNode::NiInstance* GetNiInstance() { return niInstance.get(); }
-        void UnregisterNiInstance() { (NiNode::NiUpdate::Unregister(linkedQst->GetFormID()), niInstance = nullptr); }
+        bool HasNiInstance() const { return niInstance.load() != nullptr; }
+        std::shared_ptr<NiNode::NiInstance> GetNiInstance() { return niInstance.load(); }
+        void UnregisterNiInstance() { (NiNode::NiUpdate::Unregister(linkedQst->GetFormID()), niInstance.store(nullptr)); }
 
-        bool HasNiInstanceLegacy() const { return niInstanceLegacy != nullptr; }
-        LegacyNiNode::NiInstance* GetNiInstanceLegacy() { return niInstanceLegacy.get(); }
-        void UnregisterNiInstanceLegacy() { (LegacyNiNode::NiUpdate::Unregister(linkedQst->GetFormID()), niInstanceLegacy = nullptr); }
+        bool HasNiInstanceLegacy() const { return niInstanceLegacy.load() != nullptr; }
+        std::shared_ptr<LegacyNiNode::NiInstance> GetNiInstanceLegacy() { return niInstanceLegacy.load(); }
+        void UnregisterNiInstanceLegacy() { (LegacyNiNode::NiUpdate::Unregister(linkedQst->GetFormID()), niInstanceLegacy.store(nullptr)); }
 
         void AdvanceScene(const Registry::Stage* a_nextStage);
         bool BeginActorRecovery();
@@ -196,8 +197,8 @@ namespace Thread
         RE::TESQuest* linkedQst;
         int32_t startupRequest;
         std::shared_ptr<std::atomic_bool> creationCancelled;
-        std::shared_ptr<NiNode::NiInstance> niInstance{ nullptr };
-        std::shared_ptr<LegacyNiNode::NiInstance> niInstanceLegacy{ nullptr };
+        Util::SharedSnapshot<NiNode::NiInstance> niInstance{ nullptr };
+        Util::SharedSnapshot<LegacyNiNode::NiInstance> niInstanceLegacy{ nullptr };
 
         Center center;
         std::vector<Position> positions;

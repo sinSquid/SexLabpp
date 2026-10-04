@@ -1,4 +1,5 @@
 #include "sslThreadLibrary.h"
+#include "Util/RequiredMatching.h"
 
 #include "Registry/Define/Animation.h"
 #include "Registry/Define/Fragment.h"
@@ -220,29 +221,25 @@ namespace Papyrus::ThreadLibrary
             a_includes.size() > 3 ? a_includes[3] : nullptr,
             "");
 
-        for (auto&& position : scene->positions) {
-            RE::Actor* fill = nullptr;
-            for (auto& include : a_includes) {
-                if (include && position.CanFillPosition(include)) {
-                    include = nullptr;
-                    fill = include;
-                    break;
-                }
-            }
-            if (fill) {
-                continue;
-            }
-            for (auto& valid : valids) {
-                if (valid && position.CanFillPosition(valid)) {
-                    valid = nullptr;
-                    fill = valid;
-                    break;
-                }
-            }
-            if (!fill) {
+        std::vector<RE::Actor*> candidates;
+        for (auto* actor : a_includes) {
+            if (!actor || std::ranges::contains(candidates, actor))
                 return {};
-            }
+            candidates.push_back(actor);
         }
+        const auto required = candidates.size();
+        for (auto* actor : valids) {
+            if (actor && !std::ranges::contains(candidates, actor))
+                candidates.push_back(actor);
+        }
+        std::vector<std::vector<size_t>> edges(candidates.size());
+        for (size_t actor = 0; actor < candidates.size(); ++actor)
+            for (size_t slot = 0; slot < scene->positions.size(); ++slot)
+                if (scene->positions[slot].CanFillPosition(candidates[actor]))
+                    edges[actor].push_back(slot);
+        const auto assignment = Util::MatchRequired(edges, scene->positions.size(), required);
+        for (const auto actor : assignment)
+            ret.push_back(candidates[actor]);
         return ret;
     }
 

@@ -84,11 +84,13 @@ namespace stl
     inline bool read_string(SKSE::SerializationInterface* a_intfc, std::string& a_str)
     {
         std::size_t size = 0;
-        if (!a_intfc->ReadRecordData(size)) {
+        if (a_intfc->ReadRecordData(&size, static_cast<uint32_t>(sizeof(size))) != sizeof(size) || size == 0 || size > 1024 * 1024) {
+            a_str.clear();
             return false;
         }
         a_str.resize(size);
-        if (!a_intfc->ReadRecordData(a_str.data(), static_cast<std::uint32_t>(size))) {
+        if (a_intfc->ReadRecordData(a_str.data(), static_cast<std::uint32_t>(size)) != size || a_str.back() != '\0') {
+            a_str.clear();
             return false;
         }
         a_str.erase(std::find(a_str.cbegin(), a_str.cend(), '\0'), a_str.cend());

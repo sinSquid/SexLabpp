@@ -3,9 +3,9 @@
 #include "Registry/Library.h"
 #include "Registry/Util/RayCast/Offsets.h"
 #include "Thread/Hooks.h"
+#include "Thread/Interface/FurnSelectMenu.h"
 #include "Thread/Interface/SceneHUD.h"
 #include "Thread/Interface/StageSelectMenu.h"
-#include "Thread/Interface/FurnSelectMenu.h"
 #include "Util/Script.h"
 
 namespace Thread
@@ -105,6 +105,9 @@ namespace Thread
                 cancelledSelections.push_back(instance->startupRequest);
                 return true;
             });
+            // Both registries own their entries independently of Thread::Instance.
+            LegacyNiNode::NiUpdate::Unregister(a_linkedQst->GetFormID());
+            NiNode::NiUpdate::Unregister(a_linkedQst->GetFormID());
             std::erase_if(instances, [&](const auto& instance) {
                 if (instance->linkedQst != a_linkedQst) {
                     return false;
@@ -113,6 +116,8 @@ namespace Thread
                 if (!a_preservePreparedActors && instance->GetPosition(RE::PlayerCharacter::GetSingleton())) {
                     Hooks::SetWeaponDrawBlocked(false);
                 }
+                instance->niInstance.store(nullptr);
+                instance->niInstanceLegacy.store(nullptr);
                 instance->ReleaseAnimations();
                 return true;
             });
@@ -168,11 +173,11 @@ namespace Thread
     {
         assert(activeScene && activeScene->GetStageNodeType(a_nextStage) != Registry::Scene::NodeType::None);
         if (Settings::bUseLegacyNiType) {
-            if (niInstanceLegacy == nullptr) {
-                niInstanceLegacy = LegacyNiNode::NiUpdate::Register(linkedQst->formID, *activeAssignment, activeScene);
+            if (!HasNiInstanceLegacy()) {
+                niInstanceLegacy.store(LegacyNiNode::NiUpdate::Register(linkedQst->formID, *activeAssignment, activeScene));
             }
-        } else if (niInstance == nullptr) {
-            niInstance = NiNode::NiUpdate::Register(linkedQst->formID, *activeAssignment, activeScene);
+        } else if (!HasNiInstance()) {
+            niInstance.store(NiNode::NiUpdate::Register(linkedQst->formID, *activeAssignment, activeScene));
         }
         fixedLengthTimer.state = FixedLengthTimer::State::Stopped;
         activeStage = a_nextStage;
@@ -319,7 +324,7 @@ namespace Thread
             return false;
         }
         const auto centerStr = center.offset.type.ToString();
-        const auto& details = center.details = Registry::Library::GetSingleton()->GetFurnitureDetails(center.GetRef());
+        const auto* details = Registry::Library::GetSingleton()->GetFurnitureDetails(a_ref);
         if (!details) {
             if (!center.offset.type.IsNone()) {
                 constexpr auto nonStr = Registry::FurnitureType::ToString<Registry::FurnitureType::None>();
@@ -600,7 +605,7 @@ namespace Thread
     {
         if (auto* sceneHUD = Interface::SceneHUD::GetSingleton().GetForThread(linkedQst))
             sceneHUD->RefreshStageOffsets();
-            Interface::StageSelectMenu::GetSingleton().RefreshSceneGraphView(linkedQst);
+        Interface::StageSelectMenu::GetSingleton().RefreshSceneGraphView(linkedQst);
     }
 
     bool Instance::OpenStageSelectMenuImpl()

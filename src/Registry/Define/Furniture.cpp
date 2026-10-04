@@ -236,7 +236,7 @@ Next_Iteration:;
         std::vector<FurnitureOffset> ret{};
         for (auto&& [type, coordinates] : valid_map) {
             const auto min = std::ranges::min_element(coordinates, [&](const Coordinate& a, const Coordinate& b) {
-                return a.GetDistance(center) < b.GetDistance(center);
+                return a.ApplyReturn(Coordinate(a_ref)).GetDistance(center) < b.ApplyReturn(Coordinate(a_ref)).GetDistance(center);
             });
             if (min != coordinates.end()) {
                 ret.emplace_back(type, *min);

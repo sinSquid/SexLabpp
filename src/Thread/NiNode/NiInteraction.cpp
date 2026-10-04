@@ -28,13 +28,18 @@ namespace Thread::NiNode
             return interactions.front().descriptor ? &interactions.front() : nullptr;
         }
 
+        std::vector<const INiDescriptor*> descriptors;
+        descriptors.reserve(interactions.size());
+        for (const auto& interaction : interactions)
+            if (interaction.descriptor)
+                descriptors.push_back(interaction.descriptor.get());
         std::vector<float> logits;
         logits.reserve(interactions.size());
         for (auto& interaction : interactions) {
             if (!interaction.descriptor)
                 logits.push_back(-std::numeric_limits<float>::infinity());
             else {
-                const float prediction = interaction.descriptor->Predict();
+                const float prediction = interaction.descriptor->PredictCluster(descriptors);
                 logits.push_back(std::isfinite(prediction) ? prediction : -std::numeric_limits<float>::infinity());
             }
         }

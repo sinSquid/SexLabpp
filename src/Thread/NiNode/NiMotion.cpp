@@ -14,6 +14,8 @@ namespace Thread::NiNode
 
     void NiMotion::Push(const Node::NodeData& nodes, float timeStamp)
     {
+        for (auto& entry : descriptorCache)
+            entry.reset();
         const size_t idx = _writeIndex;
         for (auto& moment : _moments)
             moment[idx] = RE::NiPoint3::Zero();
@@ -85,6 +87,14 @@ namespace Thread::NiNode
     }
 
     MotionDescriptor NiMotion::DescribeMotion(Anchor c) const
+    {
+        auto& cached = descriptorCache.at(static_cast<size_t>(c));
+        if (!cached)
+            cached = ComputeDescriptor(c);
+        return *cached;
+    }
+
+    MotionDescriptor NiMotion::ComputeDescriptor(Anchor c) const
     {
         MotionDescriptor out{ GetMotion(c) };
 

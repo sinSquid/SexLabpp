@@ -75,6 +75,7 @@ namespace Papyrus::ActorStats
         REGISTERFUNC(GetAllTrackedActors, "SexLabStatistics", true);
         REGISTERFUNC(GetAllTrackedUniqueActorsSorted, "SexLabStatistics", true);
         REGISTERFUNC(SetStatistic, "SexLabStatistics", true);
+        REGISTERFUNC(ResetStatistics, "SexLabStatistics", true);
         REGISTERFUNC(GetStatistic, "SexLabStatistics", true);
 
         REGISTERFUNC(GetAllCustomStatIDs, "SexLabStatistics", true);

@@ -1,0 +1,43 @@
+Statistics record version 2
+
+Only the stcs record moves to v2. The trcn record stays at v1.
+Numbers use the supported Windows x64 little-endian representation.
+
+stcs layout:
+  uint64 actor count
+  repeated actor count times:
+    uint32 form ID
+    18 float32 built-in statistics (StatisticID order)
+    uint64 custom count
+    repeated custom count times:
+      string key
+      uint32 kind (0 = float, 1 = string)
+      float32 or string payload
+  uint64 encounter count
+  repeated encounter count times:
+    participant A: uint32 ID, uint8 RaceKey, uint8 Sex
+    participant B: uint32 ID, uint8 RaceKey, uint8 Sex
+    float32 last met, then uint8 counts: total, aggressor, victim, dominant, submissive
+
+Strings use a uint64 byte length including the trailing zero. Limit: 1 MiB.
+All reads and counts are bounded by the enclosing SKSE record length. Each entry
+is fully decoded before form resolution, so a removed form cannot shift the next
+entry. A malformed/truncated record is rejected atomically and logged; untrusted
+lengths never drive an unchecked allocation. Revert clears actors and encounters.
+
+v1 migration:
+The old writer used uint32 tags but wrote the whole native variant for floats.
+The reader supports the original MSVC x64 16-byte variant<float, BSFixedString>
+layout: float at offset 0, variant index at offset 8. String payloads already used
+the string representation above. v1 had no encounters. Unsupported layouts or
+corrupt records are rejected rather than guessed. The new writer never serializes
+C++ object representation. Migration has fixture coverage, not game-save coverage.
+
+ML models:
+Legacy unprefixed INI coefficients remain supported. New softmax exports use
+schema=cluster-v2 with full Interaction_Feature names; runtime reads the same
+complete cluster feature vector and treats missing descriptors as zero. These
+exports require the updated DLL. Binary exports retain schema=legacy. Re-export
+from the trained model (or retrain); overwritten legacy coefficients cannot be
+recovered from the old INI alone. Replacing INI sections removes stale schema and
+coefficient fields; classes absent from training are explicitly suppressed.

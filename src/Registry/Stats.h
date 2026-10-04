@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Util/RecordIO.h"
 #include <shared_mutex>
 
 #include "Registry/Define/RaceKey.h"
@@ -35,7 +36,7 @@ namespace Registry::Statistics
 
             Total
         };
-        ActorStats(SKSE::SerializationInterface* a_intfc);
+        ActorStats(Util::RecordReader<SKSE::SerializationInterface>& reader, uint32_t version);
         ActorStats(RE::Actor* owner);
         ~ActorStats() = default;
 
@@ -87,7 +88,7 @@ namespace Registry::Statistics
         struct EncounterObj
         {
             EncounterObj(RE::Actor* obj);
-            EncounterObj(SKSE::SerializationInterface* a_intfc);
+            EncounterObj(Util::RecordReader<SKSE::SerializationInterface>& reader);
 
             void Save(SKSE::SerializationInterface* a_intfc);
 
@@ -98,7 +99,8 @@ namespace Registry::Statistics
 
       public:
         ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type);
-        ActorEncounter(SKSE::SerializationInterface* a_intfc);
+        ActorEncounter(Util::RecordReader<SKSE::SerializationInterface>& reader);
+        bool Resolve(SKSE::SerializationInterface* a_intfc);
         ~ActorEncounter() = default;
 
         void Update(EncounterType a_type);
@@ -118,12 +120,12 @@ namespace Registry::Statistics
         EncounterObj npc1;
         EncounterObj npc2;
 
-        float _lastmet;
-        uint8_t _timesmet;
-        uint8_t _timessubmissive;
-        uint8_t _timesdominant;
-        uint8_t _timesvictim;
-        uint8_t _timesaggressor;
+        float _lastmet{ 0 };
+        uint8_t _timesmet{ 0 };
+        uint8_t _timessubmissive{ 0 };
+        uint8_t _timesdominant{ 0 };
+        uint8_t _timesvictim{ 0 };
+        uint8_t _timesaggressor{ 0 };
     };
 
     class StatisticsData :
@@ -135,9 +137,16 @@ namespace Registry::Statistics
 
       public:
         std::vector<RE::Actor*> GetTrackedActors() const;
-        ActorStats& GetStatistics(RE::Actor* a_key);
-        ActorEncounter* GetEncounter(RE::Actor* fst, RE::Actor* snd);
-        std::vector<ActorEncounter>::iterator GetEncounterIter(RE::Actor* fst, RE::Actor* snd);
+        struct LockedStatistics
+        {
+            std::unique_lock<std::shared_mutex> lock;
+            ActorStats& value;
+            ActorStats* operator->() const { return &value; }
+            ActorStats& operator*() const { return value; }
+        };
+        [[nodiscard]] LockedStatistics GetStatistics(RE::Actor* a_key);
+        ActorStats GetStatisticsSnapshot(RE::Actor* a_key);
+        std::optional<ActorEncounter> GetEncounter(RE::Actor* fst, RE::Actor* snd);
         void DeleteStatistics(RE::FormID a_key);
 
         bool ForEachStatistic(std::function<bool(ActorStats&)> a_func);
@@ -156,10 +165,11 @@ namespace Registry::Statistics
 
         void Register();
         void Save(SKSE::SerializationInterface* a_intfc);
-        void Load(SKSE::SerializationInterface* a_intfc);
+        void Load(SKSE::SerializationInterface* a_intfc, uint32_t version, uint32_t length);
         void Revert(SKSE::SerializationInterface* a_intfc);
 
       private:
+        std::vector<ActorEncounter>::iterator GetEncounterIter(RE::Actor* fst, RE::Actor* snd);  // caller holds _m
         mutable std::shared_mutex _m{};
         std::vector<ActorEncounter> _encounters;
         std::map<RE::FormID, ActorStats> _data;

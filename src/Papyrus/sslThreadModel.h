@@ -76,8 +76,8 @@ namespace Papyrus::ThreadModel
     bool HasCollisionAction(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner);
     RE::Actor* GetPartnerByAction(QUESTARGS, RE::Actor* a_position, int a_type);
     std::vector<RE::Actor*> GetPartnersByAction(QUESTARGS, RE::Actor* a_position, int a_type);
-    RE::Actor* GetPartnerByTypeRev(QUESTARGS, RE::Actor* a_position, int a_type);
-    std::vector<RE::Actor*> GetPartnersByTypeRev(QUESTARGS, RE::Actor* a_position, int a_type);
+    RE::Actor* GetPartnerByActionRev(QUESTARGS, RE::Actor* a_position, int a_type);
+    std::vector<RE::Actor*> GetPartnersByActionRev(QUESTARGS, RE::Actor* a_position, int a_type);
     float GetActionVelocity(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type);
 
     void SetAnimationPlaybackSpeed(QUESTARGS, float a_playbackSpeed);
@@ -131,13 +131,13 @@ namespace Papyrus::ThreadModel
         REGISTERFUNC(SetNextPermutation, "sslThreadModel", false);
 
         REGISTERFUNC(IsCollisionRegistered, "sslThreadModel", true);
-        REGISTERFUNC(UnregisterCollision, "sslThreadModel", true);
+        REGISTERFUNC(UnregisterCollision, "sslThreadModel", false);
         REGISTERFUNC(GetCollisionActions, "sslThreadModel", true);
         REGISTERFUNC(HasCollisionAction, "sslThreadModel", true);
         REGISTERFUNC(GetPartnerByAction, "sslThreadModel", true);
         REGISTERFUNC(GetPartnersByAction, "sslThreadModel", true);
-        REGISTERFUNC(GetPartnerByTypeRev, "sslThreadModel", true);
-        REGISTERFUNC(GetPartnersByTypeRev, "sslThreadModel", true);
+        REGISTERFUNC(GetPartnerByActionRev, "sslThreadModel", true);
+        REGISTERFUNC(GetPartnersByActionRev, "sslThreadModel", true);
         REGISTERFUNC(GetActionVelocity, "sslThreadModel", true);
 
         REGISTERFUNC(SetAnimationPlaybackSpeed, "sslThreadModel", false);

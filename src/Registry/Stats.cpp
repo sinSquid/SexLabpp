@@ -66,28 +66,33 @@ namespace Registry::Statistics
         }
     }
 
-    ActorStats::ActorStats(SKSE::SerializationInterface* a_intfc) :
-      _stats(StatisticID::Total), _custom({})
+    ActorStats::ActorStats(Util::RecordReader<SKSE::SerializationInterface>& reader, uint32_t version) :
+      _stats(StatisticID::Total)
     {
-        for (size_t i = 0; i < StatisticID::Total; i++) {
-            a_intfc->ReadRecordData(_stats[i]);
-        }
-        size_t numRegs;
-        a_intfc->ReadRecordData(numRegs);
-
-        std::string key;
-        size_t alternative;
-        for (size_t i = 0; i < numRegs; i++) {
-            stl::read_string(a_intfc, key);
-            a_intfc->ReadRecordData(alternative);
-            if (alternative == 0) {
-                float obj;
-                a_intfc->ReadRecordData(obj);
-                _custom[key] = obj;
+        for (auto& stat : _stats)
+            stat = reader.Read<float>();
+        const auto count = reader.Count(13);
+        for (uint64_t i = 0; i < count; ++i) {
+            const auto key = reader.String();
+            const auto type = reader.Read<uint32_t>();
+            if (type == 0) {
+                float value;
+                if (version == 1) {
+                    // v1 wrote MSVC x64 variant<float, BSFixedString> (16 bytes):
+                    // storage at offset 0 and alternative index at offset 8.
+                    std::array<uint8_t, 16> legacy{};
+                    reader.Bytes(legacy.data(), static_cast<uint32_t>(legacy.size()));
+                    if (legacy[8] != 0)
+                        throw std::runtime_error("Unsupported legacy statistics variant layout");
+                    std::memcpy(&value, legacy.data(), sizeof(value));
+                } else {
+                    value = reader.Read<float>();
+                }
+                _custom[RE::BSFixedString(key)] = value;
+            } else if (type == 1) {
+                _custom[RE::BSFixedString(key)] = RE::BSFixedString(reader.String());
             } else {
-                std::string obj;
-                stl::read_string(a_intfc, obj);
-                _custom[key] = obj;
+                throw std::runtime_error("Invalid custom statistic type");
             }
         }
     }
@@ -145,53 +150,31 @@ namespace Registry::Statistics
 
     void ActorStats::Save(SKSE::SerializationInterface* a_intfc)
     {
-        for (auto&& stat : _stats) {
-            if (!a_intfc->WriteRecordData(stat)) {
-                logger::error("Failed to save statistic");
-                continue;
-            }
-        }
-        if (!a_intfc->WriteRecordData(_custom.size())) {
-            logger::error("Failed to save number of custom statistics ({})", _custom.size());
-            return;
-        }
-        for (auto&& [id, stat] : _custom) {
-            if (!stl::write_string(a_intfc, id)) {
-                logger::error("Failed to save custom statistic {}", id);
-                continue;
-            }
-            if (std::holds_alternative<float>(stat)) {
-                a_intfc->WriteRecordData(0);
-                if (!a_intfc->WriteRecordData(stat)) {
-                    logger::error("Failed to save custom statistic {}", id);
-                    continue;
-                }
-            } else {
-                a_intfc->WriteRecordData(1);
-                auto save = std::get<RE::BSFixedString>(stat);
-                if (!stl::write_string(a_intfc, save)) {
-                    logger::error("Failed to save custom statistic {}", id);
-                    continue;
-                }
-            }
+        for (const auto stat : _stats)
+            Util::WriteRecord(a_intfc, stat);
+        Util::WriteRecord(a_intfc, static_cast<uint64_t>(_custom.size()));
+        for (const auto& [id, stat] : _custom) {
+            Util::WriteRecordString(a_intfc, id);
+            Util::WriteRecord(a_intfc, static_cast<uint32_t>(stat.index()));
+            if (const auto value = std::get_if<float>(&stat))
+                Util::WriteRecord(a_intfc, *value);
+            else
+                Util::WriteRecordString(a_intfc, std::get<RE::BSFixedString>(stat));
         }
     }
 
     ActorEncounter::EncounterObj::EncounterObj(RE::Actor* obj) :
-      id(obj->GetFormID()), sex(Registry::GetSex(obj)) {}
+      id(obj->GetFormID()), race(obj), sex(Registry::GetSex(obj)) {}
 
-    ActorEncounter::EncounterObj::EncounterObj(SKSE::SerializationInterface* a_intfc)
-    {
-        a_intfc->ReadRecordData(id);
-        a_intfc->ReadRecordData(race);
-        a_intfc->ReadRecordData(sex);
-    }
+    ActorEncounter::EncounterObj::EncounterObj(Util::RecordReader<SKSE::SerializationInterface>& reader) :
+      id(reader.Read<uint32_t>()), race(static_cast<RaceKey::Value>(reader.Read<uint8_t>())), sex(static_cast<Sex>(reader.Read<uint8_t>()))
+    {}
 
     void ActorEncounter::EncounterObj::Save(SKSE::SerializationInterface* a_intfc)
     {
-        a_intfc->WriteRecordData(id);
-        a_intfc->WriteRecordData(race);
-        a_intfc->WriteRecordData(sex);
+        Util::WriteRecord(a_intfc, id);
+        Util::WriteRecord(a_intfc, static_cast<uint8_t>(race.value));
+        Util::WriteRecord(a_intfc, static_cast<uint8_t>(sex));
     }
 
     ActorEncounter::ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type) :
@@ -200,18 +183,20 @@ namespace Registry::Statistics
         Update(a_type);
     }
 
-    ActorEncounter::ActorEncounter(SKSE::SerializationInterface* a_intfc) :
-      npc1(a_intfc), npc2(a_intfc)
+    ActorEncounter::ActorEncounter(Util::RecordReader<SKSE::SerializationInterface>& reader) :
+      npc1(reader), npc2(reader)
     {
-        if (!a_intfc->ResolveFormID(npc1.id, npc1.id) || !a_intfc->ResolveFormID(npc2.id, npc2.id)) {
-            throw std::exception("Unable to update encounter formid");
-        }
-        a_intfc->ReadRecordData(_lastmet);
-        a_intfc->ReadRecordData(_timesmet);
-        a_intfc->ReadRecordData(_timesaggressor);
-        a_intfc->ReadRecordData(_timesvictim);
-        a_intfc->ReadRecordData(_timesdominant);
-        a_intfc->ReadRecordData(_timessubmissive);
+        _lastmet = reader.Read<float>();
+        _timesmet = reader.Read<uint8_t>();
+        _timesaggressor = reader.Read<uint8_t>();
+        _timesvictim = reader.Read<uint8_t>();
+        _timesdominant = reader.Read<uint8_t>();
+        _timessubmissive = reader.Read<uint8_t>();
+    }
+
+    bool ActorEncounter::Resolve(SKSE::SerializationInterface* a_intfc)
+    {
+        return a_intfc->ResolveFormID(npc1.id, npc1.id) && a_intfc->ResolveFormID(npc2.id, npc2.id);
     }
 
     const ActorEncounter::EncounterObj* ActorEncounter::GetPartner(RE::Actor* a_actor) const
@@ -256,6 +241,8 @@ namespace Registry::Statistics
         _lastmet = RE::Calendar::GetSingleton()->GetCurrentGameTime();
         _timesmet++;
         switch (a_type) {
+        case EncounterType::Any:
+            break;
         case EncounterType::Aggressor:
             _timesaggressor++;
             __fallthrough;
@@ -275,12 +262,12 @@ namespace Registry::Statistics
     {
         npc1.Save(a_intfc);
         npc2.Save(a_intfc);
-        a_intfc->WriteRecordData(_lastmet);
-        a_intfc->WriteRecordData(_timesmet);
-        a_intfc->WriteRecordData(_timesaggressor);
-        a_intfc->WriteRecordData(_timesvictim);
-        a_intfc->WriteRecordData(_timesdominant);
-        a_intfc->WriteRecordData(_timessubmissive);
+        Util::WriteRecord(a_intfc, _lastmet);
+        Util::WriteRecord(a_intfc, _timesmet);
+        Util::WriteRecord(a_intfc, _timesaggressor);
+        Util::WriteRecord(a_intfc, _timesvictim);
+        Util::WriteRecord(a_intfc, _timesdominant);
+        Util::WriteRecord(a_intfc, _timessubmissive);
     }
 
     void StatisticsData::Register()
@@ -304,21 +291,26 @@ namespace Registry::Statistics
         return ret;
     }
 
-    ActorStats& StatisticsData::GetStatistics(RE::Actor* a_key)
+    StatisticsData::LockedStatistics StatisticsData::GetStatistics(RE::Actor* a_key)
     {
-        const std::shared_lock lock{ _m };
-        auto where = _data.find(a_key->GetFormID());
-        if (where == _data.end()) {
-            _data.insert(std::make_pair(a_key->GetFormID(), ActorStats{ a_key }));
-            return _data.at(a_key->GetFormID());
-        }
-        return where->second;
+        std::unique_lock lock{ _m };
+        auto [it, inserted] = _data.try_emplace(a_key->GetFormID(), a_key);
+        return { std::move(lock), it->second };
     }
 
-    ActorEncounter* StatisticsData::GetEncounter(RE::Actor* fst, RE::Actor* snd)
+    ActorStats StatisticsData::GetStatisticsSnapshot(RE::Actor* a_key)
     {
+        const auto locked = GetStatistics(a_key);
+        return *locked;
+    }
+
+    std::optional<ActorEncounter> StatisticsData::GetEncounter(RE::Actor* fst, RE::Actor* snd)
+    {
+        const std::shared_lock lock{ _m };
         const auto where = GetEncounterIter(fst, snd);
-        return where == _encounters.end() ? nullptr : &(*where);
+        if (where == _encounters.end())
+            return std::nullopt;
+        return *where;
     }
 
     std::vector<ActorEncounter>::iterator StatisticsData::GetEncounterIter(RE::Actor* fst, RE::Actor* snd)
@@ -371,13 +363,19 @@ namespace Registry::Statistics
                 case ActorEncounter::EncounterType::Victim:
                     a_type = ActorEncounter::EncounterType::Aggressor;
                     break;
+                case ActorEncounter::EncounterType::Dominant:
+                    a_type = ActorEncounter::EncounterType::Submissive;
+                    break;
+                case ActorEncounter::EncounterType::Submissive:
+                    a_type = ActorEncounter::EncounterType::Dominant;
+                    break;
                 default:
                     a_type = ActorEncounter::EncounterType::Any;
                     break;
                 }
             }
             enc->Update(a_type);
-            std::iter_swap(enc, _encounters.end() - 1);
+            std::rotate(enc, std::next(enc), _encounters.end());
             return;
         }
         _encounters.emplace_back(fst, snd, a_type);
@@ -471,7 +469,7 @@ namespace Registry::Statistics
 
     StatisticsData::EventResult StatisticsData::ProcessEvent(const RE::TESResetEvent* a_event, RE::BSTEventSource<RE::TESResetEvent>*)
     {
-        if (!a_event || !a_event->object || !a_event->object->IsNot(RE::FormType::ActorCharacter))
+        if (!a_event || !a_event->object || a_event->object->IsNot(RE::FormType::ActorCharacter))
             return EventResult::kContinue;
 
         DeleteStatistics(a_event->object->formID);
@@ -481,47 +479,58 @@ namespace Registry::Statistics
     void StatisticsData::Save(SKSE::SerializationInterface* a_intfc)
     {
         const std::shared_lock lock{ _m };
-        if (!a_intfc->WriteRecordData(_data.size())) {
-            logger::error("Failed to save number of saved statistics ({})", _data.size());
-            return;
-        }
-        for (auto&& [id, data] : _data) {
-            if (!a_intfc->WriteRecordData(id)) {
-                logger::error("Failed to save reg ({:X})", id);
-                continue;
-            }
-            try {
+        try {
+            Util::WriteRecord(a_intfc, static_cast<uint64_t>(_data.size()));
+            for (auto& [id, data] : _data) {
+                Util::WriteRecord(a_intfc, id);
                 data.Save(a_intfc);
-            } catch (const std::exception& e) {
-                logger::error("{}", e.what());
             }
+            Util::WriteRecord(a_intfc, static_cast<uint64_t>(_encounters.size()));
+            for (auto& encounter : _encounters)
+                encounter.Save(a_intfc);
+        } catch (const std::exception& e) {
+            logger::error("Statistics save failed: {}", e.what());
         }
-        logger::info("Saved {} statistics", _data.size());
     }
 
-    void StatisticsData::Load(SKSE::SerializationInterface* a_intfc)
+    void StatisticsData::Load(SKSE::SerializationInterface* a_intfc, uint32_t version, uint32_t length)
     {
-        const std::unique_lock lock{ _m };
-        _data.clear();
-        std::size_t numRegs;
-        a_intfc->ReadRecordData(numRegs);
-
-        RE::FormID formID;
-        for (size_t i = 0; i < numRegs; i++) {
-            a_intfc->ReadRecordData(formID);
-            if (!a_intfc->ResolveFormID(formID, formID)) {
-                logger::warn("Error reading formID ({:X})", formID);
-                continue;
+        std::map<RE::FormID, ActorStats> data;
+        std::vector<ActorEncounter> encounters;
+        try {
+            Util::RecordReader reader(a_intfc, length);
+            const auto count = reader.Count(4 + 4 * ActorStats::Total + 8);
+            for (uint64_t i = 0; i < count; ++i) {
+                auto id = reader.Read<uint32_t>();
+                ActorStats value(reader, version);  // consume even when the form no longer exists
+                if (a_intfc->ResolveFormID(id, id))
+                    data.insert_or_assign(id, std::move(value));
             }
-            _data.insert(std::make_pair(formID, ActorStats{ a_intfc }));
+            if (version >= 2) {
+                const auto countEncounters = reader.Count(21);
+                for (uint64_t i = 0; i < countEncounters; ++i) {
+                    ActorEncounter value(reader);
+                    if (value.Resolve(a_intfc))
+                        encounters.push_back(std::move(value));
+                }
+            }
+            if (reader.Remaining() != 0)
+                throw std::runtime_error("Unexpected trailing statistics data");
+        } catch (const std::exception& e) {
+            logger::error("Statistics record rejected (version {}): {}", version, e.what());
+            data.clear();
+            encounters.clear();
         }
-        logger::info("Loaded {} statistics", _data.size());
+        const std::unique_lock lock{ _m };
+        _data = std::move(data);
+        _encounters = std::move(encounters);
     }
 
     void StatisticsData::Revert(SKSE::SerializationInterface*)
     {
         const std::unique_lock lock{ _m };
         _data.clear();
+        _encounters.clear();
     }
 
 

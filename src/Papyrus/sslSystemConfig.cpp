@@ -23,30 +23,35 @@ namespace Papyrus::SystemConfig
 
     int GetSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto ret = GetSetting<int*>(a_vm, a_stackID, a_setting);
         return ret ? *ret : 0;
     }
 
     float GetSettingFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto ret = GetSetting<float*>(a_vm, a_stackID, a_setting);
         return ret ? *ret : 0;
     }
 
     bool GetSettingBool(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto ret = GetSetting<bool*>(a_vm, a_stackID, a_setting);
         return ret ? *ret : 0;
     }
 
     std::string GetSettingStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto ret = GetSetting<std::string*>(a_vm, a_stackID, a_setting);
         return ret ? *ret : ""s;
     }
 
     int GetSettingIntA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, size_t n)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto ret = GetSetting<std::vector<int>*>(a_vm, a_stackID, a_setting);
         if (!ret)
             return 0;
@@ -60,6 +65,7 @@ namespace Papyrus::SystemConfig
 
     float GetSettingFltA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, size_t n)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto ret = GetSetting<std::vector<float>*>(a_vm, a_stackID, a_setting);
         if (!ret)
             return 0;
@@ -73,6 +79,7 @@ namespace Papyrus::SystemConfig
 
     void SetSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, int a_value)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto s = GetSetting<int*>(a_vm, a_stackID, a_setting);
         if (!s)
             return;
@@ -82,6 +89,7 @@ namespace Papyrus::SystemConfig
 
     void SetSettingFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, float a_value)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto s = GetSetting<float*>(a_vm, a_stackID, a_setting);
         if (!s)
             return;
@@ -91,6 +99,7 @@ namespace Papyrus::SystemConfig
 
     void SetSettingBool(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, bool a_value)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto s = GetSetting<bool*>(a_vm, a_stackID, a_setting);
         if (!s)
             return;
@@ -100,6 +109,7 @@ namespace Papyrus::SystemConfig
 
     void SetSettingStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, std::string a_value)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto s = GetSetting<std::string*>(a_vm, a_stackID, a_setting);
         if (!s)
             return;
@@ -109,6 +119,7 @@ namespace Papyrus::SystemConfig
 
     void SetSettingIntA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, int a_value, int n)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto s = GetSetting<std::vector<int>*>(a_vm, a_stackID, a_setting);
         if (!s)
             return;
@@ -123,6 +134,7 @@ namespace Papyrus::SystemConfig
 
     void SetSettingFltA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, float a_value, int n)
     {
+        std::scoped_lock lock{ Settings::saveMutex };
         auto s = GetSetting<std::vector<float>*>(a_vm, a_stackID, a_setting);
         if (!s)
             return;

@@ -7,6 +7,7 @@ struct StringCmp
 
 struct Settings
 {
+    static inline std::mutex saveMutex;
     static void Initialize();
     static void Save();
 

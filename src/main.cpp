@@ -106,11 +106,12 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
         UserData::StripData::GetSingleton()->Load();
         break;
     case SKSE::MessagingInterface::kSaveGame:
-        std::thread([]() {
+        // Capture engine-owned state on the game thread; only bytes go to the writer.
+        SKSE::GetTaskInterface()->AddTask([]() {
             Settings::Save();
             Registry::Library::GetSingleton()->Save();
             UserData::StripData::GetSingleton()->Save();
-        }).detach();
+        });
         break;
     case SKSE::MessagingInterface::kPostLoadGame:
         // EventHandler::GetSingleton()->Register();

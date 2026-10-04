@@ -9,7 +9,7 @@ namespace Registry
         const auto baseScale = a_reference->GetScale();
         const auto nodeScale = node ? node->local.scale : 1.0f;
         const auto retVal = baseScale * nodeScale;
-        logger::info("GetScale: {:X} -> Base = {}, Skeleton = {} => {}", a_reference->GetFormID(), baseScale, nodeScale, retVal);
+        logger::debug("GetScale: {:X} -> Base = {}, Skeleton = {} => {}", a_reference->GetFormID(), baseScale, nodeScale, retVal);
         return retVal;
     }
 
@@ -68,7 +68,7 @@ namespace Registry
         }
         float basescale = GetScale(a_actor);
         if (std::abs(basescale - a_absolutescale) < 0.03) {
-            logger::info("Attempted Node Transform to Actor = {:X}, Scale = {} -> {}", a_actor->GetFormID(), basescale, a_absolutescale);
+            logger::debug("Attempted Node Transform to Actor = {:X}, Scale = {} -> {}", a_actor->GetFormID(), basescale, a_absolutescale);
             return;
         }
 
@@ -87,7 +87,7 @@ namespace Registry
             }
             // base * x = absolute <=> x = absolute / base
             const float scale = a_absolutescale / basescale;
-            logger::info("Applying Node Transform to Actor = {:X}, Scale = {} -> {}, x = {}", a_actor->GetFormID(), basescale, a_absolutescale, scale);
+            logger::debug("Applying Node Transform to Actor = {:X}, Scale = {} -> {}, x = {}", a_actor->GetFormID(), basescale, a_absolutescale, scale);
             SKEE::Legacy::OverrideVariant scaleOverride;
             scaleOverride.SetFloat(SKEE::Legacy::OverrideVariant::Scale, scale);
             legacyInterface->AddNodeTransform(a_actor, false, female, node, name, scaleOverride);
@@ -101,7 +101,7 @@ namespace Registry
             }
 
             const float scale = a_absolutescale / basescale;
-            logger::info("Applying Node Transform to Actor = {:X}, Scale = {} -> {}, x = {}", a_actor->GetFormID(), basescale, a_absolutescale, scale);
+            logger::debug("Applying Node Transform to Actor = {:X}, Scale = {} -> {}, x = {}", a_actor->GetFormID(), basescale, a_absolutescale, scale);
             modernInterface->AddNodeTransformScale(a_actor, false, female, basenode, namekey, scale);
             modernInterface->UpdateNodeTransforms(a_actor, false, female, basenode);
         }
@@ -127,12 +127,12 @@ namespace Registry
             if (!legacyInterface->RemoveNodeTransformComponent(a_actor, false, female, node, name, SKEE::Legacy::OverrideVariant::Scale, 0)) {
                 return;
             }
-            logger::info("Removed Transform Scale from {:X}", a_actor->GetFormID());
+            logger::debug("Removed Transform Scale from {:X}", a_actor->GetFormID());
             legacyInterface->UpdateNodeTransforms(a_actor, false, female, node);
         } else {
             const auto modernInterface = static_cast<SKEE::INiTransformInterface*>(transformInterface);
             if (modernInterface->RemoveNodeTransformScale(a_actor, false, female, basenode, namekey)) {
-                logger::info("Removed Transform Scale from {:X}", a_actor->GetFormID());
+                logger::debug("Removed Transform Scale from {:X}", a_actor->GetFormID());
                 modernInterface->UpdateNodeTransforms(a_actor, false, female, basenode);
             }
         }

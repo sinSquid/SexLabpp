@@ -60,7 +60,7 @@ namespace Registry
         }
         const auto tEnd = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> ms = tEnd - tStart;
-        logger::info("Found {} scenes for query [{} | {} | {}] actors in {}ms", ret.size(), a_actors.size(), hash.to_string(), tagstr, ms.count());
+        logger::debug("Found {} scenes for query [{} | {} | {}] actors in {}ms", ret.size(), a_actors.size(), hash.to_string(), tagstr, ms.count());
         return ret;
     }
 

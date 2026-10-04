@@ -1,9 +1,11 @@
 #include "StripData.h"
+#include "Util/SaveQueue.h"
 
 namespace UserData
 {
     void StripData::Load()
     {
+        std::scoped_lock lock{ _m };
         try {
             const auto handler = RE::TESDataHandler::GetSingleton();
             _root = YAML::LoadFile(STRIP_PATH);
@@ -27,6 +29,7 @@ namespace UserData
 
     void StripData::Save()
     {
+        std::scoped_lock lock{ _m };
         try {
             for (auto&& [formid, strip] : strips) {
                 const auto entry = [&]() -> std::pair<std::string, uint32_t> {
@@ -45,19 +48,16 @@ namespace UserData
                 }
                 _root[entry.first][entry.second] = static_cast<int32_t>(strip);
             }
-            std::ofstream output{ STRIP_PATH };
-            output << _root;
-            output.close();
-            if (!output)
-                throw std::runtime_error("Failed to write strip settings");
+            Util::SaveQueue::Get().Submit(STRIP_PATH, YAML::Dump(_root));
         } catch (const std::exception& e) {
             logger::error("Unable to save StripConfig. Error: {}", e.what());
         }
-        logger::info("Saved custom strip settings for {} mods", _root.size());
+        logger::info("Queued custom strip settings for {} mods", _root.size());
     }
 
     Strip StripData::CheckStrip(RE::TESForm* a_form)
     {
+        std::scoped_lock lock{ _m };
         const auto it = strips.find(a_form->formID);
         if (it == strips.end() || it->second == Strip::None) {
             return CheckKeywords(a_form);

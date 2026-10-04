@@ -52,7 +52,7 @@ def _build_pipeline(max_iter: int, solver: str = "lbfgs") -> Pipeline:
 
 
 def get_interactions(df) -> set[str]:
-    return {col.split("_", 1)[0] for col in df.columns if _is_interaction_feature(col)}
+    return {col.rsplit("_", 1)[0] for col in df.columns if _is_interaction_feature(col)}
 
 
 def _build_binary_target(label_series, interaction: str):

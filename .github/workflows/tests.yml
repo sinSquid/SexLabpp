@@ -1,0 +1,32 @@
+name: Core regression tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - run: python -m pip install -r tests/requirements.txt
+      - run: python tests/run.py
+        env:
+          CXX: clang++
+  windows-contracts:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Test Windows atomic replacement and core algorithms
+        shell: cmd
+        run: cl /nologo /std:c++20 /EHsc /O2 tests\core_utilities.cpp /Fe:core_utilities.exe && core_utilities.exe
+      - name: Check source callback contracts
+        shell: pwsh
+        run: ./tests/review_invariants.ps1

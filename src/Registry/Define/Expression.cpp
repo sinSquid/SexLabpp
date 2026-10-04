@@ -1,4 +1,5 @@
 #include "Expression.h"
+#include "Util/SaveQueue.h"
 
 namespace Registry
 {
@@ -284,11 +285,7 @@ namespace Registry
             }
         }
         file["enabled"] = enabled;
-        std::ofstream fout(std::format("{}\\{}.yaml", a_fileLocation, id));
-        fout << file;
-        fout.close();
-        if (!fout)
-            throw std::runtime_error(std::format("Failed to save expression {}", id));
+        Util::SaveQueue::Get().Submit(std::format("{}\\{}.yaml", a_fileLocation, id), YAML::Dump(file));
         has_edits = false;
     }
 

@@ -1,4 +1,5 @@
 #include "Settings.h"
+#include "Util/SaveQueue.h"
 
 #include <SimpleIni.h>
 
@@ -130,18 +131,18 @@ void Settings::InitializeData()
 
 void Settings::Save()
 {
-    YAML::Node settings{};
+    try {
+        YAML::Node settings{};
+        {
+            std::scoped_lock lock{ saveMutex };
 #define MCM_SETTING(STR, DEFAULT) settings[#STR] = STR;
 #include "mcm.def"
 #undef MCM_SETTING
-
-    std::ofstream fout{ YAMLPATH };
-    fout << settings;
-    fout.close();
-    if (!fout)
-        logger::error("Unable to save user settings to {}", YAMLPATH);
-    else
-        logger::info("Finished saving user settings");
+        }
+        Util::SaveQueue::Get().Submit(YAMLPATH, YAML::Dump(settings));
+    } catch (const std::exception& e) {
+        logger::error("Unable to snapshot settings: {}", e.what());
+    }
 }
 
 Settings::KeyType Settings::GetKeyType(uint32_t a_keyCode)

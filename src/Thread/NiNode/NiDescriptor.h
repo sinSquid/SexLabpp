@@ -93,45 +93,40 @@ namespace Thread::NiNode
         virtual ~INiDescriptor() = default;
 
         virtual float Predict() const = 0;
+        virtual float PredictCluster(const std::vector<const INiDescriptor*>& descriptors) const = 0;
+        virtual float GetFeature(Feature feature) const = 0;
         virtual std::string CsvRow() const = 0;
         virtual NiType::Type GetType() const = 0;
 
       public:
-        static std::string CreateCsvHeader(std::vector<INiDescriptor*> descriptors)
+        static std::string CreateCsvHeader(NiType::Cluster cluster)
         {
-            std::ranges::sort(descriptors, [](const INiDescriptor* a, const INiDescriptor* b) {
-                assert(a && b);
-                return a->GetType() < b->GetType();
-            });
-            std::string header = "";
-            const auto featureNames = magic_enum::enum_names<Feature>();
-            for (const auto& descriptor : descriptors) {
-                assert(descriptor);
-                const auto dType = descriptor->GetType();
-                const auto dTypeName = magic_enum::enum_name(dType);
-                header += std::format("{}_{},", "Id", dTypeName);
-                for (const auto& featureName : featureNames) {
-                    header += std::format("{}_{},", dTypeName, featureName);
-                }
-                header += std::format("{}_Prediction", dTypeName);
-                if (descriptor != descriptors.back()) {
+            std::string header;
+            for (const auto type : NiType::GetTypesForCluster(cluster)) {
+                const auto name = magic_enum::enum_name(type);
+                if (!header.empty())
                     header += ",";
-                }
+                header += std::format("Id_{},", name);
+                for (const auto feature : magic_enum::enum_names<Feature>())
+                    header += std::format("{}_{},", name, feature);
+                header += std::format("{}_Prediction", name);
             }
             return header;
         }
 
-        static std::string CreateCsvRow(std::vector<INiDescriptor*> descriptors)
+        static std::string CreateCsvRow(const std::vector<INiDescriptor*>& descriptors, NiType::Cluster cluster)
         {
-            std::ranges::sort(descriptors, [](const INiDescriptor* a, const INiDescriptor* b) {
-                assert(a && b);
-                return a->GetType() < b->GetType();
-            });
-            std::string row = "";
-            for (const auto& descriptor : descriptors) {
-                row += descriptor->CsvRow();
-                if (descriptor != descriptors.back()) {
+            std::string row;
+            for (const auto type : NiType::GetTypesForCluster(cluster)) {
+                if (!row.empty())
                     row += ",";
+                const auto found = std::ranges::find(descriptors, type, [](auto* descriptor) { return descriptor->GetType(); });
+                if (found != descriptors.end()) {
+                    row += (*found)->CsvRow();
+                } else {
+                    row += std::string(magic_enum::enum_name(type));
+                    // Missing descriptors have zero features in both training and runtime.
+                    for (size_t i = 0; i < NUM_FEATURES + 1; ++i) row += ",0";
                 }
             }
             return row;
@@ -151,6 +146,24 @@ namespace Thread::NiNode
         float Predict() const override
         {
             return std::inner_product(coefficients.begin(), coefficients.end(), features.begin(), bias);
+        }
+
+        float GetFeature(Feature feature) const override
+        {
+            return features[static_cast<size_t>(feature)];
+        }
+
+        float PredictCluster(const std::vector<const INiDescriptor*>& descriptors) const override
+        {
+            if (!clusterModel)
+                return Predict();
+            float result = bias;
+            for (const auto* descriptor : descriptors) {
+                const auto& weights = clusterCoefficients[static_cast<size_t>(descriptor->GetType())];
+                for (const auto feature : magic_enum::enum_values<Feature>())
+                    result += weights[static_cast<size_t>(feature)] * descriptor->GetFeature(feature);
+            }
+            return result;
         }
 
         std::string CsvRow() const override
@@ -180,6 +193,21 @@ namespace Thread::NiNode
                 const auto err = std::format("Descriptor '{}': Missing bias value", section);
                 throw std::runtime_error(err);
             }
+            clusterModel = std::string_view(inifile.GetValue(section.c_str(), "schema", "legacy")) == "cluster-v2";
+            for (auto& weights : clusterCoefficients) weights.fill(0.0f);
+            if (clusterModel) {
+                const auto cluster = NiType::GetClusterForType(Id);
+                for (const auto type : NiType::GetTypesForCluster(cluster)) {
+                    for (const auto& [feature, name] : magic_enum::enum_entries<Feature>()) {
+                        const auto key = Util::CastLower(std::format("{}_{}", magic_enum::enum_name(type), name));
+                        const auto value = static_cast<float>(inifile.GetDoubleValue(section.c_str(), key.c_str(), 0.0));
+                        if (!std::isfinite(value))
+                            throw std::runtime_error("Non-finite cluster coefficient");
+                        clusterCoefficients[static_cast<size_t>(type)][static_cast<size_t>(feature)] = value;
+                    }
+                }
+                return;
+            }
             const auto features = magic_enum::enum_entries<Feature>();
             for (const auto& [feature, name] : features) {
                 const auto lowerName = Util::CastLower(std::string{ name });
@@ -197,6 +225,8 @@ namespace Thread::NiNode
         std::array<float, NUM_FEATURES> features{ 0.0f };
         static inline std::array<float, NUM_FEATURES> coefficients{ 0.0f };
         static inline float bias{ 0.0f };
+        static inline bool clusterModel{ false };
+        static inline std::array<std::array<float, NUM_FEATURES>, NiType::NUM_TYPES> clusterCoefficients{};
     };
 
 }  // namespace Thread::NiNode

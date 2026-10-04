@@ -25,6 +25,7 @@ namespace Serialization
         enum : std::uint32_t
         {
             _Version = 1,
+            _StatisticsVersion = 2,
 
             _Statistics = 'stcs',
             _Tracking = 'trcn'
@@ -32,12 +33,12 @@ namespace Serialization
 
         static void SaveCallback(SKSE::SerializationInterface* a_intfc)
         {
-#define SAVE(type, func)                                   \
-    if (!a_intfc->OpenRecord(type, _Version)) {            \
-        std::string insert = #type##s;                     \
-        logger::error("Failed to open record {}", insert); \
-    } else {                                               \
-        func;                                              \
+#define SAVE(type, func)                                                                   \
+    if (!a_intfc->OpenRecord(type, type == _Statistics ? _StatisticsVersion : _Version)) { \
+        std::string insert = #type##s;                                                     \
+        logger::error("Failed to open record {}", insert);                                 \
+    } else {                                                                               \
+        func;                                                                              \
     }
             SAVE(_Statistics, Registry::Statistics::StatisticsData::GetSingleton()->Save(a_intfc))
             SAVE(_Tracking, Papyrus::Tracking::GetSingleton()->Save(a_intfc))
@@ -50,14 +51,14 @@ namespace Serialization
             const auto v = static_cast<uint32_t>(_Version);
             uint32_t type, version, length;
             while (a_intfc->GetNextRecordInfo(type, version, length)) {
-                if (version != v) {
-                    logger::info("Invalid Version for loaded Data of Type = {}. Expected = {}; Got = {}", GetTypeName(type), v, version);
+                if ((type == _Statistics && version != 1 && version != _StatisticsVersion) || (type != _Statistics && version != v)) {
+                    logger::info("Invalid Version for loaded Data of Type = {}. Expected = {}; Got = {}", GetTypeName(type), type == _Statistics ? _StatisticsVersion : v, version);
                     continue;
                 }
                 logger::info("Loading record {}", GetTypeName(type));
                 switch (type) {
                 case _Statistics:
-                    Registry::Statistics::StatisticsData::GetSingleton()->Load(a_intfc);
+                    Registry::Statistics::StatisticsData::GetSingleton()->Load(a_intfc, version, length);
                     break;
                 case _Tracking:
                     Papyrus::Tracking::GetSingleton()->Load(a_intfc);

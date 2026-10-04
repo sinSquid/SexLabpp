@@ -44,9 +44,13 @@ def export_binary_model_to_ini(model, interaction_name: str, out_path: str | Pat
         config[interaction_name] = {}
 
     config[interaction_name]["bias"] = str(b_raw)
+    config[interaction_name]["schema"] = "legacy"
 
-    for feature_name, weight in zip(feature_names, w_raw):
-        config[interaction_name][_normalize_feature_name(feature_name)] = str(weight)
+    normalized = [_normalize_feature_name(name) for name in feature_names]
+    if len({name.casefold() for name in normalized}) != len(normalized):
+        raise ValueError("Binary model contains aliased feature columns; train on one interaction only")
+    for name, weight in zip(normalized, w_raw):
+        config[interaction_name][name] = str(weight)
 
     with open(out_path, "w") as f:
         config.write(f)
@@ -67,11 +71,22 @@ def export_softmax_model_to_ini(model_or_path, out_path: str | Path) -> None:
     config = configparser.ConfigParser()
 
     classes = clf.classes_
+    # Prevent previously exported class models from participating in this cluster
+    # when the new training set has no examples of those classes.
+    feature_types = {str(name).rsplit("_", 1)[0] for name in feature_names}
+    for absent in feature_types - set(classes):
+        config[absent] = {"schema": "cluster-v2", "bias": "-1e30"}
 
     for class_index, class_name in enumerate(classes):
 
-        w_scaled = clf.coef_[class_index]
-        b_scaled = clf.intercept_[class_index]
+        if len(classes) == 2 and len(clf.coef_) == 1:
+            # sklearn's binary sigmoid(z) equals softmax([-z/2, z/2]).
+            sign = -0.5 if class_index == 0 else 0.5
+            w_scaled = clf.coef_[0] * sign
+            b_scaled = clf.intercept_[0] * sign
+        else:
+            w_scaled = clf.coef_[class_index]
+            b_scaled = clf.intercept_[class_index]
 
         # Convert to raw feature space
         w_raw = w_scaled / stds
@@ -82,9 +97,11 @@ def export_softmax_model_to_ini(model_or_path, out_path: str | Path) -> None:
             config[class_name] = {}
 
         config[class_name]["bias"] = str(b_raw)
-
+        config[class_name]["schema"] = "cluster-v2"
+        if len({str(name).casefold() for name in feature_names}) != len(feature_names):
+            raise ValueError("Duplicate cluster feature names")
         for feature_name, weight in zip(feature_names, w_raw):
-            config[class_name][_normalize_feature_name(feature_name)] = str(weight)
+            config[class_name][str(feature_name)] = str(weight)
 
         print(f"Exported class {class_name}")
 
@@ -110,13 +127,13 @@ def unify_ini_files(ini_path: str | Path, out_path: str | Path) -> None:
         unified_config.read(out_path)
 
     for ini_file in ini_files:
+        if ini_file.resolve() == out_path.resolve():
+            continue
         config = configparser.ConfigParser()
         config.read(ini_file)
         for section in config.sections():
-            if section not in unified_config:
-                unified_config[section] = {}
-            for key, value in config[section].items():
-                unified_config[section][key] = value
+            # Replace the section so old schemas/coefficients cannot survive retraining.
+            unified_config[section] = dict(config[section])
 
     with open(out_path, "w") as f:
         unified_config.write(f)

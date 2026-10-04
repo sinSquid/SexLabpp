@@ -3,9 +3,9 @@
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Library.h"
 #include "Registry/Util/Decode.h"
+#include "Util/Assignment.h"
 #include "Util/Combinatorics.h"
 #include "Util/StringUtil.h"
-#include "Util/Assignment.h"
 
 namespace Registry
 {
@@ -50,6 +50,8 @@ namespace Registry
         // --- Position Infos
         uint64_t info_count;
         Decode::Read(a_stream, info_count);
+        if (info_count == 0 || info_count > ActorFragment::MAX_ACTOR_COUNT)
+            throw std::runtime_error("Invalid scene position count");
         positions.reserve(info_count);
         for (size_t i = 0; i < info_count; i++) {
             positions.emplace_back(a_stream, a_version);
@@ -102,11 +104,16 @@ namespace Registry
         }
         uint64_t stage_count;
         Decode::Read(a_stream, stage_count);
+        if (stage_count == 0 || stage_count > 4096)
+            throw std::runtime_error("Invalid animation stage count");
         stages.reserve(stage_count);
+        std::set<std::string> stageIDs;
         for (size_t i = 0; i < stage_count; i++) {
             const auto& stage = stages.emplace_back(
                 std::make_unique<Stage>(a_stream, a_version));
 
+            if (stage->positions.size() != positions.size() || !stageIDs.insert(stage->id).second)
+                throw std::runtime_error("Inconsistent stage positions or duplicate stage ID");
             tags.AddTag(stage->tags);
             if (stage->id == startstage) {
                 start_animation = stage.get();
@@ -137,6 +144,8 @@ namespace Registry
             std::vector<const Stage*> edges{};
             uint64_t edge_count;
             Decode::Read(a_stream, edge_count);
+            if (edge_count > stage_count)
+                throw std::runtime_error("Invalid animation edge count");
             std::string edgeid(Decode::ID_SIZE, 'X');
             for (size_t n = 0; n < edge_count; n++) {
                 a_stream.read(edgeid.data(), Decode::ID_SIZE);
@@ -147,13 +156,16 @@ namespace Registry
                 }
                 edges.push_back(edge);
             }
-            graph.insert(std::make_pair(vertex, edges));
+            if (!graph.emplace(vertex, std::move(edges)).second)
+                throw std::runtime_error("Duplicate animation graph vertex");
         }
         // --- Misc
         Decode::Read(a_stream, *reinterpret_cast<uint32_t*>(&furnitureTypes));
         a_stream.read(reinterpret_cast<char*>(&allowBed), 1);
         furnitureOffset = Coordinate(a_stream);
         a_stream.read(reinterpret_cast<char*>(&isPrivate), 1);
+        if (!a_stream)
+            throw std::runtime_error("Truncated animation scene");
     }
 
     PositionInfo::PositionInfo(std::ifstream& a_stream, uint8_t a_version)
@@ -196,6 +208,8 @@ namespace Registry
 
         uint64_t position_count;
         Decode::Read(a_stream, position_count);
+        if (position_count == 0 || position_count > ActorFragment::MAX_ACTOR_COUNT)
+            throw std::runtime_error("Invalid animation position count");
         positions.reserve(position_count);
         for (size_t i = 0; i < position_count; i++) {
             positions.emplace_back(a_stream, a_version);
@@ -270,6 +284,11 @@ namespace Registry
     void Scene::Save(YAML::Node& a_node) const
     {
         a_node["enabled"] = this->enabled;
+        auto offset = a_node["furnitureOffset"];
+        furnitureOffset.Save(offset);
+        a_node["annotations"] = YAML::Node(YAML::NodeType::Sequence);
+        for (const auto& annotation : tags.GetAnnotations())
+            a_node["annotations"].push_back(annotation.data());
         for (auto&& stage : stages) {
             auto node = a_node[stage->id];
             stage->Save(node);
@@ -278,6 +297,13 @@ namespace Registry
 
     void Scene::Load(const YAML::Node& a_node)
     {
+        if (const auto offset = a_node["furnitureOffset"]; offset.IsDefined())
+            furnitureOffset.Load(offset);
+        if (const auto annotations = a_node["annotations"]; annotations.IsDefined()) {
+            tags.SetAnnotations({});
+            for (const auto& annotation : annotations)
+                tags.AddAnnotation(annotation.as<std::string>());
+        }
         if (const auto enable = a_node["enabled"]; enable.IsDefined())
             this->enabled = enable.as<bool>();
 
@@ -662,8 +688,39 @@ namespace Registry
 
     std::vector<const Stage*> Scene::GetLongestPath(const Stage* a_src) const
     {
+        if (!a_src || !graph.contains(a_src))
+            return {};
         if (GetStageNodeType(a_src) == NodeType::Sink)
             return { a_src };
+
+        // DAGs can have exponentially many paths; memoize them before falling
+        // back to simple-path search for graphs containing animation loops.
+        std::map<const Stage*, std::vector<const Stage*>> memo;
+        std::set<const Stage*> active;
+        bool cyclic = false;
+        std::function<std::vector<const Stage*>(const Stage*)> dag = [&](const Stage* node) {
+            if (active.contains(node)) {
+                cyclic = true;
+                return std::vector<const Stage*>{};
+            }
+            if (const auto found = memo.find(node); found != memo.end())
+                return found->second;
+            active.insert(node);
+            std::vector<const Stage*> best{ node };
+            for (const auto* next : graph.at(node)) {
+                auto path = dag(next);
+                if (path.size() + 1 > best.size()) {
+                    best = std::move(path);
+                    best.insert(best.begin(), node);
+                }
+            }
+            active.erase(node);
+            memo.emplace(node, best);
+            return best;
+        };
+        auto path = dag(a_src);
+        if (!cyclic)
+            return path;
 
         std::set<const Stage*> visited{};
         std::function<std::vector<const Stage*>(const Stage*)> DFS = [&](const Stage* src) -> std::vector<const Stage*> {
@@ -681,6 +738,7 @@ namespace Registry
                     longest_path.insert(longest_path.begin(), src);
                 }
             }
+            visited.erase(src);
             return longest_path;
         };
         return DFS(a_src);
@@ -688,6 +746,8 @@ namespace Registry
 
     std::vector<const Stage*> Scene::GetShortestPath(const Stage* a_src) const
     {
+        if (!a_src || !graph.contains(a_src))
+            return {};
         if (GetStageNodeType(a_src) == NodeType::Sink)
             return { a_src };
 
@@ -703,8 +763,8 @@ namespace Registry
                     if (visited.contains(n))
                         continue;
                     if (GetStageNodeType(n) == NodeType::Sink) {
-                        std::vector<const Stage*> ret{};
-                        auto p = pred.at(it);
+                        std::vector<const Stage*> ret{ n };
+                        auto p = it;
                         while (p != nullptr) {
                             ret.push_back(p);
                             p = pred.at(p);

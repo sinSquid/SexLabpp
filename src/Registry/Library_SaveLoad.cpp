@@ -1,4 +1,6 @@
 #include "Library.h"
+#include "Util/FragmentCombinations.h"
+#include "Util/SaveQueue.h"
 
 #include "Util/Combinatorics.h"
 #include "Util/StringUtil.h"
@@ -88,20 +90,12 @@ namespace Registry
                     positionFragments.reserve(scene->positions.size());
                     for (const auto& position : scene->positions)
                         positionFragments.push_back(position.data.Split());
-                    std::vector<ActorFragment> argFragment;
-                    argFragment.reserve(positionFragments.size());
-                    Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
-                        argFragment.clear();
-                        for (auto&& itF : it) {
-                            argFragment.emplace_back(*itF);
-                        }
-                        const auto key = ActorFragment::MakeFragmentHash(argFragment);
-                        auto& vec = packageScenes[key];
-                        if (!std::ranges::contains(vec, scene.get())) {
-                            vec.push_back(scene.get());
-                        }
-                        return Combinatorics::CResult::Next;
-                    });
+                    for (const auto& fragments : Util::UniqueFragmentCombinations(positionFragments)) {
+                        const auto key = ActorFragment::MakeFragmentHash(fragments);
+                        auto& matches = packageScenes[key];
+                        if (!std::ranges::contains(matches, scene.get()))
+                            matches.push_back(scene.get());
+                    }
                 }
                 logger::info("InitializeScenes: Finished parsing file {}", filename);
                 const std::unique_lock lock{ _mScenes };
@@ -468,111 +462,79 @@ namespace Registry
         } catch (const std::exception& e) {
             logger::error("Failed to save voice settings: {}", e.what());
         }
-        logger::info("Finished saving registry settings");
+        logger::info("Queued registry settings snapshots");
     }
 
     void Library::SaveScenes() const noexcept
     {
-        std::shared_lock lock{ _mScenes };
-        std::atomic_size_t nextPackage{ 0 };
-        const auto worker = [&]() {
-            while (true) {
-                const auto index = nextPackage.fetch_add(1);
-                if (index >= packages.size())
-                    return;
-                const auto& p = packages[index];
-                try {
-                    YAML::Node data{};
-                    for (auto&& scene : p->scenes) {
+        try {
+            std::vector<std::pair<std::string, YAML::Node>> snapshots;
+            {
+                std::shared_lock lock{ _mScenes };
+                snapshots.reserve(packages.size());
+                for (const auto& package : packages) {
+                    YAML::Node data;
+                    for (const auto& scene : package->scenes) {
                         auto node = data[scene->id];
                         scene->Save(node);
                     }
-                    const auto filepath = std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, p->GetName().data(), p->GetHash());
-                    std::ofstream fout(filepath);
-                    if (!fout) {
-                        logger::error("SaveScenes: Could not open {}", filepath);
-                        continue;
-                    }
-                    fout << data;
-                    fout.close();
-                    if (!fout)
-                        logger::error("SaveScenes: Failed to write {}", filepath);
-                } catch (const std::exception& e) {
-                    logger::error("SaveScenes: Failed to save package {}: {}", p->GetName().data(), e.what());
+                    snapshots.emplace_back(std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, package->GetName().data(), package->GetHash()), std::move(data));
                 }
             }
-        };
-        const auto workerCount = std::min(packages.size(), static_cast<size_t>(std::min(4u, std::max(1u, std::thread::hardware_concurrency()))));
-        std::vector<std::thread> threads;
-        try {
-            threads.reserve(workerCount);
-            for (size_t i = 0; i < workerCount; ++i)
-                threads.emplace_back(worker);
+            for (const auto& [path, data] : snapshots)
+                Util::SaveQueue::Get().Submit(path, YAML::Dump(data));
         } catch (const std::exception& e) {
-            logger::warn("SaveScenes: Worker creation failed ({}); continuing on current thread", e.what());
-            worker();
+            logger::error("Unable to snapshot scenes: {}", e.what());
         }
-        for (auto&& thread : threads) {
-            thread.join();
-        }
-        logger::info("Saved scenes");
     }
 
     void Library::SaveExpressions() const noexcept
     {
-        // Expression::Save clears the mutable has_edits flag after a successful write.
-        std::unique_lock lock{ _mExpressions };
-        for (auto&& [id, expression] : expressions) {
-            try {
-                expression.Save(EXPRESSION_PATH, false);
-            } catch (const std::exception& e) {
-                logger::error("Failed to save expression {}: {}", id, e.what());
+        try {
+            std::vector<Expression> snapshots;
+            {
+                std::shared_lock lock{ _mExpressions };
+                for (const auto& [id, expression] : expressions)
+                    if (expression.has_edits)
+                        snapshots.push_back(expression);
             }
+            // Keep originals dirty: a failed asynchronous write can be retried on the next save,
+            // and a later edit must never be cleared by an older snapshot.
+            for (const auto& expression : snapshots)
+                expression.Save(EXPRESSION_PATH, false);
+        } catch (const std::exception& e) {
+            logger::error("Unable to snapshot expressions: {}", e.what());
         }
-        logger::info("Saved expressions");
     }
 
     void Library::SaveVoices() const
     {
-        std::shared_lock lock{ _mVoice };
-        const auto getSavefile = [](auto path) -> YAML::Node {
-            try {
-                if (fs::exists(path))
-                    return YAML::LoadFile(path);
-            } catch (const std::exception& e) {
-                logger::error("Error while loading voice settings {}: {}. The file will be re-generated", path, e.what());
-            }
-            return YAML::Node{};
-        };
-        auto settings = getSavefile(VOICE_SETTING_PATH);
-        for (auto&& [name, voice] : voices) {
-            auto voiceNode = settings[name.data()];
-            voice.Save(voiceNode);
+        YAML::Node settings;
+        try {
+            if (fs::exists(VOICE_SETTING_PATH))
+                settings = YAML::LoadFile(VOICE_SETTING_PATH);
+        } catch (const std::exception& e) {
+            logger::warn("Rebuilding unreadable voice settings: {}", e.what());
         }
-        std::ofstream fout_settings(VOICE_SETTING_PATH);
-        fout_settings << settings;
-        fout_settings.close();
-        if (!fout_settings)
-            throw std::runtime_error("Failed to write voice settings");
-
-        auto cache = getSavefile(VOICE_SETTINGS_CACHES_PATH);
-        for (auto&& [id, voice] : savedVoices) {
-            auto form = RE::TESForm::LookupByID<RE::Actor>(id);
-            if (!form)
-                continue;
-            if (auto base = form->GetActorBase()) {
-                if (!base->IsUnique())
+        YAML::Node cache(YAML::NodeType::Map);
+        {
+            std::shared_lock lock{ _mVoice };
+            for (const auto& [name, voice] : voices) {
+                auto node = settings[name.data()];
+                voice.Save(node);
+            }
+            // The in-memory cache is authoritative, including explicit deletions.
+            for (const auto& [id, voice] : savedVoices) {
+                auto* form = RE::TESForm::LookupByID<RE::Actor>(id);
+                if (!form)
                     continue;
+                if (const auto* base = form->GetActorBase(); base && !base->IsUnique())
+                    continue;
+                cache[Util::FormToString(form)] = voice->GetId().data();
             }
-            auto str = Util::FormToString(form);
-            cache[str] = voice->GetId().data();
         }
-        std::ofstream fout_caches(VOICE_SETTINGS_CACHES_PATH);
-        fout_caches << cache;
-        fout_caches.close();
-        if (!fout_caches)
-            throw std::runtime_error("Failed to write voice cache");
-        logger::info("Saved voices");
+        Util::SaveQueue::Get().Submit(VOICE_SETTING_PATH, YAML::Dump(settings));
+        Util::SaveQueue::Get().Submit(VOICE_SETTINGS_CACHES_PATH, YAML::Dump(cache));
     }
 
 }  // namespace Registry

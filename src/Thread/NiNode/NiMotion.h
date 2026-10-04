@@ -102,6 +102,8 @@ namespace Thread::NiNode
         MotionDescriptor DescribeMotion(Anchor c) const;
 
       private:
+        MotionDescriptor ComputeDescriptor(Anchor c) const;
+        mutable std::array<std::optional<MotionDescriptor>, NUM_ANCHORS> descriptorCache{};
         size_t AbsoluteToRelativeIndex(size_t n) const;
 
       private:

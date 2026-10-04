@@ -94,11 +94,11 @@ namespace Thread::NiNode
                 }
                 if (mlTrainingState.recordedData.empty()) {
                     logger::info("ML Training: Initializing new recording session for interaction type {}", magic_enum::enum_name(mlTrainingState.type));
-                    const auto headerStr = INiDescriptor::CreateCsvHeader(descriptors);
+                    const auto headerStr = INiDescriptor::CreateCsvHeader(NiType::GetClusterForType(mlTrainingState.type));
                     logger::info("ML Training: CSV Header - ActorA, ActorB, {}, Label", headerStr);
                     mlTrainingState.recordedData.push_back(std::format("ActorA,ActorB,{},Label", headerStr));
                 }
-                const auto csvRow = INiDescriptor::CreateCsvRow(descriptors);
+                const auto csvRow = INiDescriptor::CreateCsvRow(descriptors, NiType::GetClusterForType(mlTrainingState.type));
                 const auto actorAId = a->GetFormID();
                 const auto actorBId = b->GetFormID();
                 const auto labelStr = mlTrainingState.enabled ? magic_enum::enum_name(mlTrainingState.type) : "0";
@@ -135,7 +135,6 @@ namespace Thread::NiNode
         std::scoped_lock lk{ _m };
         const auto where = std::ranges::find(_instances, a_id, [](auto& it) { return it.first; });
         if (where == _instances.end()) {
-            logger::error("No object registered using ID {:X}", a_id);
             return;
         }
         _instances.erase(where);
