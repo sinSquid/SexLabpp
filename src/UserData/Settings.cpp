@@ -86,11 +86,21 @@ void Settings::InitializeINI()
         fFurnitureSquareStepSize = 8.0f;
     }
 
-    if (fPercentageHetero + fPercentageHomo > 100) {
+    if (!std::isfinite(fPercentageHetero) || fPercentageHetero < 0.0f) {
+        logger::warn("Invalid fPercentageHetero {}; using default", fPercentageHetero);
+        fPercentageHetero = 80.0f;
+    }
+    if (!std::isfinite(fPercentageHomo) || fPercentageHomo < 0.0f) {
+        logger::warn("Invalid fPercentageHomo {}; using default", fPercentageHomo);
+        fPercentageHomo = 9.0f;
+    }
+    const auto total = double(fPercentageHetero) + double(fPercentageHomo);
+    if (total > 100.0) {
         logger::error("Sexuality Percentage Settings must be at most 100.0");
-        const auto total = fPercentageHetero + fPercentageHomo;
-        fPercentageHetero = (fPercentageHetero / total) * 100;
-        fPercentageHomo = (fPercentageHomo / total) * 100;
+        fPercentageHetero = static_cast<float>((double(fPercentageHetero) / total) * 100.0);
+        fPercentageHomo = static_cast<float>((double(fPercentageHomo) / total) * 100.0);
+        // Rounding both percentages upward must not invert the remaining range.
+        fPercentageHomo = std::min(fPercentageHomo, 100.0f - fPercentageHetero);
         logger::info("Adjusted fPercentageHetero to {} and fPercentageHomo to {}", fPercentageHetero, fPercentageHomo);
     }
     logger::info("Finished loading .ini settings");

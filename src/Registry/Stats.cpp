@@ -55,7 +55,7 @@ namespace Registry::Statistics
                 _stats[StatisticID::Sexuality] = Random::draw(100.0f - Settings::fPercentageHetero, 100.0f);
                 break;
             case Sexuality::Homo:
-                _stats[StatisticID::Sexuality] = Random::draw(1.0f, Settings::fPercentageHomo);
+                _stats[StatisticID::Sexuality] = Random::draw(0.0f, Settings::fPercentageHomo);
                 break;
             default:
                 _stats[StatisticID::Sexuality] = Random::draw(1.0f, 100.0f);

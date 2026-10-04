@@ -707,13 +707,12 @@ namespace Papyrus::ThreadModel
         RE::Actor* ret = nullptr;
         niInstance->VisitPositions([&](auto& p) {
             for (auto&& type : p.interactions) {
-                if (a_position->formID == type.partner->formID) {
-                    if (a_type == -1 || a_type == static_cast<int>(type.action)) {
-                        ret = p.actor.get();
-                        return true;
-                    }
-                    break;
-                }
+                if (a_position->formID != type.partner->formID)
+                    continue;
+                if (a_type != -1 && a_type != static_cast<int>(type.action))
+                    continue;
+                ret = p.actor.get();
+                return true;
             }
             return false;
         });
@@ -731,11 +730,12 @@ namespace Papyrus::ThreadModel
         std::vector<RE::Actor*> ret{};
         niInstance->VisitPositions([&](auto& p) {
             for (auto&& type : p.interactions) {
-                if (!a_position || a_position->formID == type.partner->formID) {
-                    if (a_type == -1 || a_type == static_cast<int>(type.action))
-                        ret.push_back(p.actor.get());
-                    break;
-                }
+                if (a_position && a_position->formID != type.partner->formID)
+                    continue;
+                if (a_type != -1 && a_type != static_cast<int>(type.action))
+                    continue;
+                ret.push_back(p.actor.get());
+                break;
             }
             return false;
         });

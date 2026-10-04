@@ -10,6 +10,6 @@ with tempfile.TemporaryDirectory(prefix='sexlab-tests-') as tmp:
         binary=Path(tmp)/name
         subprocess.run([os.environ.get('CXX','clang++'),'-std=c++20','-O2','-pthread',str(ROOT/'tests'/f'{name}.cpp'),'-o',str(binary)],check=True)
         subprocess.run([str(binary)],check=True)
-for name in ('full_fifth_review','full_fourth_review','full_third_review','full_second_review','full_review_regressions','ml_session_regressions','strip_regressions','source_regressions','recognition_regressions','lifecycle_regressions','csv_schema','native_contracts','ml_export'):
+for name in ('full_seventh_review','full_seventh_persistence','full_seventh_geometry','full_seventh_scripts','full_sixth_review','full_sixth_persistence','full_sixth_geometry','full_sixth_scripts','full_fifth_review','full_fourth_review','full_third_review','full_second_review','full_review_regressions','ml_session_regressions','strip_regressions','source_regressions','recognition_regressions','lifecycle_regressions','csv_schema','native_contracts','ml_export'):
     subprocess.run([sys.executable,str(ROOT/'tests'/f'{name}.py')],check=True)
 print('PASS: all portable tests; DLL and game runtime were not tested')

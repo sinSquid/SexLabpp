@@ -80,3 +80,28 @@ in temporary directories for overlapping names, 120-file natural-order
 idempotence, occupied targets, injected publication failure and failed rollback.
 Publication uses filesystem hard links; unrecoverable rollback keeps staged bytes
 and a manifest in the reported .voice-rename-* directory for manual recovery.
+
+Sixth full file review: full_sixth_review.py extracts production Papyrus native
+queries to test multi-action reverse lookups, the climax wildcard and invalid
+indices, and reset success/error reporting. full_sixth_persistence.py exercises
+legacy sexuality conversion across eight distributions, collapsed ranges, and
+strict tracked-actor ordering. full_sixth_geometry.py tests actual transform and
+furniture scan functions, signed/periodic tilt filtering in degrees, and correct
+partner-pelvis sampling; ray casts and engine objects are stand-ins.
+full_sixth_scripts.py executes a limited source-derived translation of selected
+Papyrus helpers for phase indexing, lip restoration, statistics, bounded list
+merging, trimming and tag replacement. The translation is not a Papyrus compiler
+or VM; real script compilation, scheduling and game integration remain untested.
+
+Seventh full file review: full_seventh_geometry.py extracts both production node
+constructors to exercise vector growth without dangling parent references; the
+actual BestFit/Segment/reference-segment methods verify root-to-tip orientation.
+full_seventh_persistence.py exercises the real AtomicWrite header with exclusive
+staging ownership, occupied paths, failed replacement and concurrent publishers,
+and validates percentage boundaries in production statistics initialization and
+settings normalization. full_seventh_review.py tests partner requirements across
+candidate permutations, duplicate/null inputs and invalid totals.
+full_seventh_scripts.py uses the existing limited Papyrus translator for ranked
+partner limits and duplicate removal. REVIEW_BASE_DIR can select saved sources
+from the start of the round while preserving earlier uncommitted changes. Tests
+use engine/API stand-ins; no DLL, Papyrus VM or real game integration is implied.

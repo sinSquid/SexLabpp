@@ -396,15 +396,15 @@ function CountPhases()
 endFunction
 
 float[] function GenderPhase(int Phase, int Gender)
-	return GetNthValues(Registry, Gender == Female, Phase)
+	return GetNthValues(Registry, Gender == Female, Phase - 1)
 endFunction
 
 function SetPhase(int Phase, int Gender, float[] Preset)
 	If (Gender == -1)
-		SetValues(Registry, true, Phase, Preset)
-		SetValues(Registry, false, Phase, Preset)
+		SetValues(Registry, true, Phase - 1, Preset)
+		SetValues(Registry, false, Phase - 1, Preset)
 	Else
-		SetValues(Registry, Gender == Female, Phase, Preset)
+		SetValues(Registry, Gender == Female, Phase - 1, Preset)
 	EndIf
 endFunction
 

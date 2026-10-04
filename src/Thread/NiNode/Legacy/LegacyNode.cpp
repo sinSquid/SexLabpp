@@ -151,7 +151,7 @@ namespace Thread::LegacyNiNode::Node
     {
         assert(a_basenode);
         do {
-            auto& parent = nodes.back();
+            const auto parent = nodes.back();
             auto& childs = parent->GetChildren();
             switch (childs.size()) {
             case 0:

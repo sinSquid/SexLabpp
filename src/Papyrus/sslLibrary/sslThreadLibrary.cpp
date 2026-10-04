@@ -163,8 +163,14 @@ namespace Papyrus::ThreadLibrary
     std::vector<RE::Actor*> FindAvailablePartners(VM* a_vm, StackID a_stackID, RE::TESQuest*,
         std::vector<RE::Actor*> a_positions, int a_total, int a_males, int a_females, float a_radius)
     {
-        if (a_positions.size() >= a_total) {
+        if (a_total <= 0 || a_positions.size() >= static_cast<size_t>(a_total)) {
             return a_positions;
+        }
+        for (size_t i = 0; i < a_positions.size(); ++i) {
+            if (!a_positions[i] || std::find(a_positions.begin(), a_positions.begin() + i, a_positions[i]) != a_positions.begin() + i) {
+                a_vm->TraceStack("Positions contains none or duplicate actors", a_stackID);
+                return {};
+            }
         }
         const auto valids = FindAvailableActors(a_vm, a_stackID, nullptr,
             a_positions.empty() ? RE::PlayerCharacter::GetSingleton() : a_positions[0],
@@ -180,24 +186,31 @@ namespace Papyrus::ThreadLibrary
             return a_positions;
         }
         auto genders = GetLegacySex(a_positions);
-        for (auto&& actor : valids) {
-            int targetsex;
-            if (genders[LegacySex::Male] < a_males) {
-                targetsex = LegacySex::Male;
-            } else if (genders[LegacySex::Female] < a_females) {
-                targetsex = LegacySex::Female;
-            } else {
-                targetsex = LegacySex::None;
-            }
+        const auto alreadyIncluded = [&](RE::Actor* actor) {
+            return std::find(a_positions.begin(), a_positions.end(), actor) != a_positions.end();
+        };
+        // Collect both required genders before filling unrestricted slots.
+        // A female encountered before the first required male must not be lost.
+        for (auto* actor : valids) {
+            if (!actor || alreadyIncluded(actor))
+                continue;
             const auto sex = GetLegacySex(actor);
-            if (targetsex == LegacySex::None || sex == targetsex) {
+            if ((sex == LegacySex::Male && genders[sex] < a_males) ||
+                (sex == LegacySex::Female && genders[sex] < a_females)) {
                 a_positions.push_back(actor);
-                if (a_positions.size() == a_total) {
+                ++genders[sex];
+                if (a_positions.size() == static_cast<size_t>(a_total))
                     return a_positions;
-                } else {
-                    genders[sex]++;
-                }
             }
+        }
+        if (genders[LegacySex::Male] < a_males || genders[LegacySex::Female] < a_females)
+            return a_positions;
+        for (auto* actor : valids) {
+            if (!actor || alreadyIncluded(actor))
+                continue;
+            a_positions.push_back(actor);
+            if (a_positions.size() == static_cast<size_t>(a_total))
+                break;
         }
         return a_positions;
     }

@@ -691,7 +691,7 @@ namespace Papyrus::SexLabRegistry
     std::vector<RE::BSFixedString> GetClimaxStages(STATICARGS, RE::BSFixedString a_id, int32_t n)
     {
         SCENE({});
-        if (n >= scene->positions.size()) {
+        if (n < -1 || (n >= 0 && static_cast<size_t>(n) >= scene->positions.size())) {
             a_vm->TraceStack("Invalid position idx", a_stackID);
             return {};
         }
@@ -920,7 +920,7 @@ namespace Papyrus::SexLabRegistry
 
     void ResetStageOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
     {
-        bool foundScene = !Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+        const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
             const auto stage = scene->GetStageByID(a_stage);
             if (!stage) {
                 a_vm->TraceStack("Invalid stage id", a_stackID);

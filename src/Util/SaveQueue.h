@@ -1,6 +1,7 @@
 #pragma once
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <deque>
 #include <filesystem>
 #include <fstream>
@@ -25,8 +26,20 @@ namespace Util
     {
         if (!path.parent_path().empty())
             std::filesystem::create_directories(path.parent_path());
-        auto temporary = path;
-        temporary += ".tmp";
+        // A writer owns its staging directory exclusively. Sharing path + ".tmp"
+        // lets concurrent callers truncate, publish or remove each other's bytes.
+        static std::atomic<uint64_t> nextTemporary{ 0 };
+        std::filesystem::path staging;
+        for (;;) {
+            staging = path;
+            staging += ".tmp-" + std::to_string(nextTemporary.fetch_add(1, std::memory_order_relaxed));
+            std::error_code error;
+            if (std::filesystem::create_directory(staging, error))
+                break;
+            if (error && error != std::errc::file_exists)
+                throw std::system_error(error, "Reserve save staging directory");
+        }
+        const auto temporary = staging / "data";
         try {
             std::ofstream output(temporary, std::ios::binary | std::ios::trunc);
             output.exceptions(std::ios::badbit | std::ios::failbit);
@@ -40,9 +53,11 @@ namespace Util
 #endif
         } catch (...) {
             std::error_code ignored;
-            std::filesystem::remove(temporary, ignored);
+            std::filesystem::remove_all(staging, ignored);
             throw;
         }
+        std::error_code ignored;
+        std::filesystem::remove_all(staging, ignored);
     }
 
     // Reserve a filename with an exclusive directory, then publish complete bytes

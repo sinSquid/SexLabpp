@@ -22,10 +22,8 @@ namespace Papyrus::ActorStats
             return { RE::PlayerCharacter::GetSingleton() };
         }
         std::ranges::sort(tracked, [](RE::Actor* a, RE::Actor* b) {
-            if (a->IsPlayerRef())
-                return true;
-            if (b->IsPlayerRef())
-                return false;
+            if (a->IsPlayerRef() != b->IsPlayerRef())
+                return a->IsPlayerRef();
             return std::strcmp(a->GetDisplayFullName(), b->GetDisplayFullName()) < 0;
         });
         return tracked;
@@ -405,6 +403,10 @@ namespace Papyrus::ActorStats
                 auto ret = stats.GetStatistic(stats.Sexuality);
                 constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
                 const auto f = [&](float start, float range, float range_legacy) {
+                    // A zero-width final range can still contain the endpoint
+                    // 100. Use its upper endpoint instead of dividing by zero.
+                    if (range <= 0.0f)
+                        return start + range_legacy;
                     float perc = ret / range;
                     float value = start + perc * range_legacy;
                     return value;
@@ -414,7 +416,7 @@ namespace Papyrus::ActorStats
                 }
                 ret -= Settings::fPercentageHomo;
                 const auto rangeBi = 100.0f - Settings::fPercentageHetero - Settings::fPercentageHomo;
-                if (ret < rBi) {
+                if (ret < rangeBi) {
                     return f(rHomo, rangeBi, rBi);
                 }
                 ret -= rangeBi;

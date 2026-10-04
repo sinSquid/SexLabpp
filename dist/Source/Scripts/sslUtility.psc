@@ -53,20 +53,30 @@ sslBaseAnimation[] function EmptyAnimationArray() global
 endFunction
 
 sslBaseAnimation[] function MergeAnimationLists(sslBaseAnimation[] List1, sslBaseAnimation[] List2) global
-	int Count = List2.Length
-	int i = List2.Length
-	while i
-		i -= 1
-		Count -= ((List1.Find(List2[i]) != -1) as int)
-	endWhile
-	sslBaseAnimation[] Output = sslUtility.IncreaseAnimation(Count, List1)
-	i = List2.Length
-	while i && Count
-		i -= 1
-		if List1.Find(List2[i]) == -1
-			Count -= 1
-			Output[Count] = List2[i]
+	int available = 128 - List1.Length
+	if available <= 0
+		return List1
+	endIf
+	int Count = 0
+	int i = 0
+	while i < List2.Length && Count < available
+		if List1.Find(List2[i]) == -1 && List2.Find(List2[i]) == i
+			Count += 1
 		endIf
+		i += 1
+	endWhile
+	if Count == 0
+		return List1
+	endIf
+	sslBaseAnimation[] Output = sslUtility.IncreaseAnimation(Count, List1)
+	int next = List1.Length
+	i = 0
+	while i < List2.Length && next < Output.Length
+		if List1.Find(List2[i]) == -1 && List2.Find(List2[i]) == i
+			Output[next] = List2[i]
+			next += 1
+		endIf
+		i += 1
 	endWhile
 	return Output
 endFunction
@@ -173,10 +183,10 @@ sslBaseAnimation[] function RemoveDupesFromList(sslBaseAnimation[] List, sslBase
 		return List
 	endIf
 	int Dupes
-	int i = Removing.Length
+	int i = List.Length
 	while i
 		i -= 1
-		Dupes += (List.Find(Removing[i]) != -1) as int
+		Dupes += (Removing.Find(List[i]) != -1) as int
 	endWhile
 	if Dupes == 0 || (PreventAll && List.Length == Dupes)
 		return List
@@ -331,13 +341,18 @@ int function IndexTravel(int CurrentIndex, int ArrayLength, bool Reverse = false
 endFunction
 
 string function Trim(string var) global
-	if StringUtil.GetNthChar(var, 0) == " "
-		var = StringUtil.SubString(var, 1)
+	int start = 0
+	int finish = StringUtil.GetLength(var)
+	while start < finish && StringUtil.GetNthChar(var, start) == " "
+		start += 1
+	endWhile
+	while finish > start && StringUtil.GetNthChar(var, finish - 1) == " "
+		finish -= 1
+	endWhile
+	if start == finish
+		return ""
 	endIf
-	if StringUtil.GetNthChar(var, (StringUtil.GetLength(var) - 1)) == " "
-		var = StringUtil.SubString(var, (StringUtil.GetLength(var) - 2))
-	endIf
-	return var
+	return StringUtil.SubString(var, start, finish - start)
 endFunction
 
 string function RemoveString(string str, string toRemove, int startindex = 0) global

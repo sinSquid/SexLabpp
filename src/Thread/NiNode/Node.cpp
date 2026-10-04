@@ -151,7 +151,7 @@ namespace Thread::NiNode::Node
     {
         assert(a_basenode);
         do {
-            auto& parent = nodes.back();
+            const auto parent = nodes.back();
             auto& childs = parent->GetChildren();
             switch (childs.size()) {
             case 0:
@@ -219,7 +219,12 @@ namespace Thread::NiNode::Node
                         continue;
                     argV.push_back(node->world.translate);
                 }
-                return NiMath::BestFit(std::span<const RE::NiPoint3>{ argV.data(), argV.size() });
+                auto reference = NiMath::BestFit(std::span<const RE::NiPoint3>{ argV.data(), argV.size() });
+                // PCA determines an axis, but not its sign. Consumers use first
+                // as the root and second as the tip, so preserve the chain direction.
+                if (argV.size() > 1 && reference.Vector().Dot(argV.back() - argV.front()) < 0.0f)
+                    std::swap(reference.first, reference.second);
+                return reference;
             }
         }
     }

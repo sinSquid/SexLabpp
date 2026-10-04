@@ -213,7 +213,7 @@ sslBaseAnimation[] function GetByDefaultTags(int Males, int Females, bool IsAggr
   If (UsingBed)
     int where = tags_.Find("Furniture")
     If (where == -1)
-      tags_.Find("~Furniture")
+      where = tags_.Find("~Furniture")
     EndIf
     If (where == -1)
       tags_ = PapyrusUtil.PushString(tags_, "-Furniture")
@@ -222,7 +222,7 @@ sslBaseAnimation[] function GetByDefaultTags(int Males, int Females, bool IsAggr
     EndIf
     where = tags_.Find("Standing")
     If (where == -1)
-      tags_.Find("~Standing")
+      where = tags_.Find("~Standing")
     EndIf
     If (where == -1)
       tags_ = PapyrusUtil.PushString(tags_, "-Standing")
@@ -232,7 +232,7 @@ sslBaseAnimation[] function GetByDefaultTags(int Males, int Females, bool IsAggr
   Else
     int where = tags_.Find("BedOnly")
     If (where == -1)
-      tags_.Find("~BedOnly")
+      where = tags_.Find("~BedOnly")
     EndIf
     If (where == -1)
       tags_ = PapyrusUtil.PushString(tags_, "-BedOnly")

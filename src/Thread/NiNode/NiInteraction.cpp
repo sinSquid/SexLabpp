@@ -241,7 +241,7 @@ namespace Thread::NiNode
 
         const auto pMouth = a_motionA.GetLatestMoment(NiMotion::pMouth);
         const auto pHead = a_motionA.GetLatestMoment(NiMotion::pHead);
-        const auto pPelvis = a_motionA.GetLatestMoment(NiMotion::pPelvis);
+        const auto pPelvis = a_motionB.GetLatestMoment(NiMotion::pPelvis);
 
         const float distanceClose = headBound.boundMax.y * Settings::fCloseToHeadRatio;
         const float distanceVeryClose = headBound.boundMax.y * Settings::fVeryCloseToHeadRatio;

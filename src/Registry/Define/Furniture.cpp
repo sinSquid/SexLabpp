@@ -5,6 +5,7 @@
 #include "Util/StringUtil.h"
 
 #include <cmath>
+#include <numbers>
 
 namespace Registry
 {
@@ -176,7 +177,13 @@ namespace Registry
             logger::error("GetCoordinatesInBound: Invalid or excessive scan grid: radius {}, step {}", radius, step);
             return {};
         }
-        if (a_ref->GetAngleX() > Settings::fFurnitureTiltTolerance || a_ref->GetAngleY() > Settings::fFurnitureTiltTolerance) {
+        // The INI tolerance is in degrees, while reference angles are radians.
+        // Signed tilts and rotations differing by full turns describe the same slope.
+        const auto tiltLimit = glm::radians(Settings::fFurnitureTiltTolerance);
+        constexpr auto fullTurn = 2.0f * std::numbers::pi_v<float>;
+        const auto tiltX = std::abs(std::remainder(a_ref->GetAngleX(), fullTurn));
+        const auto tiltY = std::abs(std::remainder(a_ref->GetAngleY(), fullTurn));
+        if (!(tiltX <= tiltLimit && tiltY <= tiltLimit)) {
             logger::error("GetCoordinatesInBound: Reference {} is tilted too much. X: {}, Y: {}", a_ref->GetFormID(), a_ref->GetAngleX(), a_ref->GetAngleY());
             return {};
         }
@@ -227,7 +234,7 @@ namespace Registry
             if (!a_filter.any(type.value)) {
                 continue;
             }
-            const auto offsetLocation = referenceCoordinates.ApplyReturn(offset);
+            const auto offsetLocation = offset.ApplyReturn(referenceCoordinates);
             auto raycastTarget = offsetLocation.AsVec4(0.0f), raycastStart = offsetLocation.AsVec4(0.0f);
             raycastTarget.z += Settings::fFurnitureSquareHeight;
             raycastStart.z += Settings::fFurnitureSquareFloorSkip;
