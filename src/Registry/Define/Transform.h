@@ -39,8 +39,8 @@ namespace Registry
         bool operator==(const Coordinate& a_rhs) const { return location == a_rhs.location && rotation == a_rhs.rotation; }
 
       public:
-        glm::vec3 location;
-        float rotation;
+        glm::vec3 location{ 0.0f };
+        float rotation{ 0.0f };
     };
 
     class Transform

@@ -10,7 +10,7 @@
 
 namespace Thread
 {
-    void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request)
+    void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request)
     {
         const auto script = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
         const auto request = script ? script->GetProperty("StartupRequest") : nullptr;

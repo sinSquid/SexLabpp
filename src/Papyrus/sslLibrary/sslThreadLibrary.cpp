@@ -283,7 +283,7 @@ namespace Papyrus::ThreadLibrary
             return true;
         }
         const auto data = Tracking::GetSingleton();
-        if (data->_actors.contains(a_actor->formID)) {
+        if (data->Contains(data->_actors, a_actor->formID)) {
             return true;
         }
 
@@ -292,7 +292,7 @@ namespace Papyrus::ThreadLibrary
             if (!fac || rank < 0)
                 return false;
 
-            if (data->_factions.contains(fac->formID)) {
+            if (data->Contains(data->_factions, fac->formID)) {
                 ret = true;
                 return true;
             }
@@ -341,21 +341,13 @@ namespace Papyrus::ThreadLibrary
         if (a_actor->IsPlayerRef()) {
             ret.push_back(std::format("PlayerTrack{}", suffix));
         }
-        const auto where = data->_actors.find(a_actor->formID);
-        if (where != data->_actors.end()) {
-            for (auto&& event : where->second) {
-                ret.push_back(std::format("{}{}", event, suffix));
-            }
-        }
+        for (const auto& event : data->Callbacks(data->_actors, a_actor->formID))
+            ret.push_back(std::format("{}{}", event, suffix));
         a_actor->VisitFactions([&](auto fac, auto rank) {
             if (!fac || rank < 0)
                 return false;
 
-            const auto it = data->_factions.find(fac->formID);
-            if (it == data->_factions.end())
-                return false;
-
-            for (auto&& event : it->second) {
+            for (const auto& event : data->Callbacks(data->_factions, fac->formID)) {
                 ret.push_back(std::format("{}{}", event, suffix));
             }
             return false;

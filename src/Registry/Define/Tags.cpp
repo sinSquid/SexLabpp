@@ -244,7 +244,7 @@ namespace Registry
     TagDetails::TagDetails(const std::string_view a_tags) :
       TagDetails(Util::StringSplit(a_tags, ",")) {}
 
-    TagDetails::TagDetails(const std::vector<std::string_view> a_tags)
+    TagDetails::TagDetails(const std::vector<std::string_view>& a_tags)
     {
         for (auto&& tag : a_tags) {
             if (tag.empty())
@@ -266,7 +266,7 @@ namespace Registry
         }
     }
 
-    TagDetails::TagDetails(const std::array<TagData, TagType::Total> a_tags)
+    TagDetails::TagDetails(const std::array<TagData, TagType::Total>& a_tags)
     {
         for (size_t i = 0; i < TagType::Total; i++)
             _tags[i] = a_tags[i];

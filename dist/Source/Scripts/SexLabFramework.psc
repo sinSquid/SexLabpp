@@ -1744,6 +1744,7 @@ SexLabThread Function StartSceneImpl(Actor[] akPositions, String[] asScenes, Str
     return none
   ElseIf (!thread.AddActorsA(akPositions, akSubmissive))
     Log("StartSceneImpl() - Failed to add some actors to thread")
+    thread.EndAnimation(true)
     return none
   EndIf
   thread.SetScenes(asScenes)

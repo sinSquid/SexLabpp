@@ -26,57 +26,40 @@ namespace Papyrus::SexLabUtil
         Util::PrintConsole(a_str);
     };
 
+    namespace
+    {
+        template <class T>
+        int MinMaxIndex(const std::vector<T>& values, bool highest)
+        {
+            size_t best = 0;
+            if constexpr (std::is_floating_point_v<T>) {
+                while (best < values.size() && std::isnan(values[best])) ++best;
+            }
+            if (best == values.size())
+                return 0;
+            for (size_t i = best + 1; i < values.size(); ++i)
+                if ((highest && values[i] > values[best]) || (!highest && values[i] < values[best]))
+                    best = i;
+            return static_cast<int>(best);
+        }
+    }
+
     int IntMinMaxIndex(RE::StaticFunctionTag*, std::vector<int> arr, bool findHighestValue)
     {
-        if (arr.empty()) {
-            return 0;
-        }
-        size_t w = 0;
-        int m = arr.front();
-        for (size_t i = 1; i < arr.size(); i++) {
-            if ((findHighestValue && arr[i] > m) || (!findHighestValue && arr[i] < m)) {
-                w = i;
-                m = arr[i];
-            }
-        }
-        return static_cast<int>(w);
-    };
-
+        return MinMaxIndex(arr, findHighestValue);
+    }
     int IntMinMaxValue(RE::StaticFunctionTag*, std::vector<int> arr, bool findHighestValue)
     {
-        if (arr.empty()) {
-            return 0;
-        }
-        return arr[IntMinMaxIndex(nullptr, arr, findHighestValue)];
-    };
-
+        return arr.empty() ? 0 : arr[MinMaxIndex(arr, findHighestValue)];
+    }
     int FloatMinMaxIndex(RE::StaticFunctionTag*, std::vector<float> arr, bool findHighestValue)
     {
-        if (arr.empty()) {
-            return 0;
-        }
-        size_t w = 0;
-        while (w < arr.size() && std::isnan(arr[w]))
-            ++w;
-        if (w == arr.size())
-            return 0;
-        float m = arr[w];
-        for (size_t i = w + 1; i < arr.size(); i++) {
-            if ((findHighestValue && arr[i] > m) || (!findHighestValue && arr[i] < m)) {
-                w = i;
-                m = arr[i];
-            }
-        }
-        return static_cast<int>(w);
-    };
-
+        return MinMaxIndex(arr, findHighestValue);
+    }
     float FloatMinMaxValue(RE::StaticFunctionTag*, std::vector<float> arr, bool findHighestValue)
     {
-        if (arr.empty()) {
-            return 0;
-        }
-        return arr[FloatMinMaxIndex(nullptr, arr, findHighestValue)];
-    };
+        return arr.empty() ? 0.0f : arr[MinMaxIndex(arr, findHighestValue)];
+    }
 
     std::vector<RE::Actor*> MakeActorArray(RE::StaticFunctionTag*, RE::Actor* a1, RE::Actor* a2, RE::Actor* a3, RE::Actor* a4, RE::Actor* a5)
     {

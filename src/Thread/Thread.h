@@ -63,7 +63,7 @@ namespace Thread
         Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request, std::shared_ptr<std::atomic_bool> a_cancelled);
         ~Instance() = default;
 
-        static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request);
+        static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request);
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
         static std::shared_ptr<Instance> GetInstance(RE::TESQuest* a_linkedQst);

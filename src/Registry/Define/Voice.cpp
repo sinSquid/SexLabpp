@@ -66,8 +66,8 @@ namespace Registry
 
     RE::TESSound* Voice::PickSound(LegacyVoice a_legacysetting) const
     {
-        bool maybe_victim = a_legacysetting == LegacyVoice::Medium;
-        return maybe_victim && !extrasets.empty() ? extrasets.front().Get(a_legacysetting) : defaultset.Get(a_legacysetting);
+        const auto& set = a_legacysetting == LegacyVoice::Medium ? GetApplicableSet(VoiceAnnotation::Submissive) : defaultset;
+        return set.Get(a_legacysetting);
     }
 
     RE::TESSound* Voice::PickSound(uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const
@@ -77,7 +77,7 @@ namespace Registry
 
     RE::TESSound* Voice::PickOrgasmSound(REX::EnumSet<VoiceAnnotation> a_annotation) const
     {
-        const auto s = GetApplicableSet(a_annotation);
+        const auto& s = GetApplicableSet(a_annotation);
         return s.GetOrgasm() ? s.GetOrgasm() : s.Get(100);
     }
 
@@ -142,7 +142,12 @@ namespace Registry
         if (v.IsMap()) {
             for (auto&& it : v) {
                 auto sound = Util::FormFromString<RE::TESSound*>(it.first.as<std::string>());
-                data.emplace_back(sound, static_cast<uint8_t>(it.second.as<uint32_t>()));
+                if (!sound)
+                    continue;
+                const auto priority = it.second.as<uint32_t>();
+                if (priority > 255)
+                    throw std::runtime_error("Voice priority exceeds uint8 range");
+                data.emplace_back(sound, static_cast<uint8_t>(priority));
             }
         } else {
             const auto max = static_cast<float>(v.size());
@@ -154,7 +159,7 @@ namespace Registry
             }
         }
         if (data.empty()) {
-            throw std::exception("Need at least 1 Voice per Set");
+            throw std::runtime_error("Need at least 1 valid Voice per Set");
         }
         std::sort(data.begin(), data.end(), [](auto& a, auto& b) {
             return a.second < b.second;

@@ -40,3 +40,9 @@ Fourth-review coverage: raw and typed SLR reads share one cached byte budget;
 readers initialized at a nonzero offset, raw overruns, 4096-node chains, parallel
 graph edges and unreachable cycles. Reader construction measures the remaining
 file length once; all package constructors now consume Decode::Reader.
+
+Full file review: full_review_regressions.py exercises actual tracking v1 methods
+with byte-stream and engine stand-ins, every truncation, count/delimiter corruption,
+concurrent callback snapshots, 1000 randomized geometry cases, default coordinates,
+legacy voice selection and copy-free lookup, and min/max edge cases. Failed-start
+Papyrus cleanup and ImGui clip restoration are source contracts, not runtime tests.

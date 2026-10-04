@@ -147,8 +147,8 @@ namespace Registry
 
       public:
         TagDetails(const std::string_view a_tags);
-        TagDetails(const std::vector<std::string_view> a_tags);
-        TagDetails(const std::array<TagData, TagType::Total> a_tags);
+        TagDetails(const std::vector<std::string_view>& a_tags);
+        TagDetails(const std::array<TagData, TagType::Total>& a_tags);
         ~TagDetails() = default;
 
         /// @brief If the given tag data matches all of the this's tags

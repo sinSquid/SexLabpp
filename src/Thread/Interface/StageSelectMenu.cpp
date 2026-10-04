@@ -658,8 +658,10 @@ namespace Thread::Interface
         }
 
         auto inst = Instance::GetInstance(_linkedThread);
-        if (!inst)
+        if (!inst) {
+            ImGuiMCP::ImDrawListManager::PopClipRect(dl);
             return;
+        }
 
         // Nodes
         int graphClickedIndex = -1;

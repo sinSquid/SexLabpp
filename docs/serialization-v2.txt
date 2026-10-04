@@ -44,3 +44,8 @@ coefficient fields; classes absent from training are explicitly suppressed.
 
 Second review: encounter counters retain the v2 uint8 wire format and saturate
 at 255 instead of wrapping. Values above 255 are not accumulated in this format.
+
+Tracking records remain version 1: x64 uint64 entry/event/string counts, uint32
+form IDs and UINT32_MAX entry delimiters. Loads are now bounded by record length,
+reject malformed/trailing data atomically and consume unresolved entries fully.
+Callback mutations, queries, saves and reverts use the tracking mutex.

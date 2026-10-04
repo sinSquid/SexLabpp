@@ -61,7 +61,7 @@ namespace Serialization
                     Registry::Statistics::StatisticsData::GetSingleton()->Load(a_intfc, version, length);
                     break;
                 case _Tracking:
-                    Papyrus::Tracking::GetSingleton()->Load(a_intfc);
+                    Papyrus::Tracking::GetSingleton()->Load(a_intfc, length);
                     break;
                 default:
                     break;

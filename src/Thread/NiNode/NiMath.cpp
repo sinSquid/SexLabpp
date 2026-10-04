@@ -46,12 +46,15 @@ namespace Thread::NiNode::NiMath
             const auto dotSelfOther = vSelf.Dot(vOther);
             const auto det = lenSelf * lenOther - dotSelfOther * dotSelfOther;
 
-            if (det < FLT_EPSILON * lenSelf * lenOther) {
-                tSelf = std::clamp(dotSelfFirst / lenSelf, 0.0f, 1.0f);
+            tSelf = det <= FLT_EPSILON * lenSelf * lenOther ? 0.0f :
+                                                              std::clamp((dotSelfFirst * lenOther - dotOtherFirst * dotSelfOther) / det, 0.0f, 1.0f);
+            tOther = (tSelf * dotSelfOther - dotOtherFirst) / lenOther;
+            if (tOther < 0.0f) {
                 tOther = 0.0f;
-            } else {
-                tSelf = std::clamp((dotSelfFirst * lenOther - dotOtherFirst * dotSelfOther) / det, 0.0f, 1.0f);
-                tOther = std::clamp((dotSelfFirst + tSelf * dotSelfOther) / lenOther, 0.0f, 1.0f);
+                tSelf = std::clamp(dotSelfFirst / lenSelf, 0.0f, 1.0f);
+            } else if (tOther > 1.0f) {
+                tOther = 1.0f;
+                tSelf = std::clamp((dotSelfFirst + dotSelfOther) / lenSelf, 0.0f, 1.0f);
             }
         }
 

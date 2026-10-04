@@ -38,6 +38,13 @@ namespace SkyrimSE
         float hitFraction;
     };
 
+    constexpr bool IsRaycastLayerAccepted(uint32_t flags)
+    {
+        const auto layer = flags & 0x7F;
+        constexpr uint64_t filter = 0x40122716;
+        return layer < 64 && (filter & (uint64_t{ 1 } << layer)) != 0;
+    }
+
     class bhkLinearCastCollector
     {
       public:
@@ -73,9 +80,7 @@ namespace SkyrimSE
 
             hitResult.hit = list;
             if (hitResult.hit) {
-                const uint64_t m = 1ULL << static_cast<uint64_t>(hitResult.hit->flags & 0x7F);
-                constexpr uint64_t filter = 0x40122716;  //@TODO
-                if ((m & filter) != 0) {
+                if (IsRaycastLayerAccepted(hitResult.hit->flags)) {
                     if (objectFilter.size() > 0)
                         for (const auto obj : objectFilter) {
                             typedef RE::NiAVObject* (*GetUserData)(SkyrimSE::bhkShapeList*);
