@@ -328,7 +328,11 @@ namespace Registry
             return;
         }
         // Disk I/O uses a consistent copy without blocking voice queries or edits.
-        snapshot->SaveToFile(VOICE_PATH);
+        try {
+            snapshot->SaveToFile(VOICE_PATH);
+        } catch (const std::exception& error) {
+            logger::error("Unable to save voice {}: {}", a_voice, error.what());
+        }
     }
 
     std::vector<RE::Actor*> Library::GetSavedActors() const
@@ -426,16 +430,23 @@ namespace Registry
             voice.defaultset.SetSound(true, a_sound);
             break;
         case LegacyVoice::Medium:
-            if (voice.extrasets.empty()) {
-                logger::error("Voice {} has no extrasets", a_voice);
+            {
+                auto extra = std::find_if(voice.extrasets.begin(), voice.extrasets.end(),
+                    [](const auto& set) { return set.IsValid(VoiceAnnotation::Submissive); });
+                if (extra == voice.extrasets.end()) {
+                    voice.extrasets.emplace_back(true);
+                    extra = std::prev(voice.extrasets.end());
+                    extra->SetSound(false, voice.defaultset.Get(LegacyVoice::Hot));
+                }
+                extra->SetSound(true, a_sound);
                 break;
             }
-            voice.extrasets.front().SetSound(true, a_sound);
-            break;
         case LegacyVoice::Hot:
             voice.defaultset.SetSound(false, a_sound);
-            if (!voice.extrasets.empty())
-                voice.extrasets.front().SetSound(false, a_sound);
+            for (auto& extra : voice.extrasets) {
+                if (extra.IsValid(VoiceAnnotation::Submissive))
+                    extra.SetSound(false, a_sound);
+            }
             break;
         }
     }

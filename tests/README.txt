@@ -70,3 +70,13 @@ form parsing and furniture grid limits are behavioral tests. Theme publication a
 physics retry wiring are source contracts; the existing AtomicWrite suite tests
 replacement behavior separately. Furniture grids exceeding 256 samples per axis
 are rejected, with at most 64 hit-skipping attempts per ray. No game runtime test.
+
+Fifth full file review: full_fifth_review.py tests production voice condition
+subset fallback, condition-matched legacy edits, missing-set creation and binary
+threshold lookup against a linear reference (including duplicate priorities).
+Voice metadata, absent tags and atomic export are source contracts; real yaml-cpp
+and game execution remain separate. The actual audio rename script is exercised
+in temporary directories for overlapping names, 120-file natural-order
+idempotence, occupied targets, injected publication failure and failed rollback.
+Publication uses filesystem hard links; unrecoverable rollback keeps staged bytes
+and a manifest in the reported .voice-rename-* directory for manual recovery.

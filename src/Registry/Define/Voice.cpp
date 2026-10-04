@@ -1,5 +1,6 @@
 #include "Voice.h"
 
+#include "Util/SaveQueue.h"
 #include "Util/StringUtil.h"
 
 namespace Registry
@@ -35,6 +36,8 @@ namespace Registry
       }()),
       tags([&]() -> decltype(tags) {
           const auto& node = a_node["Tags"];
+          if (!node.IsDefined())
+              return {};
           return { node.IsScalar() ? std::vector{ node.as<std::string>() } : node.as<std::vector<std::string>>() };
       }()),
       defaultset(a_node),
@@ -52,14 +55,14 @@ namespace Registry
 
     const VoiceSet& Voice::GetApplicableSet(REX::EnumSet<VoiceAnnotation> a_annotation) const
     {
-        while (a_annotation != VoiceAnnotation::None) {
-            for (auto&& vset : extrasets) {
-                if (vset.IsValid(a_annotation)) {
+        const auto requested = a_annotation.underlying();
+        // Try every nonempty subset. Descending masks preserve the existing
+        // preference for Muffled, but also allow role-only fallback.
+        for (auto subset = requested; subset != 0; subset = (subset - 1) & requested) {
+            for (const auto& vset : extrasets) {
+                if (vset.IsValid(VoiceAnnotation(subset)))
                     return vset;
-                }
             }
-            auto u = a_annotation.underlying();
-            a_annotation = VoiceAnnotation(u & (u - 1));
         }
         return defaultset;
     }
@@ -89,6 +92,9 @@ namespace Registry
         }
         YAML::Node root{};
         root["Name"] = GetId().data();
+        root["DisplayName"] = displayName.empty() ? "" : displayName.data();
+        root["Actor"]["Pitch"] = std::string(magic_enum::enum_name(pitch));
+        root["Tags"] = YAML::Node(YAML::NodeType::Sequence);
         switch (sex) {
         case RE::SEXES::kFemale:
             root["Actor"]["Sex"] = "Female";
@@ -119,8 +125,7 @@ namespace Registry
         for (auto&& e : extrasets) {
             root["Extra"].push_back(e.AsYaml());
         }
-        std::ofstream fout{ path };
-        fout << root;
+        Util::AtomicWrite(path, YAML::Dump(root));
     }
 
     void Voice::Save(YAML::Node& a_node) const
@@ -192,13 +197,9 @@ namespace Registry
 
     RE::TESSound* VoiceSet::Get(uint32_t a_priority) const
     {
-        auto count = std::min<size_t>(data.size() - 1, std::numeric_limits<int>::max());
-        for (int i = static_cast<int>(count); i >= 0; i--) {
-            auto& [voice, value] = data[i];
-            if (value <= a_priority)
-                return voice;
-        }
-        return nullptr;
+        const auto next = std::upper_bound(data.begin(), data.end(), a_priority,
+            [](uint32_t priority, const auto& entry) { return priority < entry.second; });
+        return next == data.begin() ? nullptr : std::prev(next)->first;
     }
 
     RE::TESSound* VoiceSet::Get(LegacyVoice a_setting) const
