@@ -72,7 +72,17 @@ namespace Registry
             // a_absolutescale *= 1.0f;
             break;
         }
+        // Race adjustments can overflow or underflow an otherwise valid target.
+        // Reject it before touching the existing transform.
+        if (!std::isfinite(a_absolutescale) || a_absolutescale <= 0.0f) {
+            logger::warn("Invalid adjusted target scale {}; transform ignored", a_absolutescale);
+            return;
+        }
         float basescale = GetScale(a_actor);
+        if (!std::isfinite(basescale) || basescale <= 0.0f) {
+            logger::warn("Invalid base scale {}; transform ignored", basescale);
+            return;
+        }
         if (std::abs(basescale - a_absolutescale) < 0.03) {
             logger::debug("Attempted Node Transform to Actor = {:X}, Scale = {} -> {}", a_actor->GetFormID(), basescale, a_absolutescale);
             return;

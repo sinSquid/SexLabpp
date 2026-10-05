@@ -1,7 +1,9 @@
 """Actual offset conversion and voice export/sequence blocks; no engine or YAML ABI claim."""
 from source_regressions import ROOT, function, run
+from pathlib import Path
 ui=(ROOT/'src/Thread/Interface/Elements/OffsetAdjustPanel.cpp').read_text()
-voice=(ROOT/'src/Registry/Define/Voice.cpp').read_text()
+import os
+voice=Path(os.environ.get('VOICE_SOURCE',ROOT/'src/Registry/Define/Voice.cpp')).read_text()
 code=r'''
 #include <algorithm>
 #include <cassert>
@@ -15,11 +17,11 @@ code=r'''
 #include <vector>
 namespace fs=std::filesystem;
 namespace std {string format(const char*,string_view id){return string(id)+".yaml";}}
-'''+function(ui,'int OffsetInputValue(')
+'''+function(ui,'int OffsetInputValue(')+'\nnamespace Util {\n'+function((ROOT/'src/Util/StringUtil.h').read_text(),'constexpr bool IsSafeFileStem(')+'\n}\n'
 # Extract the pre-I/O path block exactly, then return its path for inspection.
 save=function(voice,'void Voice::SaveToFile(')
 prefix=save[save.index('{')+1:save.index('        if (fs::exists(path))')]
-code+='\nstruct Voice {std::string name;const std::string& GetId()const{return name;}fs::path path(std::string_view a_fileLocation)const{'+prefix+'return path;}};\n'
+code+='\nstruct Id {std::string value;bool empty()const{return value.empty();}const char* c_str()const{return empty()?nullptr:value.c_str();}const char* data()const{return c_str();}};\nstruct Voice {std::string name;Id GetId()const{return {name};}fs::path path(std::string_view a_fileLocation)const{'+prefix+'return path;}};\n'
 # The virtual sequence is large without allocating millions of YAML nodes or sounds.
 start=voice.index('            const auto max = ',voice.index('VoiceSet::VoiceSet(const YAML::Node&'))
 end=voice.index('\n        }\n        if (data.empty())',start)
@@ -39,7 +41,7 @@ int main(){
  assert(OffsetInputValue(-std::numeric_limits<float>::max())==std::numeric_limits<int>::min());
  assert(OffsetInputValue(static_cast<float>(std::numeric_limits<int>::max()))==std::numeric_limits<int>::max());
  assert(OffsetInputValue(std::numeric_limits<float>::quiet_NaN())==0);
- for(std::string id:{"", ".", "..", "../outside", "..\\outside", "C:outside", "folder/name"}){
+ for(std::string id:{"", ".", "..", "../outside", "..\\outside", "C:outside", "folder/name", "CON", "nul.txt", "bad?name", "bad*name", "bad\\nname", "LPT9"}){
   bool rejected=false;try{Voice{id}.path("voices");}catch(const std::invalid_argument&){rejected=true;}assert(rejected);
  }
  assert(Voice{"Normal Voice"}.path("voices")==fs::path("voices")/"Normal Voice.yaml");

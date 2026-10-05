@@ -304,6 +304,10 @@ namespace Registry
 
     bool Library::CreateVoice(RE::BSFixedString a_voice)
     {
+        if (a_voice.empty() || !Util::IsSafeFileStem(a_voice.c_str())) {
+            logger::error("Voice ID cannot be used as a file name");
+            return false;
+        }
         std::unique_lock lock{ _mVoice };
         if (voices.contains(a_voice)) {
             logger::error("Voice {} has already been initialized", a_voice);

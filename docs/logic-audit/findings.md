@@ -169,3 +169,28 @@ NEW-30 Foot IK原值/共享owner与cache/graph锁序；NEW-31 Revert清native/�
 ## 44ae5487之后新增五组
 
 NEW-33家具选择完成的game task/世代过滤；NEW-34表情与Scene导出路径和批量错误隔离；NEW-35表情非finite值；NEW-36mood更新判断/查询次数；NEW-37喉/嘴派生anchor有效性。触发、测试、兼容策略及仍未验证路径见[round-report.md](round-report.md)。
+
+
+## 04e77305 后新增修复 NEW-38 / NEW-39
+
+详见[round-nine-report.md](round-nine-report.md)：种族倍率导致无效目标及异常初始base在SKEE修改前拒绝；finite表情端点插值使用double运算并饱和有限float输出。两项编辑前行为失败、完整portable及针对性ASan/UBSan均有独立日志。SKEE移除后失败回滚、rigid-body共享/替换及真实VM/SDK仍开放，不计入已验证闭环。
+
+
+## 未提交工作区上的新增 NEW-40 / NEW-41 / NEW-42
+
+[round-ten-report.md](round-ten-report.md)：补Windows保留设备名校验；SharedSnapshot旧值在锁外释放，避免析构重入死锁；含self pair的交互状态按n²预留容量。三个基线行为失败、完整便携回归及针对性ASan/UBSan通过，均区分实际函数/头文件与引擎替身。真实Windows I/O、Ni析构/引擎锁仍未认证。
+
+
+## Script桥接新增 NEW-43 / NEW-44
+
+[round-eleven-report.md](round-eleven-report.md)：非finite及越界浮点属性转换拒绝；null/空参数和失败对象创建不再查找/绑定空对象。实际helper/VM替身、基线行为失败、完整portable及targeted sanitizer均有日志。潜在API路径与实际UI属性消费者分别说明，不声称真实VM/游戏崩溃已复现。
+
+
+## 声音ID补核 NEW-45
+
+[round-twelve-report.md](round-twelve-report.md)：创建与导出统一共享file-stem规则，空ID先短路，避免非法profile插入和null-data view构造。实际创建函数、实际导出pre-I/O块回归及sanitizer通过；未认证完整YAML/Windows/VM落盘和并发导出。
+
+
+## 第十三轮全量本体复核
+
+NEW-46 至 NEW-50 已修复；具体触发、测试与边界见 [round-thirteen-report.md](round-thirteen-report.md)。本轮 293/293 自有源码/CI 当前指纹对应阅读完成，不以测试或阅读覆盖声称全逻辑穷尽。

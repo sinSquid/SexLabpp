@@ -3,6 +3,8 @@
 #include "Util/StringUtil.h"
 #include "Util/SaveQueue.h"
 
+#include <limits>
+
 namespace Registry
 {
     namespace detail
@@ -262,7 +264,12 @@ namespace Registry
         multiplier = std::min(1.25f, multiplier);
         std::array<float, Total> ret{};
         for (size_t i = 0; i < ret.size(); i++) {
-            ret[i] = data[a_sex][0][i] + (data[a_sex][1][i] - data[a_sex][0][i]) * multiplier;
+            // Finite endpoints can still overflow a float difference or extrapolation.
+            const double low = data[a_sex][0][i];
+            const double high = data[a_sex][1][i];
+            const double value = low + (high - low) * static_cast<double>(multiplier);
+            constexpr double limit = std::numeric_limits<float>::max();
+            ret[i] = static_cast<float>(std::clamp(value, -limit, limit));
             if (i == MoodType) {
                 ret[i] = std::round(ret[i]);
             }

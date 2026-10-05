@@ -1,0 +1,15 @@
+Assertion failed: (plugin.mutations==0&&actor.base==2), function main, file contract_scale_division.cpp, line 162.
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from contract_boundaries import scale_division; scale_division()
+                                                    ~~~~~~~~~~~~~~^^
+  File "/Users/sin/code/mine/SexLabpp/tests/contract_boundaries.py", line 281, in scale_division
+    run('contract_scale_division',code)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sin/code/mine/SexLabpp/tests/source_regressions.py", line 28, in run
+    subprocess.run([str(binary)], check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/sexlab-test-ehj098lh/contract_scale_division']' died with <Signals.SIGABRT: 6>.

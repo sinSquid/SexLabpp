@@ -121,6 +121,10 @@ namespace Registry
     void TagData::RemoveTag(const TagData& a_tag)
     {
         _basetags.reset(a_tag._basetags.get());
+        if (this == &a_tag) {
+            _extratags.clear();
+            return;
+        }
         for (auto&& tag : a_tag._extratags) {
             RemoveExtraTag(tag);
         }

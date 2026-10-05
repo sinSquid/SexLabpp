@@ -1,3 +1,13 @@
+最新轮：[round-thirteen-report.md](round-thirteen-report.md)。本轮重新阅读全部 222 生产源码和 71 辅助源码/CI 文件，293/293 当前指纹对应本体阅读完成；修复五组确认问题，完整便携回归及针对性 sanitizer 通过。外部 ABI、VM 和游戏契约仍开放；所有未提交改动保留。
+
+最新轮：[round-twelve-report.md](round-twelve-report.md)。222生产文件全量自动扫描，新增一组声音ID修复；完整便携回归及针对性sanitizer通过。此前改动全部保留且未提交，人工复核与完整Windows/VM导出限制分别记录。
+
+最新轮：[round-eleven-report.md](round-eleven-report.md)。222生产文件全量自动扫描，新增两项Script边界修复；完整便携回归及针对性sanitizer通过，前两轮改动均保留且未提交。人工复核/潜在API路径/真实VM限制分别记录。
+
+最新轮：[round-ten-report.md](round-ten-report.md)。222生产文件全量自动扫描，新增两修复/一容量优化；完整便携回归及三项sanitizer通过。上一轮两项修复一并保留且均未提交。没有新鲜全函数人工复读或问题穷尽声明。
+
+最新轮（基线04e77305）：[round-nine-report.md](round-nine-report.md)。222个生产文件全量自动结构扫描、两项数值边界修复、完整便携回归及针对性sanitizer通过；没有宣称全函数新鲜人工重读或问题穷尽。
+
 # 逐函数逻辑审查台账
 
 本轮基线：`36e6ff76e3f5d3a28aa34c48962240f3a50ac678`。

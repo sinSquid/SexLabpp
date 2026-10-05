@@ -1,3 +1,73 @@
+# 最新轮：全量自有源码本体复核完成
+
+2026-10-05，master，HEAD04e77305；继承第九至十二轮未提交改动，本轮未提交或推送。
+
+- 222 生产文件、71 辅助文件：本轮全文件本体重新阅读，当前 SHA 对应 293/293、待读 0。
+- 59,037 生产行，4,926 提取条目；287 native 名称/参数数量匹配，11 解析诊断文件对账有效。
+- NEW-46 至 NEW-50：导出竞争覆盖、XML 转义、运行时长秒单位、UI 分隔符及重复配置读取、标签 self 删除。
+- 完整便携回归、三项 targeted ASan/UBSan、实际 Lua 依赖替身通过；非 Windows/VM/游戏认证。
+- 详情 round-thirteen-report.md；逐文件阅读与当前 SHA 证据 full-thirteen-progress.json；全调用链未关闭，实机事项保留 runtime-validation.md。
+
+---
+
+# 最新轮：全量结构扫描，补齐声音ID校验
+
+2026-10-05，master，HEAD04e77305；继续前七组未提交改动，本轮也未提交/推送。
+
+- 222生产文件、59,015行自动结构扫描；287 native名称/参数数量匹配；67辅助文件枚举及Python语法检查。
+- NEW-45：CreateVoice和SaveToFile统一file-stem校验；空ID在构造string_view前短路；创建失败不插入。
+- 完整portable、两项targeted ASan/UBSan、Lua依赖替身通过；编辑前基线行为失败留存。
+- 累计4,925阅读条目，仅本轮两个函数差异补核、40条不变本体平移；不是全部函数人工复读，call_chain_closed仍false。
+- 没有确认新的热路径性能优化；导出验证限实际pre-I/O块，完整YAML/Windows及并发发布未认证。
+
+详情：[round-twelve-report.md](round-twelve-report.md)；起始源码指纹/逐项记录见round-twelve-renumbering.json。已有实机契约继续保留。
+
+---
+
+# 最新轮：全量结构扫描，新增两项Script桥接修复
+
+2026-10-05，master，HEAD04e77305；继承前两轮五项未提交改动，本轮也未提交/推送。
+
+- 222生产文件、59,010行自动结构扫描；287 native名称/参数数量匹配；66辅助文件枚举及Python语法检查。
+- NEW-43 Script属性拒绝非finite/越界float→integer转换；NEW-44 空参数和失败创建不再查找/绑定空对象。
+- 完整portable、两测试组ASan/UBSan、Lua依赖替身通过；两项编辑前行为失败日志留存。
+- 累计4,925条阅读记录，仅本轮两函数差异补核、7条不变本体平移；不是全部函数人工复读，call_chain_closed仍false。
+- int32属性读取和a_create=true当前未见自有直接调用；不将helper边界回归当作已复现游戏崩溃。未确认新的热路径性能优化。
+
+详情：[round-eleven-report.md](round-eleven-report.md)；源码起始指纹/逐项补核见round-eleven-renumbering.json。VM/引擎契约及实机限制保留，不凭扫描覆盖宣称问题穷尽。
+
+---
+
+# 最新轮：未提交工作区上继续全量结构扫描，新增三组改动
+
+2026-10-05，master，HEAD04e77305；继承上一轮两项未提交修复，本轮全部仍未提交/未推送。
+
+- 222生产文件、58,987行自动结构/风险位置扫描；287 native名称/参数数量匹配；65辅助源码/CI/工具枚举及Python语法检查。
+- NEW-40 Windows设备保留名校验；NEW-41 SharedSnapshot旧对象解锁后释放；NEW-42 Ni交互状态按n²预留，保持self pair。
+- 最终完整portable、Lua依赖测试、三项ASan/UBSan通过，三项行为基线失败留存。
+- 累计4,925条阅读记录；本轮4差异本体逐项核查、28不变记录平移，不是全部函数新鲜人工复读；call_chain_closed仍false。
+- SharedSnapshot既有模板ctor诊断补核，11文件解析对账有效。实机SDK/VM/引擎锁及前轮SKEE/rigid-body契约仍开放。
+
+详情：[round-ten-report.md](round-ten-report.md)。证据round-ten-renumbering.json及validation/round-ten-*。起始源码指纹包含上一轮未提交改动；不以HEAD冒充干净基线。
+
+---
+
+# 最新轮：04e77305 后全量结构扫描及两项修复
+
+2026-10-05，master；本轮未提交/未推送。
+
+- 222生产文件、58,960行结构/风险位置扫描；287 native名称及参数数量匹配；62辅助文件枚举及Python语法检查。
+- 修复种族倍率后无效缩放/初始异常base修改transform，以及finite表情端点插值溢出，两项都有编辑前基线失败和修复后回归。
+- 完整portable、Lua依赖检测替身、两项ASan/UBSan通过；真实DLL/PEX/VM/游戏未运行。
+- 累计4,924条阅读记录，仅两个改动函数本轮补核、14条不变本体平移；不是本轮全部函数人工重读，call_chain_closed仍false。
+- SKEE移除后失败回滚、rigid-body共享/替换契约明确开放；其他实机限制沿用已有清单。
+
+详情：[round-nine-report.md](round-nine-report.md)。验证日志validation/round-nine-*；逐项阅读指纹证据round-nine-renumbering.json。下一步按具体外部契约/实机失败继续，不将扫描覆盖包装成问题穷尽。
+
+---
+
+以下为历史轮次记录；其“未提交”状态只适用于当时。上一轮结果已提交并推送为04e77305。
+
 # 最新轮：全量结构扫描及五组修复完成，外部契约待验收
 
 日期：2026-10-05。仓库 `/Users/sin/code/mine/SexLabpp`；本轮基线/HEAD `44ae5487`，master。

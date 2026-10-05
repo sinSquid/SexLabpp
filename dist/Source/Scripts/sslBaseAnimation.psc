@@ -230,7 +230,7 @@ float function GetTimersRunTime(float[] StageTimers)
 	While(i < depth)
 		float time = SexLabRegistry.GetFixedLength(Registry, stages[i])
 		If (time)
-			seconds += time / 1000.0
+			seconds += time
 		ElseIf (i > StageTimers.Length - 1)
 			seconds += StageTimers[StageTimers.Length - 1]
 		Else

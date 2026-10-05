@@ -1,0 +1,2 @@
+PASS: actual property helper rejects nonfinite/out-of-range float conversions and preserves valid coercions
+PASS: actual object helper avoids null/empty lookups and binding failed creation

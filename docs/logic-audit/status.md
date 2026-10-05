@@ -2,11 +2,11 @@
 
 **本体覆盖与逐函数审查结论分别统计；全调用链闭环尚未完成。**
 
-生产文件：222；源码行：58943；已提取函数/事件/声明条目：4924。
+生产文件：222；源码行：59037；已提取函数/事件/声明条目：4926。
 
-当前指纹匹配的累计本体阅读记录（含差异补核）：222/222 文件；4924/4924 提取条目在已读本体内（由文件记录派生，非逐函数验证）。
+当前指纹匹配的累计本体阅读记录（含差异补核）：222/222 文件；4926/4926 提取条目在已读本体内（由文件记录派生，非逐函数验证）。
 
-逐函数结论台账状态（旧记录不代表本轮全链验证）：source_reviewed=4924。
+逐函数结论台账状态（旧记录不代表本轮全链验证）：source_reviewed=4926。
 
 解析诊断文件已人工对账：11/11（按文件及定义指纹校验）。详见 parser-reconciliation.json。
 
@@ -219,7 +219,7 @@
 | src/Util/Script.h | 9 | 9 | 0 | 0 |
 | src/Util/SharedSnapshot.h | 3 | 3 | 0 | 1 |
 | src/Util/Singleton.h | 7 | 7 | 0 | 0 |
-| src/Util/StringUtil.h | 14 | 14 | 0 | 0 |
+| src/Util/StringUtil.h | 15 | 15 | 0 | 0 |
 | src/Util/World.h | 1 | 1 | 0 | 0 |
 | src/main.cpp | 6 | 6 | 0 | 0 |
 | xmake.lua | 12 | 12 | 0 | 0 |
@@ -230,7 +230,7 @@
 | xmake/papyrus/modules/detect/tools/find_papyrus.lua | 3 | 3 | 0 | 0 |
 | xmake/papyrus/modules/papyrus/anonymize.lua | 4 | 4 | 0 | 0 |
 | xmake/papyrus/papyrus.lua | 6 | 6 | 0 | 0 |
-| xmake/papyrus/project.lua | 2 | 2 | 0 | 0 |
+| xmake/papyrus/project.lua | 3 | 3 | 0 | 0 |
 | xmake/papyrus/xmake.lua | 2 | 2 | 0 | 0 |
 | xmake/spriggit/modules/detect/tools/find_spriggit.lua | 4 | 4 | 0 | 0 |
 | xmake/spriggit/modules/spriggit.lua | 4 | 4 | 0 | 0 |

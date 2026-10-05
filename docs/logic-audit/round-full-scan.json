@@ -1,8 +1,8 @@
 {
-  "baseline": "44ae548713449571f72021fba0205f71bd61cead",
+  "baseline": "04e773052f25d70c239f85bdbe51791a4b3f5f15",
   "production_files_scanned": 222,
-  "production_lines": 58943,
-  "extracted_entries": 4924,
+  "production_lines": 59037,
+  "extracted_entries": 4926,
   "files": [
     {
       "path": "dist/Interface/Translations/translate.py",
@@ -180,7 +180,7 @@
     },
     {
       "path": "dist/Source/Scripts/sslBaseAnimation.psc",
-      "sha256": "b0773df049c49ecf84fb7361489bf36b3d703ef19e8679575e0861f169016161",
+      "sha256": "12c6afc5a39bcb2bfcaa3005dbeba76c56cac94177f9332e28f2356a0d6e04ae",
       "lines": 955,
       "structural_scan_complete": true,
       "risk_surface_locations": {},
@@ -1128,21 +1128,23 @@
     },
     {
       "path": "src/Registry/Define/Expression.cpp",
-      "sha256": "17ea53768d25e268edb2bca2fadb2e47ac24331653f5365332bf3575e6c9c707",
-      "lines": 339,
+      "sha256": "fee3072e93a9d9053cc70ff6b1c7d559c315865c866bee341b8de690b176b003",
+      "lines": 346,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "file_writes": [
-          299
+          306
         ],
         "numeric_conversions": [
-          31,
-          217,
-          218,
-          252,
-          284,
-          285,
-          314
+          33,
+          219,
+          220,
+          254,
+          270,
+          272,
+          291,
+          292,
+          321
         ]
       },
       "parser_diagnostics": [],
@@ -1253,13 +1255,13 @@
     },
     {
       "path": "src/Registry/Define/Tags.cpp",
-      "sha256": "d5cdb4f3bd5233a338738e0d0cd2f2afbc1dfdf6a51cc02cba3df988f7159cd7",
-      "lines": 284,
+      "sha256": "dc50224fa3adf11ed8cda107f86c07f6f56f7b4e3b957c1868b055944f7cf8ee",
+      "lines": 288,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "numeric_conversions": [
-          185,
-          186
+          189,
+          190
         ]
       },
       "parser_diagnostics": [],
@@ -1294,22 +1296,22 @@
     },
     {
       "path": "src/Registry/Define/Voice.cpp",
-      "sha256": "38ea260a8260bea18544b8012dd097749965124fe304656488ab64ac998a99d4",
-      "lines": 247,
+      "sha256": "c6e1f83c737c1dd615cc39c8fd3b4509bd188cb80cc86853f2795bc926095335",
+      "lines": 248,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "file_writes": [
           87
         ],
         "direct_indices": [
-          213,
-          215,
-          221
+          214,
+          216,
+          222
         ],
         "numeric_conversions": [
-          159,
-          167,
-          234
+          160,
+          168,
+          235
         ]
       },
       "parser_diagnostics": [],
@@ -1330,17 +1332,17 @@
     },
     {
       "path": "src/Registry/Library.cpp",
-      "sha256": "f179ae3b6471d216db910001700e7c1a0ff38e8fa1c492ae16941fed33041eb3",
-      "lines": 659,
+      "sha256": "355aed2a39ef25cbe6976bec59d4ad38ef24b5cf8c154f0f1a587ef77b76a453",
+      "lines": 663,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "file_writes": [
-          325
+          329
         ],
         "numeric_conversions": [
           67,
-          613,
-          623
+          617,
+          627
         ]
       },
       "parser_diagnostics": [],
@@ -1591,13 +1593,13 @@
     },
     {
       "path": "src/Registry/Util/Scale.cpp",
-      "sha256": "c68fb6f2371e13dd79531323a09b04966a853325e6346c399405ac6a6fc97117",
-      "lines": 163,
+      "sha256": "78f6cac0f065a01f948049228b53c7794a003fd4c9e9d89a685f1c4d76965f99",
+      "lines": 173,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "numeric_conversions": [
-          110,
-          155
+          120,
+          165
         ]
       },
       "parser_diagnostics": [],
@@ -1740,15 +1742,15 @@
     },
     {
       "path": "src/Thread/Interface/Elements/EnjBarsOverlay.cpp",
-      "sha256": "1e989bb612d319cdf84c39fc18dc5ce69dc62d3c87cd9ffc7a007827a2d34ffd",
+      "sha256": "1175498f1651823d05538934d3deca2f47dab27a2dbbf4be18f911734ed8d850",
       "lines": 523,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "numeric_conversions": [
           29,
           184,
-          262,
-          292,
+          263,
+          293,
           384,
           405,
           420,
@@ -2143,18 +2145,18 @@
     },
     {
       "path": "src/Thread/NiNode/NiInstance.cpp",
-      "sha256": "ffec4a25b7656263f23bea6301be1be83757a12fe4c4cb1087a5d14ad42186ab",
-      "lines": 203,
+      "sha256": "541579685c04bf94e08da6bad69251abf6e11fb05c32900bc9c2937c48fd5dd3",
+      "lines": 204,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "direct_indices": [
-          172
+          173
         ],
         "numeric_conversions": [
-          17,
-          118,
-          136,
-          147
+          18,
+          119,
+          137,
+          148
         ]
       },
       "parser_diagnostics": [],
@@ -2693,30 +2695,30 @@
     },
     {
       "path": "src/Util/SaveQueue.h",
-      "sha256": "3257e287c67def4caafe7822649fa6b60b75a7449b9522ef5ff56306f60b232d",
-      "lines": 237,
+      "sha256": "9da5dcdf63e9e3ba8ac50357a7fa01a6969483866af50d52a8aef411879c72be",
+      "lines": 250,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "file_writes": [
-          126
+          139
         ],
         "direct_indices": [
-          182,
-          195
+          195,
+          208
         ],
         "numeric_conversions": [
           46,
-          50,
-          91
+          53,
+          104
         ],
         "unbounded_loop_syntax": [
           33,
-          190
+          203
         ]
       },
       "parser_diagnostics": [
         {
-          "line": 126,
+          "line": 139,
           "kind": "type_identifier"
         }
       ],
@@ -2724,14 +2726,16 @@
     },
     {
       "path": "src/Util/Script.h",
-      "sha256": "9ce7d404ef2836b73244ef96f8c787c8c38594bceb4f37b7f353cb9a9bca7b9f",
-      "lines": 105,
+      "sha256": "f4c69a54999024b920bbd9376e1a40b1eaa9b15849880751922dda20d4c818b4",
+      "lines": 128,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "numeric_conversions": [
-          57,
-          59,
-          61
+          63,
+          65,
+          74,
+          78,
+          83
         ]
       },
       "parser_diagnostics": [],
@@ -2739,8 +2743,8 @@
     },
     {
       "path": "src/Util/SharedSnapshot.h",
-      "sha256": "8f5772174505ad6e2a32da35e05d32c51f97bd86266462f518947c145579dee7",
-      "lines": 30,
+      "sha256": "d4e847aff4ea127e0225f26af719cfa81f9e6028d970e214c8c8be0a48abe66c",
+      "lines": 34,
       "structural_scan_complete": true,
       "risk_surface_locations": {},
       "parser_diagnostics": [
@@ -2762,18 +2766,20 @@
     },
     {
       "path": "src/Util/StringUtil.h",
-      "sha256": "b90ade03f87e2aed62ae6ff8f5c847a2b2f7110a579c50c0bf8ea491ef01dda5",
-      "lines": 102,
+      "sha256": "ca2f15e774903bd7588e00009ba0ed4693baf953c5da4656dca810bacdc8a9f8",
+      "lines": 124,
       "structural_scan_complete": true,
       "risk_surface_locations": {
         "direct_indices": [
-          53,
-          55
+          17,
+          75,
+          77
         ],
         "numeric_conversions": [
-          20,
-          53,
-          55
+          23,
+          42,
+          75,
+          77
         ]
       },
       "parser_diagnostics": [],
@@ -2878,8 +2884,8 @@
     },
     {
       "path": "xmake/papyrus/project.lua",
-      "sha256": "5fe8a20306b21b3445942894b267e75c6219c23ce99eabdafc106992180df905",
-      "lines": 69,
+      "sha256": "676bc97f871fe5cd4849f25429922b20e67dab582d2480d7f69b35086c78471e",
+      "lines": 74,
       "structural_scan_complete": true,
       "risk_surface_locations": {},
       "parser_diagnostics": [],

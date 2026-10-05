@@ -1,0 +1,1 @@
+PASS: actual constructor preserves every ordered/self pair and allocates state-vector storage once for 1–5 actors

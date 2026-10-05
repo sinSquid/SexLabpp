@@ -1,0 +1,1 @@
+PASS: actual expression interpolation stays finite for finite extreme profiles and preserves ordinary results

@@ -12,6 +12,28 @@ namespace Util
             if (c < 32 || std::string_view{ "<>:\"/\\|?*" }.find(c) != std::string_view::npos)
                 return false;
         }
+        // Win32 device names remain reserved even when followed by extensions.
+        auto base = a_stem.substr(0, a_stem.find('.'));
+        while (!base.empty() && base.back() == ' ')
+            base.remove_suffix(1);
+        const auto equal = [](std::string_view left, std::string_view right) {
+            if (left.size() != right.size())
+                return false;
+            for (size_t i = 0; i < left.size(); ++i) {
+                const char c = left[i] >= 'a' && left[i] <= 'z' ? static_cast<char>(left[i] - ('a' - 'A')) : left[i];
+                if (c != right[i])
+                    return false;
+            }
+            return true;
+        };
+        if (equal(base, "CON") || equal(base, "PRN") || equal(base, "AUX") || equal(base, "NUL"))
+            return false;
+        if (base.size() >= 4 && (equal(base.substr(0, 3), "COM") || equal(base.substr(0, 3), "LPT"))) {
+            const auto number = base.substr(3);
+            if ((number.size() == 1 && number[0] >= '1' && number[0] <= '9') ||
+                number == "\xC2\xB9" || number == "\xC2\xB2" || number == "\xC2\xB3")
+                return false;
+        }
         return true;
     }
 

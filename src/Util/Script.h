@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cmath>
+#include <limits>
+
 namespace Script
 {
     using VM = RE::BSScript::Internal::VirtualMachine;
@@ -19,6 +22,8 @@ namespace Script
 
     inline ObjectPtr GetScriptObject(const RE::TESForm* a_form, const char* a_class, bool a_create = false)
     {
+        if (!a_form || !a_class || !*a_class)
+            return nullptr;
         auto vm = VM::GetSingleton();
         auto handle = GetHandle(a_form);
 
@@ -26,7 +31,8 @@ namespace Script
         bool found = vm->FindBoundObject(handle, a_class, object);
         if (!found && a_create) {
             vm->CreateObject2(a_class, object);
-            vm->BindObject(object, handle, false);
+            if (object)
+                vm->BindObject(object, handle, false);
         }
 
         return object;
@@ -58,7 +64,24 @@ namespace Script
         case RawType::kInt:
             return static_cast<T>(RE::BSScript::UnpackValue<int>(var));
         case RawType::kFloat:
-            return static_cast<T>(RE::BSScript::UnpackValue<float>(var));
+            {
+                const float value = RE::BSScript::UnpackValue<float>(var);
+                if (!std::isfinite(value)) {
+                    logger::error("Non-finite script property: {}", a_prop.c_str());
+                    return T{};
+                }
+                if constexpr (std::is_integral_v<T> && !std::is_same_v<T, bool>) {
+                    const auto truncated = std::trunc(static_cast<long double>(value));
+                    // The exclusive power-of-two bound stays exact even where
+                    // long double has double precision (MSVC's 64-bit integers).
+                    const auto upper = std::ldexp(1.0L, std::numeric_limits<T>::digits);
+                    if (truncated < static_cast<long double>(std::numeric_limits<T>::lowest()) || truncated >= upper) {
+                        logger::error("Out-of-range script property: {}", a_prop.c_str());
+                        return T{};
+                    }
+                }
+                return static_cast<T>(value);
+            }
         default:
             logger::error("Not a trivial type: {}", std::to_underlying(type));
             break;

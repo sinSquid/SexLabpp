@@ -1,0 +1,1452 @@
+{
+  "baseline_commit": "04e77305",
+  "starting_state": "Includes uncommitted round-nine/ten/eleven changes",
+  "starting_production_files": [
+    {
+      "path": "dist/Interface/Translations/translate.py",
+      "sha256": "da54b775f79aaa675611cb8d004f09692a7dfd2b73c97917d378311e25a56994",
+      "lines": 102
+    },
+    {
+      "path": "dist/Sound/fx/SexLab/vfx/ConvertMp3ToWav.py",
+      "sha256": "a39496f625d273e0236a624c9133e4a7773a5e8c87717d73e8ab2c55261cce62",
+      "lines": 27
+    },
+    {
+      "path": "dist/Sound/fx/SexLab/vfx/VoiceRename.py",
+      "sha256": "c4044283dd7c095d6717b499d4878ac125511ada76c6e29f02151754cf5ef5fb",
+      "lines": 72
+    },
+    {
+      "path": "dist/Source/Scripts/SexLabFramework.psc",
+      "sha256": "88cb3842ed4692654b11e0fe405615b5362187e9091dacba9f9944391423297f",
+      "lines": 1863
+    },
+    {
+      "path": "dist/Source/Scripts/SexLabStatistics.psc",
+      "sha256": "162ef23450db0e894e5fa4b8f82d2ea9dbe32a8b13506f528c1df16c3476400f",
+      "lines": 95
+    },
+    {
+      "path": "dist/Source/Scripts/SexLabThread.psc",
+      "sha256": "5a3a4ed61fc64092369e9cdeaf5020e8044c894d1e26bd008f695c71956d0dbe",
+      "lines": 445
+    },
+    {
+      "path": "dist/Source/Scripts/SexLabThreadHook.psc",
+      "sha256": "4a31443eb468bb4dc3fefc63ebb3f551f11d6322c258d809db085356dd53b5a9",
+      "lines": 127
+    },
+    {
+      "path": "dist/Source/Scripts/SexLabUtil.psc",
+      "sha256": "6615afe643a4667092921e771c9f924c080a8e967e4f4c5244b690a0b69c17e0",
+      "lines": 448
+    },
+    {
+      "path": "dist/Source/Scripts/SexlabRegistry.psc",
+      "sha256": "0b01236c708c778fc7633fb8dd03b1f7a1b0ad3b3c9134c64c1a478d922e0afc",
+      "lines": 242
+    },
+    {
+      "path": "dist/Source/Scripts/sslActorAlias.psc",
+      "sha256": "ba65e511e58a1a2127120d0c85b758e8940b1b2140fe16afc69009a178b04786",
+      "lines": 1846
+    },
+    {
+      "path": "dist/Source/Scripts/sslActorCumEffect.psc",
+      "sha256": "4dae24414485c6d2bfa67f94d12440a5c131fd8fffd9bd870149c00084938645",
+      "lines": 52
+    },
+    {
+      "path": "dist/Source/Scripts/sslActorLibrary.psc",
+      "sha256": "f649848143a5e5edaf7df9f280524bbf20048bb646777784d150f17125e92a61",
+      "lines": 844
+    },
+    {
+      "path": "dist/Source/Scripts/sslActorStats.psc",
+      "sha256": "af0c216a825c2de7d5ad23ae9eef0ae481d112a99f5b3417eda6f905d2f29ecf",
+      "lines": 1044
+    },
+    {
+      "path": "dist/Source/Scripts/sslAnimationDefaults.psc",
+      "sha256": "90d7bcf6ad46be8e66037e50bc601a5468ddf3758c3d9ee7bfb7336f73b4405e",
+      "lines": 2990
+    },
+    {
+      "path": "dist/Source/Scripts/sslAnimationFactory.psc",
+      "sha256": "4aba66e9dcdc10cda51cb515a1aa110a0342cb272374e6903cc797bdeb03edc6",
+      "lines": 92
+    },
+    {
+      "path": "dist/Source/Scripts/sslAnimationSlots.psc",
+      "sha256": "e056375e9f0afe7949c261c00b67f4a6a3022a554fb0d0e181b63025d41b71b2",
+      "lines": 628
+    },
+    {
+      "path": "dist/Source/Scripts/sslBaseAnimation.psc",
+      "sha256": "b0773df049c49ecf84fb7361489bf36b3d703ef19e8679575e0861f169016161",
+      "lines": 955
+    },
+    {
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "sha256": "edfaced366028a934920798d50bd0a9812f9978333c31399c9b9018564359f15",
+      "lines": 524
+    },
+    {
+      "path": "dist/Source/Scripts/sslBaseObject.psc",
+      "sha256": "b41c9ed05a67df409404553c8c4249179c74d4237e02163482dad5f7c4fcdb0b",
+      "lines": 229
+    },
+    {
+      "path": "dist/Source/Scripts/sslBaseVoice.psc",
+      "sha256": "4d41e3c03dfc36bed8fdff7ddd4605a84f7ed74dede9e4a2e6ab28e3030727a7",
+      "lines": 378
+    },
+    {
+      "path": "dist/Source/Scripts/sslBenchmark.psc",
+      "sha256": "8269073195af722cc95f353451d9737de3d2bc682ad5a083db09809424affb58",
+      "lines": 167
+    },
+    {
+      "path": "dist/Source/Scripts/sslConfigMenu.psc",
+      "sha256": "64bae2ef099cbd3556ac1d56a8f086c8b8a4bfa1f494a488dcb4b90100f5a4a2",
+      "lines": 1792
+    },
+    {
+      "path": "dist/Source/Scripts/sslConsoleCommands.psc",
+      "sha256": "10c5267fa886eca4503fc8e501cc9ae64b1459b108ad32bfea3909ffdc4e8169",
+      "lines": 9
+    },
+    {
+      "path": "dist/Source/Scripts/sslCreatureAnimationDefaults.psc",
+      "sha256": "a961c24bbe4d85739850e5265b2a690116774dd32ec6b0922a078fd6aad7dde3",
+      "lines": 1490
+    },
+    {
+      "path": "dist/Source/Scripts/sslCreatureAnimationSlots.psc",
+      "sha256": "6bd88c853bc394cb0e9727d85e025bfba495748bdd2d3bdcce1062115307811e",
+      "lines": 233
+    },
+    {
+      "path": "dist/Source/Scripts/sslEffectDebug.psc",
+      "sha256": "58e7a4ddb3abb870f6fdbbefcdbc5dd095d2ae13b640e077c323b29385a5fb94",
+      "lines": 44
+    },
+    {
+      "path": "dist/Source/Scripts/sslExpressionDefaults.psc",
+      "sha256": "2bb8f1814bcf2f1c97828fe15d0a8ed3ee5b79803d8f87d13d39dca07fd396b5",
+      "lines": 450
+    },
+    {
+      "path": "dist/Source/Scripts/sslExpressionFactory.psc",
+      "sha256": "84f2faa6339a6aded212d66c4265d4884d6598f19a074ac86f3f136f57a04356",
+      "lines": 67
+    },
+    {
+      "path": "dist/Source/Scripts/sslExpressionSlots.psc",
+      "sha256": "1eada3b076b67f0473cc1194bb6f351d9779814ded68150943f40b6e54045ee7",
+      "lines": 380
+    },
+    {
+      "path": "dist/Source/Scripts/sslExpressionUtil.psc",
+      "sha256": "4e8713db584b0cbd9117b9289d5165fc5305ce4ffbdf5fb02d7a30e5f3702f97",
+      "lines": 80
+    },
+    {
+      "path": "dist/Source/Scripts/sslLog.psc",
+      "sha256": "37124578946d868ba6f34b0516416868d92e838c9a2d55eaadd187777dacf257",
+      "lines": 27
+    },
+    {
+      "path": "dist/Source/Scripts/sslLovense.psc",
+      "sha256": "7923f5f727874caf9924c9195ae80e82acf71adca3310b44ab577838ceb727f5",
+      "lines": 84
+    },
+    {
+      "path": "dist/Source/Scripts/sslMatchMakerMain.psc",
+      "sha256": "b76b7babff3165a5877383aeb4c21d22b0944efb92a60e6b1df54ea7c777ab0c",
+      "lines": 140
+    },
+    {
+      "path": "dist/Source/Scripts/sslMatchMakerOrgy.psc",
+      "sha256": "30ed4eeaec907e756fdcba6088cbf7bd7c0369155f11f89ae2bd95e12e36b008",
+      "lines": 11
+    },
+    {
+      "path": "dist/Source/Scripts/sslMatchMakerSolo.psc",
+      "sha256": "5a5bea7bc20d175be3fb7ea4241ddd1de8c8759cf4671122f937de2145cd04a9",
+      "lines": 13
+    },
+    {
+      "path": "dist/Source/Scripts/sslMatchMakerTarget.psc",
+      "sha256": "ee5218dabfb2cc8e1907a90a9c430b98fff6216b45be9605175f46c0564a2104",
+      "lines": 14
+    },
+    {
+      "path": "dist/Source/Scripts/sslObjectFactory.psc",
+      "sha256": "fd10fbefb33d6c2e562762dbc01a66ca341e88d18f921c9160aa17f32c9236c6",
+      "lines": 253
+    },
+    {
+      "path": "dist/Source/Scripts/sslSystemAlias.psc",
+      "sha256": "1eac3f07f10cf3f86d50d9146fccf2e4678552c3a1b17838c361fced4f5ea269",
+      "lines": 205
+    },
+    {
+      "path": "dist/Source/Scripts/sslSystemConfig.psc",
+      "sha256": "afe60877125060ef09595c231dbe32e56faf010ade9e336bef0c95caad36ee24",
+      "lines": 2609
+    },
+    {
+      "path": "dist/Source/Scripts/sslSystemLibrary.psc",
+      "sha256": "0b30170adaefadf0fe584a5f1c1500a6d1756f8c1151a3f2cdb27e6d6cd37f6b",
+      "lines": 118
+    },
+    {
+      "path": "dist/Source/Scripts/sslThreadController.psc",
+      "sha256": "18cfcc9eb5411b3344deb21c43379a6800bab0b6274e3c40a9b099021238e02a",
+      "lines": 700
+    },
+    {
+      "path": "dist/Source/Scripts/sslThreadHook.psc",
+      "sha256": "d3eb4255786ff818affa8bd1bbf961c1a9b6ac298eb2c492191f1e4271dbd864",
+      "lines": 204
+    },
+    {
+      "path": "dist/Source/Scripts/sslThreadLibrary.psc",
+      "sha256": "6d805d58691bcb9f7a5adfad70b7789f638ac18a972c7bbea12afc0cf49a0e50",
+      "lines": 254
+    },
+    {
+      "path": "dist/Source/Scripts/sslThreadModel.psc",
+      "sha256": "f5c12f7ad7b34758dcef692f653ecdc5385fd3964dd5440cb4bc5aa4f8c1f740",
+      "lines": 3761
+    },
+    {
+      "path": "dist/Source/Scripts/sslThreadSlots.psc",
+      "sha256": "0cf30eaa2ad89efb631f1713980e8caedb54713fc33d96c1a04f39c711564adf",
+      "lines": 236
+    },
+    {
+      "path": "dist/Source/Scripts/sslTroubleshoot.psc",
+      "sha256": "f50f68755502c0c0dfe4b10c8c599530913a394512cdd7b9f76b8e177e39a6da",
+      "lines": 352
+    },
+    {
+      "path": "dist/Source/Scripts/sslUtility.psc",
+      "sha256": "94004411ee1a766dc1f6e9456d0219e29f3b8838e7d39b4b44e1c4dd548937ab",
+      "lines": 2009
+    },
+    {
+      "path": "dist/Source/Scripts/sslVoiceDefaults.psc",
+      "sha256": "5f995c6ee838645df46963aea62fa6b14f8e5ee9dede1e9859a99da3d69e4ef9",
+      "lines": 395
+    },
+    {
+      "path": "dist/Source/Scripts/sslVoiceFactory.psc",
+      "sha256": "aad89fa074cc297e67d5529fdaa9ea3a0af5b62289cca94ab7f911acb97d02fc",
+      "lines": 65
+    },
+    {
+      "path": "dist/Source/Scripts/sslVoiceSlots.psc",
+      "sha256": "16907da4f41f44058524d5d2d6bccbbc0d485e0ae1fa3355e544c7c2ac86a04d",
+      "lines": 555
+    },
+    {
+      "path": "scripts/ML/export.py",
+      "sha256": "22b34d516f902bb87170d2d522a55e70a13192239580d035de1da9c7bbbaaf73",
+      "lines": 161
+    },
+    {
+      "path": "scripts/ML/load_data.py",
+      "sha256": "32d6bfa805447033d37540089e178b37123ffa47d161d0a547b6b62afccae603",
+      "lines": 102
+    },
+    {
+      "path": "scripts/ML/main.py",
+      "sha256": "c147eeb91325d4fb60d8f842bc85cae0aa93f27924c0f147befbd193c6927d94",
+      "lines": 214
+    },
+    {
+      "path": "scripts/generate_config.py",
+      "sha256": "21752ed2fdf49851ce08859f44be42f62be48689259c6952f51a7c002d1eee94",
+      "lines": 47
+    },
+    {
+      "path": "scripts/hashing.py",
+      "sha256": "ae78cb63fa5648a917f600f332eac710748efd55b44d65997bc6de29fc86ad3c",
+      "lines": 67
+    },
+    {
+      "path": "scripts/rotation.py",
+      "sha256": "9b0828e242958c1c6bd48685b3e4127a31f919e777f31b32e3f86bf7bb569d13",
+      "lines": 32
+    },
+    {
+      "path": "src/API/IPluginInterface.h",
+      "sha256": "9ba9717c8eeb59b2af90d5c101371da35698d15fe8399cf409fcb1fa55a4c01a",
+      "lines": 452
+    },
+    {
+      "path": "src/GameForms.h",
+      "sha256": "343fa3913fde6d78df9805a5fffd117eb484d50d4b45cc46d7e363d3a279719f",
+      "lines": 42
+    },
+    {
+      "path": "src/PCH.h",
+      "sha256": "b64f1dbcffc7549d98faaede641efe5a907c48c4b65a75eae954706a1d63c3bb",
+      "lines": 227
+    },
+    {
+      "path": "src/Papyrus/Papyrus.cpp",
+      "sha256": "7fc0f2bccbdb74773c33cce49c922ace52d4ef86e0092b7b549caeebdba7c08c",
+      "lines": 40
+    },
+    {
+      "path": "src/Papyrus/Papyrus.h",
+      "sha256": "10bdb8b81a90e637fface923570115a3b684aacf80d21eb6d7bebdca2987c43d",
+      "lines": 6
+    },
+    {
+      "path": "src/Papyrus/SexLabRegistry.cpp",
+      "sha256": "d0fad08b6c1c198c345d13e74fc628d964aa425fdb6c6573d1cf5fc788346b29",
+      "lines": 1065
+    },
+    {
+      "path": "src/Papyrus/SexLabRegistry.h",
+      "sha256": "0e7e2fdd1a55bdff4404a66a8013fc00cd80ea62ba4eb79f83efa563c7ba8421",
+      "lines": 224
+    },
+    {
+      "path": "src/Papyrus/SexLabUtil.cpp",
+      "sha256": "5777286a3c9aad042d3a9501e12fde9d26df2a8872bd1af5c4d6d41c26627eb5",
+      "lines": 156
+    },
+    {
+      "path": "src/Papyrus/SexLabUtil.h",
+      "sha256": "48fd8258718c1f1297c7a5f9ed065ec6c2059ffb89270be5d47023df7feef47c",
+      "lines": 49
+    },
+    {
+      "path": "src/Papyrus/sslActorStats.cpp",
+      "sha256": "8d4117fecd370121c732ad4511055599010644cfdcec54e3234b59dcb8881df5",
+      "lines": 575
+    },
+    {
+      "path": "src/Papyrus/sslActorStats.h",
+      "sha256": "d2d0f8c186aa9f421dfe389887fba1317d4d44f29b662672ebaa6cf7345e8727",
+      "lines": 112
+    },
+    {
+      "path": "src/Papyrus/sslConsoleCommand.h",
+      "sha256": "452e15a5ab5a0d039a93c2d4aa7049ef3db6bd257d25f8f9156d9021f92bd86d",
+      "lines": 64
+    },
+    {
+      "path": "src/Papyrus/sslLibrary/LegacyData.h",
+      "sha256": "48d8996151b26b99b2f7265fcf0012ef223238c8aacb2032a76d6a15cf28ae07",
+      "lines": 42
+    },
+    {
+      "path": "src/Papyrus/sslLibrary/Serialize.h",
+      "sha256": "5af2f94fb3f8762f9d132ec0144eb2e44b914e13537786f3f689641875579995",
+      "lines": 121
+    },
+    {
+      "path": "src/Papyrus/sslLibrary/sslActorLibrary.cpp",
+      "sha256": "b6e49abe5fca6e4167dbb1dbb5f0306033f60d58f245eba1c41b26717f49fedb",
+      "lines": 137
+    },
+    {
+      "path": "src/Papyrus/sslLibrary/sslActorLibrary.h",
+      "sha256": "b202cdcf2e023c8bae07f6ceeb970c0b27db3d572b4a80e433c36357fbbdfe29",
+      "lines": 38
+    },
+    {
+      "path": "src/Papyrus/sslLibrary/sslThreadLibrary.cpp",
+      "sha256": "b66fbe90f86010369ba6e6d4f5105bfd926a441b5e2594cbb07e6a6ad3800064",
+      "lines": 388
+    },
+    {
+      "path": "src/Papyrus/sslLibrary/sslThreadLibrary.h",
+      "sha256": "38a07a86897a1329cf894cff0f546a16f9aa7bb8d6355e1a62bf535d433a2398",
+      "lines": 58
+    },
+    {
+      "path": "src/Papyrus/sslObject/sslAnimationSlots.cpp",
+      "sha256": "edd733136f6776201da2ece883496f2944e093e74c1fdd40df9ab0d66df3d2d2",
+      "lines": 142
+    },
+    {
+      "path": "src/Papyrus/sslObject/sslAnimationSlots.h",
+      "sha256": "5ea0d0bcefec17ff251112d2351ef4f169e4c7d916f0360445cd43576a41044f",
+      "lines": 27
+    },
+    {
+      "path": "src/Papyrus/sslObject/sslCreatureAnimationSlots.cpp",
+      "sha256": "648bfa5cfbcea6c4022d85df8dcccda05ea8db8feb8e011acb2518d4564d649d",
+      "lines": 186
+    },
+    {
+      "path": "src/Papyrus/sslObject/sslCreatureAnimationSlots.h",
+      "sha256": "ae46be4139a565546b5310f1d8649ca9b445c399a63f8144b2c29cf6f0fcfe95",
+      "lines": 28
+    },
+    {
+      "path": "src/Papyrus/sslObject/sslExpressionSlots.cpp",
+      "sha256": "b5ba91ee64171d72bf11c881548a16ef56caa606ce6de611298006b0c5cfed87",
+      "lines": 252
+    },
+    {
+      "path": "src/Papyrus/sslObject/sslExpressionSlots.h",
+      "sha256": "5ff1fc9f5da39e3814009ca9d4503c5a23ca20f8741617ac04d42e93b5aac794",
+      "lines": 70
+    },
+    {
+      "path": "src/Papyrus/sslObject/sslVoiceSlots.cpp",
+      "sha256": "090988cc3f7a1a9a5db29ca353bec76d149508743dbc2f14f0cd0ddd6a6bb14b",
+      "lines": 241
+    },
+    {
+      "path": "src/Papyrus/sslObject/sslVoiceSlots.h",
+      "sha256": "2405de1192d92f3aa3fcbe46d57e802f23cd4720a6bcb12df77d96cc4126f4d8",
+      "lines": 79
+    },
+    {
+      "path": "src/Papyrus/sslSystemConfig.cpp",
+      "sha256": "0ab0a76b9dfc3b76e59b37125841578d89eb2d877566d9d446d40229e7e9eee3",
+      "lines": 245
+    },
+    {
+      "path": "src/Papyrus/sslSystemConfig.h",
+      "sha256": "50b21c82c434699a2b73030e5670fb0f8259c01b3895815b99853e9d08f3d99f",
+      "lines": 50
+    },
+    {
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "sha256": "2447796bde23680c6886f67aa6f73f357073ce685cdec980746736ee25fc59e1",
+      "lines": 1071
+    },
+    {
+      "path": "src/Papyrus/sslThreadModel.h",
+      "sha256": "894fcd7eb62b1af93fb35e1a7c86399e22788bc33acc40131ac76d1520c2ea71",
+      "lines": 169
+    },
+    {
+      "path": "src/Registry/Define/Animation.cpp",
+      "sha256": "b2e9dc4e930f0ce2e9f5edba11926f0f88019b5e6e2ed6ee99d59fb7fec7e585",
+      "lines": 889
+    },
+    {
+      "path": "src/Registry/Define/Animation.h",
+      "sha256": "0f2bf50baac198610e60e0d7291643b2f367160dd0d46f0b55ac1243f109db30",
+      "lines": 197
+    },
+    {
+      "path": "src/Registry/Define/Expression.cpp",
+      "sha256": "fee3072e93a9d9053cc70ff6b1c7d559c315865c866bee341b8de690b176b003",
+      "lines": 346
+    },
+    {
+      "path": "src/Registry/Define/Expression.h",
+      "sha256": "20bf19f82fc224111b8e335894469847ccfcd9f4475fbb61e266b38737827a95",
+      "lines": 75
+    },
+    {
+      "path": "src/Registry/Define/Fragment.cpp",
+      "sha256": "97841a7072bb0cc0956165cb445f71bb9da537fd7032bccf7e6f686d55223e91",
+      "lines": 247
+    },
+    {
+      "path": "src/Registry/Define/Fragment.h",
+      "sha256": "4382f258037111af994ed82b49eb8c5b42e049d9ac90748a764560e287354890",
+      "lines": 96
+    },
+    {
+      "path": "src/Registry/Define/Furniture.cpp",
+      "sha256": "35fef0bc4a934a0d4ebacadd4d1678cf28d779b67d42380777024947e4b4f8b5",
+      "lines": 288
+    },
+    {
+      "path": "src/Registry/Define/Furniture.h",
+      "sha256": "f82d9e0f7bff4d9449aa038055d8189a81d71a50ae465aa04bde5440ea0af916",
+      "lines": 126
+    },
+    {
+      "path": "src/Registry/Define/RaceKey.cpp",
+      "sha256": "71476064efe4a994923779b5ddc6a95bc5e8dc5aefa345b29f3e246dbae83783",
+      "lines": 228
+    },
+    {
+      "path": "src/Registry/Define/RaceKey.h",
+      "sha256": "84a278c2555a6818a3a489e89e3434e58154e0e3767551911f376c00876725d5",
+      "lines": 103
+    },
+    {
+      "path": "src/Registry/Define/Sex.cpp",
+      "sha256": "3590f6ee57d684461e05dec73ce262d99b092b6ac84ad2e0b4db2e597a06523f",
+      "lines": 89
+    },
+    {
+      "path": "src/Registry/Define/Sex.h",
+      "sha256": "b70f6e42b52cd16d37609b8d1fc4bbd6b72fafe75f5f6ab06c21bf1bec6ac28e",
+      "lines": 39
+    },
+    {
+      "path": "src/Registry/Define/Tags.cpp",
+      "sha256": "d5cdb4f3bd5233a338738e0d0cd2f2afbc1dfdf6a51cc02cba3df988f7159cd7",
+      "lines": 284
+    },
+    {
+      "path": "src/Registry/Define/Tags.h",
+      "sha256": "4eb978befb47b7f606735e33ef8597c0abfcaa789cd9135377f5d7196bf45752",
+      "lines": 164
+    },
+    {
+      "path": "src/Registry/Define/Transform.cpp",
+      "sha256": "dbf73ef60f21483370b38199d52b5e478acaad3466e0f8bc234bddd798273a25",
+      "lines": 160
+    },
+    {
+      "path": "src/Registry/Define/Transform.h",
+      "sha256": "b841e6ca6939ecc4f4498c7981e611922e416ff4300b73bfeb1a6f8c71bc8369",
+      "lines": 81
+    },
+    {
+      "path": "src/Registry/Define/Voice.cpp",
+      "sha256": "38ea260a8260bea18544b8012dd097749965124fe304656488ab64ac998a99d4",
+      "lines": 247
+    },
+    {
+      "path": "src/Registry/Define/Voice.h",
+      "sha256": "11d7dc5c3ae8fba96ca2439ab764437f73afc956d683226d063a0920b2762737",
+      "lines": 110
+    },
+    {
+      "path": "src/Registry/Library.cpp",
+      "sha256": "f179ae3b6471d216db910001700e7c1a0ff38e8fa1c492ae16941fed33041eb3",
+      "lines": 659
+    },
+    {
+      "path": "src/Registry/Library.h",
+      "sha256": "5a65425b5acc7d1b4483e174cf21ca36d1b287bf2fa4911a2852ff81a9fc1e7a",
+      "lines": 163
+    },
+    {
+      "path": "src/Registry/Library_SaveLoad.cpp",
+      "sha256": "999de8bb1d8276e00d6e25b897ac459382e1c804b395b46b3ecbfe2e93bfdf6a",
+      "lines": 602
+    },
+    {
+      "path": "src/Registry/Stats.cpp",
+      "sha256": "a16a8425aa63a241e12019b9e61f8fffe2e7823607941128c437f5bd81e82b18",
+      "lines": 538
+    },
+    {
+      "path": "src/Registry/Stats.h",
+      "sha256": "ac23b27d4c39ce69806ebf394fadada91381fc02a83edc40699319001db7f911",
+      "lines": 178
+    },
+    {
+      "path": "src/Registry/Util/Decode.h",
+      "sha256": "92996e114a934276ebc4ae1cb1914afb593bcb5e500100fd9bd902af8cec641c",
+      "lines": 115
+    },
+    {
+      "path": "src/Registry/Util/RayCast.h",
+      "sha256": "19ea2c8ae2a57eac727bed3c84ed7b13479634d74d46a3b09273fc9a48328aa2",
+      "lines": 83
+    },
+    {
+      "path": "src/Registry/Util/RayCast/Math.h",
+      "sha256": "d4254e25f6cfd95ad5e44d890d5f356332758f7b1f1276d979117e5caee9e3cf",
+      "lines": 99
+    },
+    {
+      "path": "src/Registry/Util/RayCast/ObjectBound.cpp",
+      "sha256": "2417a2431fd9c39d030a403dd7d8fbe663926d17671aabfe1adbf3c7472776e5",
+      "lines": 175
+    },
+    {
+      "path": "src/Registry/Util/RayCast/ObjectBound.h",
+      "sha256": "28417e0c6cbc41de902ef5a47a552e7037b4850853002c97db0e329e67addf69",
+      "lines": 29
+    },
+    {
+      "path": "src/Registry/Util/RayCast/Offsets.h",
+      "sha256": "aef30ef4c1d77f19f288f994f7341cd0b4cff776c7c1813783498de310690ba1",
+      "lines": 23
+    },
+    {
+      "path": "src/Registry/Util/RayCast/RayCast.cpp",
+      "sha256": "23f92fbb2b30540462fdb450b344177840b8ba0d5fbdfef1274ed0806b25821b",
+      "lines": 139
+    },
+    {
+      "path": "src/Registry/Util/RayCast/bhkLinearCastCollector.h",
+      "sha256": "2ffe390767ba4c264e7e2c7f3eb79006c1d90be59ac6e618ce491208f502bffc",
+      "lines": 164
+    },
+    {
+      "path": "src/Registry/Util/RayCast/bhkRigidBodyT.h",
+      "sha256": "3390ea43d1e4a51f6a95b43f8378e09557d03c1d35a9b479551a1b141a520830",
+      "lines": 17
+    },
+    {
+      "path": "src/Registry/Util/SAT.h",
+      "sha256": "48d21cdf4485c2109c45b1ed58cf01571da46fbe49395a430d37ada49854714a",
+      "lines": 111
+    },
+    {
+      "path": "src/Registry/Util/Scale.cpp",
+      "sha256": "78f6cac0f065a01f948049228b53c7794a003fd4c9e9d89a685f1c4d76965f99",
+      "lines": 173
+    },
+    {
+      "path": "src/Registry/Util/Scale.h",
+      "sha256": "bcf43250e3be928821ed8376f5f5ae12d035c468332b62cc53b159d4ff9d627d",
+      "lines": 44
+    },
+    {
+      "path": "src/Registry/Validation.cpp",
+      "sha256": "0210b6d0764536af2eaa6b6206f1f60098aaf48c191c6d56baf534430f100c5e",
+      "lines": 179
+    },
+    {
+      "path": "src/Registry/Validation.h",
+      "sha256": "6f6e5bc6d93900ef2a12904abbdee52e58b72bad61c350ecd5f210398227c19a",
+      "lines": 9
+    },
+    {
+      "path": "src/Serialization.h",
+      "sha256": "1f33a7a6826adcbef1bd6ddb5c9f832693c610e7c52e94bad03485d58110d7d5",
+      "lines": 89
+    },
+    {
+      "path": "src/Thread/Collision/CollisionHandler.cpp",
+      "sha256": "f096635d410726b96def88e7d0ed5348c6d0ba085e9b75cbbed447ee3a756cdc",
+      "lines": 442
+    },
+    {
+      "path": "src/Thread/Collision/CollisionHandler.h",
+      "sha256": "e6033c16ec8706b886d15653ede57edb156671e243701219253f27ff45ea0fbd",
+      "lines": 52
+    },
+    {
+      "path": "src/Thread/Hooks.cpp",
+      "sha256": "32e1c70f57d61cab1eb1801aebd84eeb1911dfc65e14c1805524d8fe6b9f7ebd",
+      "lines": 65
+    },
+    {
+      "path": "src/Thread/Hooks.h",
+      "sha256": "3e994d146fd4c6191c095255afb86dfb850b91fa42796605f93c0aea5c67778c",
+      "lines": 7
+    },
+    {
+      "path": "src/Thread/Interface/Elements/AnimSpeedOverlay.cpp",
+      "sha256": "96bcc0239fb032aacbe52faeeea88f1abbb462c8c2ce7a445e2f2d634a277cba",
+      "lines": 152
+    },
+    {
+      "path": "src/Thread/Interface/Elements/AnimSpeedOverlay.h",
+      "sha256": "af71670bf61f0e8942a74ffa5fc0956e165cb8fd02c8a5582c16c2452b0ec781",
+      "lines": 19
+    },
+    {
+      "path": "src/Thread/Interface/Elements/ElementCtrlPanel.cpp",
+      "sha256": "8a99d5bb9eff6083991825a22a6ec7b7ec3a8eb26ea1413e220583078e7ee065",
+      "lines": 301
+    },
+    {
+      "path": "src/Thread/Interface/Elements/ElementCtrlPanel.h",
+      "sha256": "ecca09733bc80a12797811f8701673149b8c6c091563bc62bb9ddf2c20aecb6d",
+      "lines": 22
+    },
+    {
+      "path": "src/Thread/Interface/Elements/EnjBarsOverlay.cpp",
+      "sha256": "1e989bb612d319cdf84c39fc18dc5ce69dc62d3c87cd9ffc7a007827a2d34ffd",
+      "lines": 523
+    },
+    {
+      "path": "src/Thread/Interface/Elements/EnjBarsOverlay.h",
+      "sha256": "d53786044d932cd15cc2902ef11164ddccb4457e0e5a09e45dbffe814018eb73",
+      "lines": 73
+    },
+    {
+      "path": "src/Thread/Interface/Elements/OffsetAdjustPanel.cpp",
+      "sha256": "bbe4e592e641d6ef9715295f43f40f555943b16fa27c0199bb3e7e7f295c0c8c",
+      "lines": 401
+    },
+    {
+      "path": "src/Thread/Interface/Elements/OffsetAdjustPanel.h",
+      "sha256": "92d20077d8a44dc16b6c04ab24cd0b994e3203dfd08168401c680fe0edddfcd4",
+      "lines": 65
+    },
+    {
+      "path": "src/Thread/Interface/Elements/PseudoPanelStack.cpp",
+      "sha256": "c27cb6b65419a71142aaefa4444e5e6577b41ac550ebdcea41e2adb33d42fbdf",
+      "lines": 153
+    },
+    {
+      "path": "src/Thread/Interface/Elements/PseudoPanelStack.h",
+      "sha256": "c466ec27826dc902ff8c36aabf276d57a64adcc7371e9a16d4d58360403118ae",
+      "lines": 11
+    },
+    {
+      "path": "src/Thread/Interface/Elements/SceneSelectPanel.cpp",
+      "sha256": "b9b6dc5903dc55499f52c86c9480f7097799bb9f4e7951dc0a23460cb110cafb",
+      "lines": 340
+    },
+    {
+      "path": "src/Thread/Interface/Elements/SceneSelectPanel.h",
+      "sha256": "2d42475803d882333755dc8306105b098929b51d630c4d2713f2fa9ae1b26e63",
+      "lines": 40
+    },
+    {
+      "path": "src/Thread/Interface/Elements/ThreadConfigPanel.cpp",
+      "sha256": "6ba88c1d9a5341e52bb8bb190f24bfd4968ca6a9a1a9f73bd3510950029e8159",
+      "lines": 435
+    },
+    {
+      "path": "src/Thread/Interface/Elements/ThreadConfigPanel.h",
+      "sha256": "92f0f63f47f30b8c3adaa234e16bee1b1a1d47598918bc7c6007b7d2d96f7f90",
+      "lines": 33
+    },
+    {
+      "path": "src/Thread/Interface/FurnSelectMenu.cpp",
+      "sha256": "a21deb77a9cf0250c8d8c306790f7edf39f8b5ef3074b66ec7086c9f9000da23",
+      "lines": 181
+    },
+    {
+      "path": "src/Thread/Interface/FurnSelectMenu.h",
+      "sha256": "d33ff5f3d1e744bddc2c3e9446d9569603c45c3041c3bb92cdb22d04f0757bde",
+      "lines": 35
+    },
+    {
+      "path": "src/Thread/Interface/SceneHUD.cpp",
+      "sha256": "1674eb95354df3b43ecab2cc5b8811593f5f91014ddd662b4f9200889795c668",
+      "lines": 311
+    },
+    {
+      "path": "src/Thread/Interface/SceneHUD.h",
+      "sha256": "ef5e01f2634e4d605633be8242eae9e22c98295ab0e43f14dc5d4bc96da3304c",
+      "lines": 80
+    },
+    {
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "sha256": "b3178af0c71e0758899e155793885e5fa6684511317371d8a2761fbcc02dfc22",
+      "lines": 733
+    },
+    {
+      "path": "src/Thread/Interface/StageSelectMenu.h",
+      "sha256": "f7310c1c89d82273acc0b9b5294937c7cdd5b012229c60130926bbb97f010cca",
+      "lines": 96
+    },
+    {
+      "path": "src/Thread/Interface/UI/Scale.h",
+      "sha256": "69427101cefdc01fa76d1f119502d2f06df0240cdec4708f856a5a72a813bcda",
+      "lines": 97
+    },
+    {
+      "path": "src/Thread/Interface/UI/Theme.cpp",
+      "sha256": "ca0077c18cbdd124d3e15bcb7fd60ac878d6a8c6e016560fdc20fc3914ac05a5",
+      "lines": 87
+    },
+    {
+      "path": "src/Thread/Interface/UI/Theme.h",
+      "sha256": "cb7508de79a56a26d62073cd883a22e29c5b5f412a8e4043eb909366dfd0a686",
+      "lines": 413
+    },
+    {
+      "path": "src/Thread/Interface/UI/Window.h",
+      "sha256": "c42dd1b5b4353f5c6f46cb0dd907d45f04a6ac16c28282d330fdae276deeda22",
+      "lines": 78
+    },
+    {
+      "path": "src/Thread/NiNode/Legacy/LegacyNiMath.cpp",
+      "sha256": "2f703e92f6e009089c8c1a64bbbce077ce2c3e284d2383b5b191227040fc806c",
+      "lines": 222
+    },
+    {
+      "path": "src/Thread/NiNode/Legacy/LegacyNiMath.h",
+      "sha256": "c6684d235946bd82822d6af4ff51ab5bde63c46ed14b5734ac6cd2c6a1773b32",
+      "lines": 82
+    },
+    {
+      "path": "src/Thread/NiNode/Legacy/LegacyNiPosition.cpp",
+      "sha256": "a5853dbd8b2ba02f6f27535d328e8ee655b0bae273d6d3739448aaa21c2625e1",
+      "lines": 423
+    },
+    {
+      "path": "src/Thread/NiNode/Legacy/LegacyNiPosition.h",
+      "sha256": "36cbc337e9f7ab560cc373cacfd744a0bdc6a11c389ea67e493d79e257b4ff57",
+      "lines": 103
+    },
+    {
+      "path": "src/Thread/NiNode/Legacy/LegacyNiUpdate.cpp",
+      "sha256": "271b468a226e45eae31879ad56bc31c98ae86475316c778453fccb9f402abc5c",
+      "lines": 176
+    },
+    {
+      "path": "src/Thread/NiNode/Legacy/LegacyNiUpdate.h",
+      "sha256": "77e44394290855b7cd7f8ff6508ec72693de20765d637b92f8994ecbd56653cd",
+      "lines": 48
+    },
+    {
+      "path": "src/Thread/NiNode/Legacy/LegacyNode.cpp",
+      "sha256": "8fcd092475b6efe18621ce2df5b747b6274958d604e6c41ac8e1ee83e812c1c5",
+      "lines": 238
+    },
+    {
+      "path": "src/Thread/NiNode/Legacy/LegacyNode.h",
+      "sha256": "184f5ad11ebb0e8f51b3d902936354246fa3795afa9c046e504668e184f4d5b1",
+      "lines": 166
+    },
+    {
+      "path": "src/Thread/NiNode/NiActor.h",
+      "sha256": "a580b5ed68cfe8e59247d2dc5fa4152b6002c90d5d6d94b25a66371e632f0518",
+      "lines": 32
+    },
+    {
+      "path": "src/Thread/NiNode/NiDescriptor.h",
+      "sha256": "c52b00b98739c4df0037e11c88176146cf67a02cee4a30932c72910156927128",
+      "lines": 232
+    },
+    {
+      "path": "src/Thread/NiNode/NiInstance.cpp",
+      "sha256": "541579685c04bf94e08da6bad69251abf6e11fb05c32900bc9c2937c48fd5dd3",
+      "lines": 204
+    },
+    {
+      "path": "src/Thread/NiNode/NiInstance.h",
+      "sha256": "f9d628e613a8b8b6fa280d5a827fa362854478909d55b87ee048a9bcca9e8417",
+      "lines": 59
+    },
+    {
+      "path": "src/Thread/NiNode/NiInteraction.cpp",
+      "sha256": "9dcb8f186482e794dbcad2e1e47301647edb792fca9241978c98f1da11608875",
+      "lines": 342
+    },
+    {
+      "path": "src/Thread/NiNode/NiInteraction.h",
+      "sha256": "0b310fd7292f54f2535a2bfc05f52202d7830f8dfaa485ff2b185ca1e8aa768b",
+      "lines": 60
+    },
+    {
+      "path": "src/Thread/NiNode/NiMath.cpp",
+      "sha256": "9bec1210a9941ff9219d4b6306578536129b1bc02afe89fd62fa86d09218bee2",
+      "lines": 274
+    },
+    {
+      "path": "src/Thread/NiNode/NiMath.h",
+      "sha256": "b1a54ebe9292f1ad6ae89725d62da5863bb5cccd7e85d1d49547a6b441b92544",
+      "lines": 83
+    },
+    {
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "sha256": "7ce556e53ab1c5e4f6ee774c11b711b09cdbd860f3354de7b0977ca610d3b3e7",
+      "lines": 252
+    },
+    {
+      "path": "src/Thread/NiNode/NiMotion.h",
+      "sha256": "d7b7559e8feea4880d0f9eac0e7fb95a6047d22d876306a808d34d12e4752e6b",
+      "lines": 124
+    },
+    {
+      "path": "src/Thread/NiNode/NiPosition.cpp",
+      "sha256": "b250dc52523eff15f04b75883339c51d45ecc5bcad671be39c9fcdee2cdbc730",
+      "lines": 167
+    },
+    {
+      "path": "src/Thread/NiNode/NiPosition.h",
+      "sha256": "ebcef8008319fedb2ec9f4ded3ce7888d59c8c353f762987f4d2793ce0bcb681",
+      "lines": 28
+    },
+    {
+      "path": "src/Thread/NiNode/NiType.def",
+      "sha256": "067ea00672d469fffa540496b4dafc8a84da64a45fb676df534d754339123a68",
+      "lines": 22
+    },
+    {
+      "path": "src/Thread/NiNode/NiUpdate.cpp",
+      "sha256": "1cac3e3757ea7edf0c523abbb6e4adbdf2a0b5cbbc24fceb299ed1a834d911c1",
+      "lines": 204
+    },
+    {
+      "path": "src/Thread/NiNode/NiUpdate.h",
+      "sha256": "47c6a48ca90c51962883b78cf64e3264f936a73f1d4577e9b339b87ebdc47050",
+      "lines": 52
+    },
+    {
+      "path": "src/Thread/NiNode/Node.cpp",
+      "sha256": "260d1f29c2d0e164dab0eb5a417797f13d5260987e5990856e8c3cf2383c3419",
+      "lines": 242
+    },
+    {
+      "path": "src/Thread/NiNode/Node.h",
+      "sha256": "d9affc74a5dca2fb9be87b59aee2dbb9ee767cce1008459409ef9d6c69ec8d7a",
+      "lines": 166
+    },
+    {
+      "path": "src/Thread/Thread.cpp",
+      "sha256": "182a770b13c2d90c2f35b379890dd6ae5b70829d5ef84f0101a5660ea64324a0",
+      "lines": 665
+    },
+    {
+      "path": "src/Thread/Thread.h",
+      "sha256": "bea9ec2a9526e29b5687115e3be3da0cacc27ff4579cf0d463b868b4dab1fc41",
+      "lines": 274
+    },
+    {
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "sha256": "bdb902fac60f39a9d285d0e76b348832751de5281e398e7892d3e9b80029df87",
+      "lines": 937
+    },
+    {
+      "path": "src/Thread/ThreadCtor.cpp",
+      "sha256": "05bd3740a2a9648d9c355d222c382414463e15c67a44928c16752709075e5149",
+      "lines": 460
+    },
+    {
+      "path": "src/UserData/Settings.cpp",
+      "sha256": "5800c01e686f98e0cea11da1afcdde91f076e9fe3961fcd403369a2602b3c6a6",
+      "lines": 241
+    },
+    {
+      "path": "src/UserData/Settings.h",
+      "sha256": "49959cbcdec1669952a9cf79521fe443c12d34d3e86839f1bfe2c6bcbef55a03",
+      "lines": 69
+    },
+    {
+      "path": "src/UserData/SettingsValidation.h",
+      "sha256": "deb4bc43acb4a0d0264fd39a96d33652c521418080814252b955bb3adc4f7982",
+      "lines": 51
+    },
+    {
+      "path": "src/UserData/StripData.cpp",
+      "sha256": "d77f2e0d186be35323e610a29222b98eb6ca6575073bd8f9ea67c76fd83a5501",
+      "lines": 93
+    },
+    {
+      "path": "src/UserData/StripData.h",
+      "sha256": "fa232b539cdfd16165b926256820675a8db912fd509664587bac46be2efdc71b",
+      "lines": 45
+    },
+    {
+      "path": "src/UserData/config.def",
+      "sha256": "dcd599aa69f40e31c070a950d7769ded66e68478a1a7f26ba91c3b675c966f85",
+      "lines": 142
+    },
+    {
+      "path": "src/UserData/mcm.def",
+      "sha256": "7ef577e73c266afdb93b73e5421407fa0f92e16e48eaa5c4755c10ff001cb48d",
+      "lines": 127
+    },
+    {
+      "path": "src/Util/Assignment.h",
+      "sha256": "3f546b2f2f5b95e2efabd373a3b071496372784852e1fd9b8adab884cfc2e69a",
+      "lines": 30
+    },
+    {
+      "path": "src/Util/AsyncIO.cpp",
+      "sha256": "7fe130029c65e64003a05d9665e53ea0b0646a53fb5cb3453f607a230ebfd5ba",
+      "lines": 78
+    },
+    {
+      "path": "src/Util/AsyncIO.h",
+      "sha256": "514dae4131466027e582a62dfa36cb904a4e1c0e66218aa7aa6cd5e0ec881147",
+      "lines": 11
+    },
+    {
+      "path": "src/Util/Combinatorics.h",
+      "sha256": "62ef68125edda5b33f5c987111affb071487bd1219c33cb92a6b89d74e365905",
+      "lines": 34
+    },
+    {
+      "path": "src/Util/DirtyFlag.h",
+      "sha256": "38d698f0d7bbfe1d1c0cbe3c721a3d35233f566c2682919f3006857abed0857a",
+      "lines": 24
+    },
+    {
+      "path": "src/Util/FormLookup.h",
+      "sha256": "8f1190d9f03f067e4cbde1eb3a1c27e12953350606bb6352a3e2e29a36f6251c",
+      "lines": 75
+    },
+    {
+      "path": "src/Util/FragmentCombinations.h",
+      "sha256": "b7d402e5c82f5962f624eebaf0836fcce5e78279b9a38b9642e85683ace41fc1",
+      "lines": 24
+    },
+    {
+      "path": "src/Util/Misc.h",
+      "sha256": "921841755d23e688cddac6b5fea633828d79fbc42e47feae3b8ac99765fae410",
+      "lines": 46
+    },
+    {
+      "path": "src/Util/Random.h",
+      "sha256": "47f33f7b025c937c8e46ab96dec0b578744a0ef25e547e8968658284ab000508",
+      "lines": 59
+    },
+    {
+      "path": "src/Util/RecordIO.h",
+      "sha256": "7d532811d51c4c305e6c9ae281a7830c7fa5ec0ed8960c757fd78ea997944157",
+      "lines": 77
+    },
+    {
+      "path": "src/Util/RequestSequence.h",
+      "sha256": "a6c9dd80c5a871e6da7534e8fd3b6b12301ea07819200e651840de8a1265eca8",
+      "lines": 22
+    },
+    {
+      "path": "src/Util/RequiredMatching.h",
+      "sha256": "8cdaa7e2bfd7f5649fc8957b9fbceb0695090d85800899e3a444311be99e63eb",
+      "lines": 34
+    },
+    {
+      "path": "src/Util/RingBuffer.h",
+      "sha256": "1195d8dee0db3ff612f0b2a97ec9dbf3f1ad56e3a0510b0d5ed32c4d973b5c09",
+      "lines": 120
+    },
+    {
+      "path": "src/Util/SaveQueue.h",
+      "sha256": "3257e287c67def4caafe7822649fa6b60b75a7449b9522ef5ff56306f60b232d",
+      "lines": 237
+    },
+    {
+      "path": "src/Util/Script.h",
+      "sha256": "f4c69a54999024b920bbd9376e1a40b1eaa9b15849880751922dda20d4c818b4",
+      "lines": 128
+    },
+    {
+      "path": "src/Util/SharedSnapshot.h",
+      "sha256": "d4e847aff4ea127e0225f26af719cfa81f9e6028d970e214c8c8be0a48abe66c",
+      "lines": 34
+    },
+    {
+      "path": "src/Util/Singleton.h",
+      "sha256": "a5774eb5cb662da526c11a8dd1618ed00ad11d90d5abba7ab7f0a4baf1780c83",
+      "lines": 23
+    },
+    {
+      "path": "src/Util/StringUtil.h",
+      "sha256": "ca2f15e774903bd7588e00009ba0ed4693baf953c5da4656dca810bacdc8a9f8",
+      "lines": 124
+    },
+    {
+      "path": "src/Util/World.h",
+      "sha256": "1137c7b8a0caaf23da8b2272a47e1015e9efb39fe60c9e4acfbcab976066482b",
+      "lines": 36
+    },
+    {
+      "path": "src/main.cpp",
+      "sha256": "3de021928b847cd03edb5988d5520caadea39cebf00a5e769df518c554117727",
+      "lines": 184
+    },
+    {
+      "path": "xmake.lua",
+      "sha256": "7c2813be21c5200efcc6952164d80bb8c8b8885cf1e42bea12c9c9017728adf9",
+      "lines": 342
+    },
+    {
+      "path": "xmake/dotenv/modules/dotenv.lua",
+      "sha256": "4f3a2b88d7a6f1816177b060cd99c6215c178fca92f2eb3fc41d607d2006f5a5",
+      "lines": 39
+    },
+    {
+      "path": "xmake/dotenv/modules/dotenv/check.lua",
+      "sha256": "5573b2afd304c965e48d8ce5d24d407552803f683b26c58e63d21e40c5bc590f",
+      "lines": 42
+    },
+    {
+      "path": "xmake/dotenv/xmake.lua",
+      "sha256": "16358069c3d723fed65a90cf355fc279fd723506ea4737e1ab09bdfb5fa6827d",
+      "lines": 15
+    },
+    {
+      "path": "xmake/modules/test_ln.lua",
+      "sha256": "0e58577d7b36dac0d8e5841df5d1e5a4eff522db9c029283b3550894b29862d4",
+      "lines": 22
+    },
+    {
+      "path": "xmake/papyrus/modules/detect/tools/find_papyrus.lua",
+      "sha256": "3f435e24b5a840882e36dbcabe201df3b0d698f78dea733b3e906573c2f2c1e7",
+      "lines": 36
+    },
+    {
+      "path": "xmake/papyrus/modules/papyrus/anonymize.lua",
+      "sha256": "b656f029cd8f62127661467d074f78b5e9557d0af09ae282720fab99e9456f19",
+      "lines": 85
+    },
+    {
+      "path": "xmake/papyrus/papyrus.lua",
+      "sha256": "ef84da4321da325c5a880d4305243cead1294400ab021b9dd9d0b8ff9a8933dd",
+      "lines": 174
+    },
+    {
+      "path": "xmake/papyrus/project.lua",
+      "sha256": "5fe8a20306b21b3445942894b267e75c6219c23ce99eabdafc106992180df905",
+      "lines": 69
+    },
+    {
+      "path": "xmake/papyrus/xmake.lua",
+      "sha256": "bbab2eff99eecd7defd11913ea1d01db32e4557b4eaf2143dde1d1513b6069b9",
+      "lines": 54
+    },
+    {
+      "path": "xmake/spriggit/modules/detect/tools/find_spriggit.lua",
+      "sha256": "70924fbcee156def418bd77136445f121dca9a34b2429ddab027e5f874ca6313",
+      "lines": 65
+    },
+    {
+      "path": "xmake/spriggit/modules/spriggit.lua",
+      "sha256": "b0182bcc12854bec323168ec0539a70e056a66d254429da825ab2a314edca8e0",
+      "lines": 84
+    },
+    {
+      "path": "xmake/spriggit/serialize.lua",
+      "sha256": "9e484203de67487b0bee6b4448ab7a2fff53d6f4612778685afa3358722a035e",
+      "lines": 89
+    },
+    {
+      "path": "xmake/spriggit/xmake.lua",
+      "sha256": "0fd0b8423b968a57e895a406bc01fbe7c3da82f96382bd797777d6c2d7e2f5f9",
+      "lines": 87
+    }
+  ],
+  "same_path_name_body_sha_and_enclosing_function_required": true,
+  "relocated_unchanged": [
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:135:Voice::Save(YAML::Node& a_node) const",
+      "new_id": "src/Registry/Define/Voice.cpp:136:Voice::Save(YAML::Node& a_node) const",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "Voice::Save(YAML::Node& a_node) const",
+      "enclosing_function": null,
+      "sha256": "5ee9c4a78a72ee312ce564c245a4c4efd48ec3492b9c39fa9b1a50175e141771"
+    },
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:140:Voice::Load(const YAML::Node& a_node)",
+      "new_id": "src/Registry/Define/Voice.cpp:141:Voice::Load(const YAML::Node& a_node)",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "Voice::Load(const YAML::Node& a_node)",
+      "enclosing_function": null,
+      "sha256": "8f32d7499cb95e8125c463e327be8191b5e09fe38ca0bcd0bd5e58c6a029f9ee"
+    },
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:148:VoiceSet::VoiceSet(const YAML::Node& a_node)",
+      "new_id": "src/Registry/Define/Voice.cpp:149:VoiceSet::VoiceSet(const YAML::Node& a_node)",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "VoiceSet::VoiceSet(const YAML::Node& a_node)",
+      "enclosing_function": null,
+      "sha256": "da41e20964b61ef4aab674e78f526bf3ccf6dbc797a21416737885a0b1b3a2f7"
+    },
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:173:(auto& a, auto& b)",
+      "new_id": "src/Registry/Define/Voice.cpp:174:(auto& a, auto& b)",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "(auto& a, auto& b)",
+      "enclosing_function": "VoiceSet::VoiceSet(const YAML::Node& a_node)",
+      "sha256": "5f00e34fe491adc65da8466d88d661a822859defc117468d8817fc8a66514d27"
+    },
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:194:VoiceSet::VoiceSet(bool a_aslegacyextra)",
+      "new_id": "src/Registry/Define/Voice.cpp:195:VoiceSet::VoiceSet(bool a_aslegacyextra)",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "VoiceSet::VoiceSet(bool a_aslegacyextra)",
+      "enclosing_function": null,
+      "sha256": "8724169970a72d8fa669620194ce2a135519e5a4f43813d2b3fcf326e139fbeb"
+    },
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:202:* VoiceSet::Get(uint32_t a_priority) const",
+      "new_id": "src/Registry/Define/Voice.cpp:203:* VoiceSet::Get(uint32_t a_priority) const",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "* VoiceSet::Get(uint32_t a_priority) const",
+      "enclosing_function": null,
+      "sha256": "849fbfc948d76f46b1d282f24263240b01fef8672805b583e6cbcc05a4be8de0"
+    },
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:205:(uint32_t priority, const auto& entry)",
+      "new_id": "src/Registry/Define/Voice.cpp:206:(uint32_t priority, const auto& entry)",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "(uint32_t priority, const auto& entry)",
+      "enclosing_function": "* VoiceSet::Get(uint32_t a_priority) const",
+      "sha256": "a2f698665bf39410801ce6a4fdab010a9abee771b93ea7c2adea55ca37dee43f"
+    },
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:209:* VoiceSet::Get(LegacyVoice a_setting) const",
+      "new_id": "src/Registry/Define/Voice.cpp:210:* VoiceSet::Get(LegacyVoice a_setting) const",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "* VoiceSet::Get(LegacyVoice a_setting) const",
+      "enclosing_function": null,
+      "sha256": "aca4b1b620aa24565419304c979a5f5b8a1665b50bceb5cfa84daf9dc4476a84"
+    },
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:219:VoiceSet::SetSound(bool front, RE::TESSound* a_sound)",
+      "new_id": "src/Registry/Define/Voice.cpp:220:VoiceSet::SetSound(bool front, RE::TESSound* a_sound)",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "VoiceSet::SetSound(bool front, RE::TESSound* a_sound)",
+      "enclosing_function": null,
+      "sha256": "e42ef12a05e12f7d0a9e1bcf7909459796841ce1957e0f3734d69735272b4110"
+    },
+    {
+      "old_id": "src/Registry/Define/Voice.cpp:225:VoiceSet::AsYaml() const",
+      "new_id": "src/Registry/Define/Voice.cpp:226:VoiceSet::AsYaml() const",
+      "path": "src/Registry/Define/Voice.cpp",
+      "name": "VoiceSet::AsYaml() const",
+      "enclosing_function": null,
+      "sha256": "5da6d78deefd958ddefa234bb229041610372750ec14471b7476a0be8bc18c62"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:316:Library::WriteVoiceToFile(RE::BSFixedString a_voice) const",
+      "new_id": "src/Registry/Library.cpp:320:Library::WriteVoiceToFile(RE::BSFixedString a_voice) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::WriteVoiceToFile(RE::BSFixedString a_voice) const",
+      "enclosing_function": null,
+      "sha256": "b697488734328701ecb2288cc2342620038aca0b62e884915801423c2379fa1a"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:319:(const Voice& voice)",
+      "new_id": "src/Registry/Library.cpp:323:(const Voice& voice)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(const Voice& voice)",
+      "enclosing_function": "Library::WriteVoiceToFile(RE::BSFixedString a_voice) const",
+      "sha256": "c40937b00ad2d62e3e53c513b0dcc7894d3d2d661ec95380d83facb89ad6de7f"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:331:Library::GetSavedActors() const",
+      "new_id": "src/Registry/Library.cpp:335:Library::GetSavedActors() const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::GetSavedActors() const",
+      "enclosing_function": null,
+      "sha256": "bda4b5d543fc967bdc466b79f4525d8ce32f37f76750b3c866f705b9c7f50f6b"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:344:* Library::GetSavedVoice(RE::FormID a_key) const",
+      "new_id": "src/Registry/Library.cpp:348:* Library::GetSavedVoice(RE::FormID a_key) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetSavedVoice(RE::FormID a_key) const",
+      "enclosing_function": null,
+      "sha256": "a23ed34d0cd363ca3edec07424c9ee50bf310ec11935cfde13f5020d9ccb964e"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:351:Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)",
+      "new_id": "src/Registry/Library.cpp:355:Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)",
+      "enclosing_function": null,
+      "sha256": "d8855541add7cad0bfd58c35a0e7469616c6bbed13dc8575574cc7d61d38bdc2"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:362:Library::ClearVoice(RE::FormID a_key)",
+      "new_id": "src/Registry/Library.cpp:366:Library::ClearVoice(RE::FormID a_key)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ClearVoice(RE::FormID a_key)",
+      "enclosing_function": null,
+      "sha256": "918d9deca3902a9f82feb21002cf73138cd374c4507360e88b15860e1091d94c"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:368:* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const",
+      "new_id": "src/Registry/Library.cpp:372:* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const",
+      "enclosing_function": null,
+      "sha256": "dc8ff0174e6d6f2ced10220fa6c67e4a93955f52ee78080abb75a4bb36d6749e"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:379:* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "new_id": "src/Registry/Library.cpp:383:* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "enclosing_function": null,
+      "sha256": "d6116b6a16b478ab5827df8633e68bb4b5423378563b2b1723fbf423e247bc71"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:390:* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "new_id": "src/Registry/Library.cpp:394:* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "enclosing_function": null,
+      "sha256": "0371a11395764f61ebb53abb0ba6f38cdaf614d947bf2ee31dbeb7f66108af09"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:401:Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)",
+      "new_id": "src/Registry/Library.cpp:405:Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)",
+      "enclosing_function": null,
+      "sha256": "54036bf3296732bbd5cb76bc38022607e6351b7cb83bcbc86e03ce76c86612f6"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:412:Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)",
+      "new_id": "src/Registry/Library.cpp:416:Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)",
+      "enclosing_function": null,
+      "sha256": "0d28c158cc4cfefcf6d4f2e77c7912e7d37be5b046d5f1b2387437d1bce4476a"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:428:(const auto& set)",
+      "new_id": "src/Registry/Library.cpp:432:(const auto& set)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(const auto& set)",
+      "enclosing_function": "Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)",
+      "sha256": "c07e03bfae908fd96f68302f5035ba50c3ff1d03b6b12ff0a75c1f855d87515b"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:447:Library::SetVoiceTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)",
+      "new_id": "src/Registry/Library.cpp:451:Library::SetVoiceTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)",
+      "enclosing_function": null,
+      "sha256": "4a210c2258351c4387cc7eea09561786d8a3bfd71b87f0e1042a4c96fa325511"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:458:Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)",
+      "new_id": "src/Registry/Library.cpp:462:Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)",
+      "enclosing_function": null,
+      "sha256": "a8e324f6dc94f82662b96c6cd24c402c124a72335d77d01c99bb1c12b664ba9a"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:467:(auto& it)",
+      "new_id": "src/Registry/Library.cpp:471:(auto& it)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(auto& it)",
+      "enclosing_function": "Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)",
+      "sha256": "f8b04b75b56a9ce90a14475e44d051c292b3099da4d5b16d014d6f8b63761d56"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:475:Library::SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)",
+      "new_id": "src/Registry/Library.cpp:479:Library::SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)",
+      "enclosing_function": null,
+      "sha256": "9fdff70e11b39089b26fac8538d449aa82fd8eaf7b4df613454072e9604b89ee"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:501:* Library::GetExpressionById(const RE::BSFixedString& a_id) const",
+      "new_id": "src/Registry/Library.cpp:505:* Library::GetExpressionById(const RE::BSFixedString& a_id) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetExpressionById(const RE::BSFixedString& a_id) const",
+      "enclosing_function": null,
+      "sha256": "94a426e2530523023e8c1bb58da474553b1cc382915a1c69c72904b02386ed16"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:508:Library::ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const",
+      "new_id": "src/Registry/Library.cpp:512:Library::ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const",
+      "enclosing_function": null,
+      "sha256": "410cc68b03a77b108a884d7244b3f57581d77ff2a55cbbb698593f8eeb5d1874"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:518:* Library::GetExpression(const TagDetails& a_details) const",
+      "new_id": "src/Registry/Library.cpp:522:* Library::GetExpression(const TagDetails& a_details) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetExpression(const TagDetails& a_details) const",
+      "enclosing_function": null,
+      "sha256": "cb63479aca02c9809b5fd3b08c2e0e7e98933f8c0376efc7be9f95dd3621e014"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:530:Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const",
+      "new_id": "src/Registry/Library.cpp:534:Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const",
+      "enclosing_function": null,
+      "sha256": "0755d88ebd89b4ac8a81cfb95ff6e1cf1ad9bc219fcfe7400b909e54f205d5f0"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:541:Library::CreateExpression(const RE::BSFixedString& a_id)",
+      "new_id": "src/Registry/Library.cpp:545:Library::CreateExpression(const RE::BSFixedString& a_id)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::CreateExpression(const RE::BSFixedString& a_id)",
+      "enclosing_function": null,
+      "sha256": "e1dac964e7598669c432d2f87db4ba23c9c70b2af1506e6b2388b2834f03f6a1"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:556:Library::MarkExpressionForSave(const RE::BSFixedString& a_id)",
+      "new_id": "src/Registry/Library.cpp:560:Library::MarkExpressionForSave(const RE::BSFixedString& a_id)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::MarkExpressionForSave(const RE::BSFixedString& a_id)",
+      "enclosing_function": null,
+      "sha256": "f2869a697e39a6498775cb8c557554b1fc1217edf32a1ce240b0d8e8e08ac2da"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:566:Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values)",
+      "new_id": "src/Registry/Library.cpp:570:Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values)",
+      "enclosing_function": null,
+      "sha256": "626d7b9cd2b9464543734330c3c5c787ded142c06d6d05f2f4a590ed17ece6b4"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:577:Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)",
+      "new_id": "src/Registry/Library.cpp:581:Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)",
+      "enclosing_function": null,
+      "sha256": "51b01a5971ffee0514c19e30fbe35559365f01f64a2f8fc973b83d19312224d5"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:588:Library::SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)",
+      "new_id": "src/Registry/Library.cpp:592:Library::SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)",
+      "enclosing_function": null,
+      "sha256": "f507cf2a35d6610d4bda702d8950ce1da444908649b4b99e13b11e1ac1fb870e"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:599:Library::SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled)",
+      "new_id": "src/Registry/Library.cpp:603:Library::SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled)",
+      "enclosing_function": null,
+      "sha256": "0de8ace8c3908584be904c0876bf2f8d95cdbb670b5f3d91d19abb46991a18d2"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:611:Library::PickRandomFxSet(FxType a_type) const",
+      "new_id": "src/Registry/Library.cpp:615:Library::PickRandomFxSet(FxType a_type) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::PickRandomFxSet(FxType a_type) const",
+      "enclosing_function": null,
+      "sha256": "ea82cf512cd002cc1cb1f3252c5c75d025c267f4f659254b332a9fad2ec8731c"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:621:Library::GetFxCount(FxType a_type, RE::BSFixedString a_set) const",
+      "new_id": "src/Registry/Library.cpp:625:Library::GetFxCount(FxType a_type, RE::BSFixedString a_set) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::GetFxCount(FxType a_type, RE::BSFixedString a_set) const",
+      "enclosing_function": null,
+      "sha256": "b19b64580ceb4f9fad46dad97d9ab2b65fd7c4a0664f4d509bebc675375917c1"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:624:(const auto& pair)",
+      "new_id": "src/Registry/Library.cpp:628:(const auto& pair)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(const auto& pair)",
+      "enclosing_function": "Library::GetFxCount(FxType a_type, RE::BSFixedString a_set) const",
+      "sha256": "20af2db364a9a9e7638042a89b3d159c5844e0b3e5b9c8308966992413a2bd20"
+    },
+    {
+      "old_id": "src/Registry/Library.cpp:634:* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const",
+      "new_id": "src/Registry/Library.cpp:638:* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const",
+      "enclosing_function": null,
+      "sha256": "e5812b74fc551833bf36d63586189bfc98130600a84b94513a81055d835d385f"
+    }
+  ],
+  "changed_individually_reviewed": [
+    {
+      "id": "src/Registry/Define/Voice.cpp:87:Voice::SaveToFile(std::string_view a_fileLocation) const",
+      "sha256": "3bfd3da13fea82dd22920e860aa46be24ab7ba544338065923136e9ae899ccdd",
+      "checks": "先保存GetId所有权并empty短路，再共享file-stem校验，最后构造string_view；拒绝禁用字符/设备名。真实执行验证限pre-I/O路径块，完整YAML/Windows I/O及并发导出未认证。"
+    },
+    {
+      "id": "src/Registry/Library.cpp:305:Library::CreateVoice(RE::BSFixedString a_voice)",
+      "sha256": "8e764b89b0c8e6ac7385dcf8bf9d8338b80303f4693bb00768c1242448ea7589",
+      "checks": "先empty短路再共享file-stem校验，失败在_mVoice加锁/插入之前返回false；合法和重复创建行为保留。实际函数/BSFixedString替身验证。"
+    }
+  ],
+  "manual_fresh_reread_all_functions": false
+}

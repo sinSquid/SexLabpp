@@ -1,0 +1,1 @@
+PASS: actual file-stem guard rejects Win32 reserved device names including extension/case/superscript forms

@@ -1,0 +1,12 @@
+{
+  "fresh_reviewed_files": 293,
+  "production_files": 222,
+  "auxiliary_files": 71,
+  "pending_body_reads": 0,
+  "fingerprints_match": true,
+  "production_extracted_entries": 4926,
+  "portable_exit_code": 0,
+  "portable_final_marker": true,
+  "scope_path_sets_equal": true,
+  "external_contracts_closed": false
+}

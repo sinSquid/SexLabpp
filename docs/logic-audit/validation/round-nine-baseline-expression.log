@@ -1,0 +1,12 @@
+Assertion failed: (std::isfinite(value)&&value==0), function main, file expression_numeric_range.cpp, line 92.
+Traceback (most recent call last):
+  File "/Users/sin/code/mine/SexLabpp/tests/expression_numeric_range.py", line 57, in <module>
+    run('expression_numeric_range', code)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sin/code/mine/SexLabpp/tests/source_regressions.py", line 28, in run
+    subprocess.run([str(binary)], check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/sexlab-test-ays_wmdh/expression_numeric_range']' died with <Signals.SIGABRT: 6>.

@@ -1,0 +1,2 @@
+{"production": 222, "auxiliary": 67, "excluded": 2, "missing_inventory": [], "syntax_errors": []}
+{"production_files_scanned": 222, "native_wiring": {"registered": 287, "declared": 287, "declared_without_registration": [], "registered_without_declaration": [], "arity_checked": 287, "arity_mismatches": [], "unsupported_signatures": [], "limitation": "Name and argument-count checks only; does not validate full type mapping, VM or SDK ABI."}}

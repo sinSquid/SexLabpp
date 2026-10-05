@@ -706,10 +706,10 @@
     ]
   },
   "src/Util/SaveQueue.h": {
-    "sha256": "3257e287c67def4caafe7822649fa6b60b75a7449b9522ef5ff56306f60b232d",
+    "sha256": "9da5dcdf63e9e3ba8ac50357a7fa01a6969483866af50d52a8aef411879c72be",
     "diagnostics": [
       {
-        "line": 126,
+        "line": 139,
         "kind": "type_identifier"
       }
     ],
@@ -720,98 +720,98 @@
     "definitions": [
       {
         "start": 25,
-        "end": 61,
-        "name": "AtomicWrite(const std::filesystem::path& path, const std::string& bytes)",
-        "sha256": "34d197b7aaff2726e988438026f12e1a6b33caee8aa4459fedb28160951a4e3a"
+        "end": 74,
+        "name": "AtomicWrite(const std::filesystem::path& path, const std::string& bytes, bool overwrite = true)",
+        "sha256": "4fbfbeae97bc37bd272f42e4fd09b3e8567e43e1c20ea557f2e41b4c3c55d2d9"
       },
       {
-        "start": 65,
-        "end": 114,
+        "start": 78,
+        "end": 127,
         "name": "ArchiveWrite(const std::filesystem::path& directory, const std::vector<std::string>& rows)",
         "sha256": "5d85b877c40584fda4733d82d20acc54865b1f9c0e35d7685df63bb32c0783bd"
       },
       {
-        "start": 121,
-        "end": 125,
+        "start": 134,
+        "end": 138,
         "name": "& Get()",
         "sha256": "aade48774c4889b16512b955001ec6eaaa7702ace200c94316820e06e1b82da0"
       },
       {
-        "start": 126,
-        "end": 131,
+        "start": 139,
+        "end": 144,
         "name": "Submit(std::filesystem::path path, std::string bytes, std::shared_ptr<std::atomic_bool> receipt = {})",
         "sha256": "377ed0b963e1e06622ff5280219944d16b42177eff503fe452a231f4ba1adc35"
       },
       {
-        "start": 132,
-        "end": 138,
+        "start": 145,
+        "end": 151,
         "name": "SubmitArchive(std::filesystem::path directory, std::vector<std::string> rows)",
         "sha256": "0aa3f4d310567b9423b73bdb75447e3d113b047126fd8526a30b0595d8b003a2"
       },
       {
-        "start": 141,
-        "end": 146,
+        "start": 154,
+        "end": 159,
         "name": "RetryArchives()",
         "sha256": "0f7420a49ef5e3a58dadbc3d7284990b6e002838e8dba8548e4410a1fb4fd4a6"
       },
       {
-        "start": 147,
-        "end": 151,
+        "start": 160,
+        "end": 164,
         "name": "FailedArchiveCount()",
         "sha256": "4e4b77ece2e41535e9fc4a30a12c6a2ab5bb187b40297479701fb839085319f1"
       },
       {
-        "start": 152,
-        "end": 156,
+        "start": 165,
+        "end": 169,
         "name": "Flush()",
         "sha256": "8d62b9120a8a47edf795aadd3ac0663d270c21ef6df1d16580055e9f97625136"
       },
       {
-        "start": 155,
-        "end": 155,
+        "start": 168,
+        "end": 168,
         "name": "<anonymous>",
         "sha256": "82130fb5b1a43f6003b7640a8fbb927192beeb9a88054ff27d9aa021a6919336"
       },
       {
-        "start": 157,
-        "end": 166,
+        "start": 170,
+        "end": 179,
         "name": "~SaveQueue()",
         "sha256": "dde8ee8f284f20890dca080a2637de2c3854c2a81649f157611690e1ae1745d0"
       },
       {
-        "start": 179,
-        "end": 185,
+        "start": 192,
+        "end": 198,
         "name": "RetryArchivesLocked()",
         "sha256": "cd0b6d236ee3b0c29e0bb33babcc777572b6c7060b7a00feece35056e6c43355"
       },
       {
-        "start": 186,
-        "end": 186,
+        "start": 199,
+        "end": 199,
         "name": "<anonymous>",
         "sha256": "5c07136de72e99d3552b4c45a045c8267f8f1ed073491ce850080e435c8ada8a"
       },
       {
-        "start": 186,
-        "end": 186,
+        "start": 199,
+        "end": 199,
         "name": "SaveQueue()",
         "sha256": "d6410e463612c4f4e8a5becbee7f4f71dcb5c02028757b88c9c13feb723a8fad"
       },
       {
-        "start": 187,
-        "end": 228,
+        "start": 200,
+        "end": 241,
         "name": "Run()",
         "sha256": "e424befa4c9c95cef90df447b9a08f86487150802bb1a4672155ae210863fe36"
       },
       {
-        "start": 191,
-        "end": 191,
+        "start": 204,
+        "end": 204,
         "name": "<anonymous>",
         "sha256": "81f40bfd9c029d5d1bf1abd2faa493ae41738b2cf24c244056aefabc904e9d0d"
       }
     ]
   },
   "src/Util/SharedSnapshot.h": {
-    "sha256": "8f5772174505ad6e2a32da35e05d32c51f97bd86266462f518947c145579dee7",
+    "sha256": "d4e847aff4ea127e0225f26af719cfa81f9e6028d970e214c8c8be0a48abe66c",
     "diagnostics": [
       {
         "line": 14,
@@ -820,7 +820,7 @@
     ],
     "expected_definition_entries": 3,
     "omitted_definitions": [],
-    "conclusion": "模板ctor默认shared_ptr参数={}恢复；ctor/load/store已提取，无遗漏函数本体。",
+    "conclusion": "模板ctor默认shared_ptr参数={}恢复；ctor/load/store已提取，无遗漏函数本体。 本轮仅store持锁swap及解锁后析构改动，三定义仍齐全，原ctor诊断未变；见round-ten-report.md。",
     "reviewed_date": "2026-10-05",
     "definitions": [
       {
@@ -837,9 +837,9 @@
       },
       {
         "start": 20,
-        "end": 24,
+        "end": 28,
         "name": "store(std::shared_ptr<T> next)",
-        "sha256": "482fcc090556bd98747f50cfd36f45d48989ca517cffb7358652d05a86551370"
+        "sha256": "7ae77c009ca6a270fa566a554b0f524e9467fcbc279f9a0231a0e085f10545c1"
       }
     ]
   }

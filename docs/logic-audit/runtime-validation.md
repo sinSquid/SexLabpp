@@ -65,3 +65,33 @@
 ## 定点闭环补充（2026-10-05）
 
 NEW-30 Foot IK原值/共享owner与cache/graph锁序；NEW-31 Revert清native/准备/UI状态与跨存档排队世代过滤，game-thread中心初始化避免自阻塞；NEW-32 controller四控制位原值及共享/替换owner恢复。实际函数替身及targeted sanitizer通过，具体证据与外部契约见[closure-report.md](closure-report.md)。
+
+
+## 04e77305 后补充验收
+
+两项数值边界修复及额外SKEE/rigid-body契约的具体实机步骤见[round-nine-report.md](round-nine-report.md)末尾。portable验证不覆盖Legacy/modern实际vtable、移除scale后异常base的事务回滚、body共享/替换及极端值在真实Facial/VM中的合法性。
+
+
+## 新增工具/容量改动实机验收
+
+[round-ten-report.md](round-ten-report.md)末尾列出文件名保存/重载、保留名拒绝及真实Ni快照reset/Revert的析构/读取验证。状态vector分配次数测试仅覆盖实际构造函数配合计数allocator及Actor/Scene替身，没有FPS结论。
+
+
+## Script桥接补充验收
+
+按[round-eleven-report.md](round-eleven-report.md)末尾验证正常UI属性、异常NaN/Inf默认行为及真实对象创建失败。VM singleton、handle生命期、dispatch参数所有权等仍需SDK/实机证据；helper替身结果不能直接关闭。
+
+
+## 声音ID补充验收
+
+按[round-twelve-report.md](round-twelve-report.md)末尾验证非法/设备名ID创建拒绝、正常中文创建/导出/重载及既有错误Name导出日志。实际BSFixedString编码、完整YAML/Windows落盘和并发发布未由路径块替身测试关闭。
+
+
+## 第十三轮新增实机验收
+
+- Windows 下同 Voice ID 的竞争导出保持先存在文件字节，正常导出和重载成功；实际 MoveFileEx 无覆盖分支尚未执行。
+- 带 & 等 XML 字符的工程目录能生成并被真实 Papyrus 工具读取。
+- legacy GetTimersRunTime 的固定阶段秒单位与动态计时混合结果一致。
+- UI 显示完整“ · ”分隔符，配置切换保持正确；每帧配置读取减少不代表 FPS 已测量。
+
+上述只增加具体验收步骤，不关闭既有 ABI、Revert/VM 并发、跨存档、SKEE 回滚或 Havok 共享所有权事项。

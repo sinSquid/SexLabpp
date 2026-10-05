@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/sin/code/mine/SexLabpp/tests/papyrus_project_xml.py", line 28, in <module>
+    root=ElementTree.fromstring(xml)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xml/etree/ElementTree.py", line 1366, in XML
+    parser.feed(text)
+    ~~~~~~~~~~~^^^^^^
+xml.etree.ElementTree.ParseError: not well-formed (invalid token): line 3, column 22

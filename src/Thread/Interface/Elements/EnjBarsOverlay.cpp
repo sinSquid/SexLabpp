@@ -67,8 +67,8 @@ namespace Thread::Interface
         size_t outLen = 0;
         for (const char* p = src; *p && outLen < sizeof(intrBuf) - 4; ++p) {
             if (*p == ',') {
-                std::memcpy(intrBuf + outLen, " \xC2\xB7 ", 3);
-                outLen += 3;
+                std::memcpy(intrBuf + outLen, " \xC2\xB7 ", 4);
+                outLen += 4;
             } else {
                 intrBuf[outLen++] = *p;
             }
@@ -256,6 +256,7 @@ namespace Thread::Interface
         }
 
         auto* dl = ImGuiMCP::GetWindowDrawList();
+        const bool showInterText = inst->GetThreadProperty<bool>("VarUI_EnjInterText");
 
         for (size_t barIndex = 0; barIndex < _bars.size(); ++barIndex) {
             auto& b = _bars[barIndex];
@@ -299,7 +300,6 @@ namespace Thread::Interface
 
             // interaction string (centre)
             if (b.interactions[0] != '\0') {
-                const bool showInterText = inst->GetThreadProperty<bool>("VarUI_EnjInterText");
                 const ImGuiMCP::ImU32 interStrCol = showInterText
                     ? UI::Theme::Enjoyment.interactionText
                     : (UI::Theme::Enjoyment.interactionText & ~IM_COL32_A_MASK);  // zero alpha

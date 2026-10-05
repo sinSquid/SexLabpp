@@ -1,0 +1,5 @@
+/var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/sexlab-test-e_4zkfgw/shared_snapshot_release.cpp:7:9: warning: #pragma once in main file [-Wpragma-once-outside-header]
+    7 | #pragma once
+      |         ^
+1 warning generated.
+PASS: real SharedSnapshot releases the previous owner outside its mutex and preserves reader ownership

@@ -1,0 +1,131 @@
+{
+  "baseline": "04e77305",
+  "same_path_name_body_sha_and_enclosing_function_required": true,
+  "relocated_unchanged": [
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:29:Expression::Expression(const YAML::Node& a_src)",
+      "new_id": "src/Registry/Define/Expression.cpp:31:Expression::Expression(const YAML::Node& a_src)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::Expression(const YAML::Node& a_src)",
+      "enclosing_function": null,
+      "sha256": "1cf00846fd6374b93daec3a275fd0b87f8bccc2cfa6e829e249195b718abacaa"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:46:(float value)",
+      "new_id": "src/Registry/Define/Expression.cpp:48:(float value)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "(float value)",
+      "enclosing_function": "Expression::Expression(const YAML::Node& a_src)",
+      "sha256": "8d96d016b9f46e2db93d9c4ab98b7779360fb1808cff8b90859f723f8ce9513e"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:54:Expression::FromLegacyFile(const fs::path& a_path)",
+      "new_id": "src/Registry/Define/Expression.cpp:56:Expression::FromLegacyFile(const fs::path& a_path)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::FromLegacyFile(const fs::path& a_path)",
+      "enclosing_function": null,
+      "sha256": "08502dcfba5c9d3d5a40da85750ceaf77d58032272134bf61a770c3dadc1f024"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:69:(RE::SEXES::SEX sex, std::string prefix)",
+      "new_id": "src/Registry/Define/Expression.cpp:71:(RE::SEXES::SEX sex, std::string prefix)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "(RE::SEXES::SEX sex, std::string prefix)",
+      "enclosing_function": "Expression::FromLegacyFile(const fs::path& a_path)",
+      "sha256": "fbe09fd59da0e81771f7b635eebcf59888e7eab62ea3fc4dbbf7d3f07c809bb2"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:81:(float value)",
+      "new_id": "src/Registry/Define/Expression.cpp:83:(float value)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "(float value)",
+      "enclosing_function": "Expression::FromLegacyFile(const fs::path& a_path)",
+      "sha256": "8d96d016b9f46e2db93d9c4ab98b7779360fb1808cff8b90859f723f8ce9513e"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:93:(const char* fieldname) -> bool",
+      "new_id": "src/Registry/Define/Expression.cpp:95:(const char* fieldname) -> bool",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "(const char* fieldname) -> bool",
+      "enclosing_function": "Expression::FromLegacyFile(const fs::path& a_path)",
+      "sha256": "9fafa3871a86f311906376c5e3d6f9606748ec0143e56fc7a15a384d3f2514ec"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:108:Expression::Expression(DefaultExpression a_default)",
+      "new_id": "src/Registry/Define/Expression.cpp:110:Expression::Expression(DefaultExpression a_default)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::Expression(DefaultExpression a_default)",
+      "enclosing_function": null,
+      "sha256": "745f6277bc95e1c02ccd84e921d6bb118a45ced93b19c0932e2b57aef02e176e"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:273:Expression::Save(std::string_view a_fileLocation, bool force) const",
+      "new_id": "src/Registry/Define/Expression.cpp:280:Expression::Save(std::string_view a_fileLocation, bool force) const",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::Save(std::string_view a_fileLocation, bool force) const",
+      "enclosing_function": null,
+      "sha256": "0472414ef6ff5767c6561712318cc733b7a9a04496dc1a46afb91cae22db15ec"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:302:Expression::UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values)",
+      "new_id": "src/Registry/Define/Expression.cpp:309:Expression::UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values)",
+      "enclosing_function": null,
+      "sha256": "4c1de4c612cf18e653686844ee5bd506b2e65243f43cc83c8f818d44ea042a35"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:309:(float value)",
+      "new_id": "src/Registry/Define/Expression.cpp:316:(float value)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "(float value)",
+      "enclosing_function": "Expression::UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values)",
+      "sha256": "8d96d016b9f46e2db93d9c4ab98b7779360fb1808cff8b90859f723f8ce9513e"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:321:Expression::UpdateTags(const TagData& a_newtags)",
+      "new_id": "src/Registry/Define/Expression.cpp:328:Expression::UpdateTags(const TagData& a_newtags)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::UpdateTags(const TagData& a_newtags)",
+      "enclosing_function": null,
+      "sha256": "933df8c4bea0828463ce31b6ff385ffd959facf09986f097f1b633a90535873d"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:327:Expression::SetScaling(Scaling a_scaling)",
+      "new_id": "src/Registry/Define/Expression.cpp:334:Expression::SetScaling(Scaling a_scaling)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::SetScaling(Scaling a_scaling)",
+      "enclosing_function": null,
+      "sha256": "bf4226c17c174975518f05e2c2c3e91b4dd4c7c24a4046915b6f68b29a2512fc"
+    },
+    {
+      "old_id": "src/Registry/Define/Expression.cpp:333:Expression::SetEnabled(bool a_enabled)",
+      "new_id": "src/Registry/Define/Expression.cpp:340:Expression::SetEnabled(bool a_enabled)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::SetEnabled(bool a_enabled)",
+      "enclosing_function": null,
+      "sha256": "f4ca95d3e1a582b8ff23d57128238ba2c57c9183744f15fbb9efe2727a03d59e"
+    },
+    {
+      "old_id": "src/Registry/Util/Scale.cpp:132:Scale::RemoveScale(RE::Actor* a_actor)",
+      "new_id": "src/Registry/Util/Scale.cpp:142:Scale::RemoveScale(RE::Actor* a_actor)",
+      "path": "src/Registry/Util/Scale.cpp",
+      "name": "Scale::RemoveScale(RE::Actor* a_actor)",
+      "enclosing_function": null,
+      "sha256": "6ca47b926634c39374063218c13d68e1e2cdfe10f877211129b761453adcb23a"
+    }
+  ],
+  "changed_individually_reviewed": [
+    {
+      "id": "src/Registry/Define/Expression.cpp:208:Expression::GetData(RE::SEXES::SEX a_sex, float a_strength) const",
+      "sha256": "d7f8713bbb72bba12e61c14b9d5f9a95351f8e9ad94026c387e3e43e442f68ea",
+      "checks": "检查finite输入下float差值/外插仍溢出；double运算后饱和至float有限范围，保留常规插值、负强度兼容和MoodType取整。"
+    },
+    {
+      "id": "src/Registry/Util/Scale.cpp:24:Scale::SetScale(RE::Actor* a_actor, RaceKey a_racekey, float a_absolutescale)",
+      "sha256": "76c2e57fa1a93c71e4cb4e983a5fb025fa8b6751eeddfd19e972b8f87b03d9fe",
+      "checks": "检查种族倍率导致目标溢出/下溢及初始base异常；均在修改transform前拒绝。保留移除自有scale后的base/quotient复检；该阶段失败的完整回滚及SKEE实际状态仍开放。"
+    }
+  ],
+  "manual_fresh_reread_all_functions": false
+}

@@ -267,7 +267,7 @@ def legacy_animation_data():
     timer = helper('sslBaseAnimation','GetTimersRunTime','StageTimers',{
         'Registry':'scene','GetMaxDepth':lambda:3,'SexLabRegistry':SimpleNamespace(
             GetStartAnimation=lambda *a:'first',GetPathMax=lambda *a:path,
-            GetFixedLength=lambda scene,stage:{'first':0,'middle':20000,'last':30000}[stage],
+            GetFixedLength=lambda scene,stage:{'first':0,'middle':20,'last':30}[stage],
             BranchTo=lambda scene,stage,n:path[min(path.Find(stage)+1,2)])})
     assert timer(StrictArray([10,11]))==60
 

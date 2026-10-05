@@ -1,0 +1,1 @@
+PASS: actual voice creation rejects unsafe IDs before insertion and preserves valid/duplicate behavior

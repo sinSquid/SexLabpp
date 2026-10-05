@@ -19,8 +19,12 @@ namespace Util
         }
         void store(std::shared_ptr<T> next)
         {
-            std::lock_guard lock(mutex);
-            value = std::move(next);
+            {
+                std::lock_guard lock(mutex);
+                value.swap(next);
+            }
+            // The previous owner's destructor may call back into this slot.
+            // Release it after unlocking, just as readers release their copies.
         }
 
       private:

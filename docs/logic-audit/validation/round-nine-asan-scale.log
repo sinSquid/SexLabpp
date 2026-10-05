@@ -1,0 +1,1 @@
+PASS: actual SetScale Legacy/modern branch regression with ASan/UBSan; command exit code 0. Interfaces are stand-ins, not SDK/ABI certification.

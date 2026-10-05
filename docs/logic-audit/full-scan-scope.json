@@ -168,7 +168,7 @@
     },
     {
       "path": "dist/Source/Scripts/sslBaseAnimation.psc",
-      "sha256": "b0773df049c49ecf84fb7361489bf36b3d703ef19e8679575e0861f169016161",
+      "sha256": "12c6afc5a39bcb2bfcaa3005dbeba76c56cac94177f9332e28f2356a0d6e04ae",
       "lines": 955,
       "scope": "production",
       "evidence": [
@@ -852,8 +852,8 @@
     },
     {
       "path": "src/Registry/Define/Expression.cpp",
-      "sha256": "17ea53768d25e268edb2bca2fadb2e47ac24331653f5365332bf3575e6c9c707",
-      "lines": 339,
+      "sha256": "fee3072e93a9d9053cc70ff6b1c7d559c315865c866bee341b8de690b176b003",
+      "lines": 346,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -942,8 +942,8 @@
     },
     {
       "path": "src/Registry/Define/Tags.cpp",
-      "sha256": "d5cdb4f3bd5233a338738e0d0cd2f2afbc1dfdf6a51cc02cba3df988f7159cd7",
-      "lines": 284,
+      "sha256": "dc50224fa3adf11ed8cda107f86c07f6f56f7b4e3b957c1868b055944f7cf8ee",
+      "lines": 288,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -978,8 +978,8 @@
     },
     {
       "path": "src/Registry/Define/Voice.cpp",
-      "sha256": "38ea260a8260bea18544b8012dd097749965124fe304656488ab64ac998a99d4",
-      "lines": 247,
+      "sha256": "c6e1f83c737c1dd615cc39c8fd3b4509bd188cb80cc86853f2795bc926095335",
+      "lines": 248,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -996,8 +996,8 @@
     },
     {
       "path": "src/Registry/Library.cpp",
-      "sha256": "f179ae3b6471d216db910001700e7c1a0ff38e8fa1c492ae16941fed33041eb3",
-      "lines": 659,
+      "sha256": "355aed2a39ef25cbe6976bec59d4ad38ef24b5cf8c154f0f1a587ef77b76a453",
+      "lines": 663,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1131,8 +1131,8 @@
     },
     {
       "path": "src/Registry/Util/Scale.cpp",
-      "sha256": "c68fb6f2371e13dd79531323a09b04966a853325e6346c399405ac6a6fc97117",
-      "lines": 163,
+      "sha256": "78f6cac0f065a01f948049228b53c7794a003fd4c9e9d89a685f1c4d76965f99",
+      "lines": 173,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1248,7 +1248,7 @@
     },
     {
       "path": "src/Thread/Interface/Elements/EnjBarsOverlay.cpp",
-      "sha256": "1e989bb612d319cdf84c39fc18dc5ce69dc62d3c87cd9ffc7a007827a2d34ffd",
+      "sha256": "1175498f1651823d05538934d3deca2f47dab27a2dbbf4be18f911734ed8d850",
       "lines": 523,
       "scope": "production",
       "evidence": [
@@ -1518,8 +1518,8 @@
     },
     {
       "path": "src/Thread/NiNode/NiInstance.cpp",
-      "sha256": "ffec4a25b7656263f23bea6301be1be83757a12fe4c4cb1087a5d14ad42186ab",
-      "lines": 203,
+      "sha256": "541579685c04bf94e08da6bad69251abf6e11fb05c32900bc9c2937c48fd5dd3",
+      "lines": 204,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1869,8 +1869,8 @@
     },
     {
       "path": "src/Util/SaveQueue.h",
-      "sha256": "3257e287c67def4caafe7822649fa6b60b75a7449b9522ef5ff56306f60b232d",
-      "lines": 237,
+      "sha256": "9da5dcdf63e9e3ba8ac50357a7fa01a6969483866af50d52a8aef411879c72be",
+      "lines": 250,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1878,8 +1878,8 @@
     },
     {
       "path": "src/Util/Script.h",
-      "sha256": "9ce7d404ef2836b73244ef96f8c787c8c38594bceb4f37b7f353cb9a9bca7b9f",
-      "lines": 105,
+      "sha256": "f4c69a54999024b920bbd9376e1a40b1eaa9b15849880751922dda20d4c818b4",
+      "lines": 128,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1887,8 +1887,8 @@
     },
     {
       "path": "src/Util/SharedSnapshot.h",
-      "sha256": "8f5772174505ad6e2a32da35e05d32c51f97bd86266462f518947c145579dee7",
-      "lines": 30,
+      "sha256": "d4e847aff4ea127e0225f26af719cfa81f9e6028d970e214c8c8be0a48abe66c",
+      "lines": 34,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1905,8 +1905,8 @@
     },
     {
       "path": "src/Util/StringUtil.h",
-      "sha256": "b90ade03f87e2aed62ae6ff8f5c847a2b2f7110a579c50c0bf8ea491ef01dda5",
-      "lines": 102,
+      "sha256": "ca2f15e774903bd7588e00009ba0ed4693baf953c5da4656dca810bacdc8a9f8",
+      "lines": 124,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1962,7 +1962,7 @@
     },
     {
       "path": "tests/animation_slot_boundaries.py",
-      "sha256": "5a76f95528b1cf9cfb8ccb4897dd271d09dda856a608ff321f9188da452f27c1",
+      "sha256": "f7ac9cebc1c943647da92c17f60c854783fe3b9aa49bae38ff9ea4891f61fd6a",
       "lines": 48,
       "scope": "auxiliary",
       "evidence": [
@@ -2021,8 +2021,8 @@
     },
     {
       "path": "tests/contract_boundaries.py",
-      "sha256": "5d23c5387c068e307ab4197be377c049324f181503aa025851f6477e6e5a7b17",
-      "lines": 436,
+      "sha256": "257816fde7f8d3c934cbd141f8301b35cd66034b97b43a8084efabaeddf68f0b",
+      "lines": 446,
       "scope": "auxiliary",
       "evidence": [
         "file_enumerated_and_hashed",
@@ -2078,8 +2078,18 @@
       ]
     },
     {
+      "path": "tests/expression_numeric_range.py",
+      "sha256": "5689a2b87bfd3f2a25f262ffc60e8c2b3b997e3ee8eae5e28451ad63f9b179ed",
+      "lines": 58,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
       "path": "tests/full_fifth_review.py",
-      "sha256": "020cbda5cc289eeab7203ad63de1a1eafc129d88026d753069365dc4196bbcb3",
+      "sha256": "674111e6b14699d0bd0ce154c8a2d05d2224955db2775d70fd86aca0f29a2bf9",
       "lines": 159,
       "scope": "auxiliary",
       "evidence": [
@@ -2228,9 +2238,29 @@
       ]
     },
     {
+      "path": "tests/interaction_state_capacity.py",
+      "sha256": "021f0817f6bda79a878aceb31fb6de2b2b1f23c1b55d1a110bcd067ff4c7a983",
+      "lines": 61,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
       "path": "tests/legacy_input_boundaries.py",
       "sha256": "242946b407f6c14ae9ff5763e78ecd65aed5e0f08f9b33db6d911f240543cb7c",
       "lines": 52,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
+      "path": "tests/legacy_runtime_units.py",
+      "sha256": "ed44fa2aedd016d87ebacde1989bbf40a40847333ad91ffa0a8467ee7ea174b4",
+      "lines": 31,
       "scope": "auxiliary",
       "evidence": [
         "file_enumerated_and_hashed",
@@ -2298,6 +2328,26 @@
       ]
     },
     {
+      "path": "tests/overlay_interaction_text.py",
+      "sha256": "a2cb05b5e9ca2b43932c5ec896bb09582861cc9887dba57cb74db0260b812a72",
+      "lines": 39,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
+      "path": "tests/papyrus_project_xml.py",
+      "sha256": "88aca07eb0d918fe96a830e2742d3c2f91d7ab8a0063357dd80f819e44083038",
+      "lines": 33,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
       "path": "tests/proxy_allocation_boundaries.py",
       "sha256": "019c4042c8e3cefde682535957a708519317071c2ce0427b02a318ec91bd1287",
       "lines": 39,
@@ -2357,7 +2407,7 @@
     },
     {
       "path": "tests/run.py",
-      "sha256": "c07a7c8fa16dba5cb1e8ab06ad45310b017f7ba465f7146ca7e7059d3773d2db",
+      "sha256": "9e9b72c96802639e4e8abe109491a1540b80f979594338488e5ddbe5938378c1",
       "lines": 15,
       "scope": "auxiliary",
       "evidence": [
@@ -2369,6 +2419,26 @@
       "path": "tests/scene_partners.py",
       "sha256": "58425477aafaf5a793c186951d653c1c03dbd16b412ede68b9ddbbfe026246ab",
       "lines": 80,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
+      "path": "tests/script_property_boundaries.py",
+      "sha256": "7828b86c1e8f7b3f0cbb81ccaa0947d4f4c2c142aa4f9f300303a03d9ec1a1e5",
+      "lines": 102,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
+      "path": "tests/shared_snapshot_release.py",
+      "sha256": "b1d4b6365109e6022a2ff42ce51239d8b6e1bd9f7d502fcc1fdda6dea8009b9e",
+      "lines": 41,
       "scope": "auxiliary",
       "evidence": [
         "file_enumerated_and_hashed",
@@ -2417,7 +2487,7 @@
     },
     {
       "path": "tests/systematic_scripts.py",
-      "sha256": "835099cab39af8dbf3802e26d45b651782bb1c7ce17515999e791ee78b7d1d04",
+      "sha256": "c56243dfbaaaee027564ab70e94b60cf141875242782e50f57f7206d5c76cb83",
       "lines": 688,
       "scope": "auxiliary",
       "evidence": [
@@ -2467,8 +2537,38 @@
     },
     {
       "path": "tests/ui_voice_boundaries.py",
-      "sha256": "15fa63676f8ae5319338af2ec0c7a03f9d47fd7154d1a38cfc076779737ad1aa",
-      "lines": 51,
+      "sha256": "46c5b872d25f8858cec78d3503c7bd42d7e213b8ac5da0ac333ef7cdd92deb94",
+      "lines": 53,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
+      "path": "tests/voice_creation_boundaries.py",
+      "sha256": "015111db52080b8da4164682d9f06abeddf9a28adbe8b882fa984caf50d8e5df",
+      "lines": 48,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
+      "path": "tests/voice_export_publication.py",
+      "sha256": "9a729d5e33a546a87abcf101c72cce0df4a777abe5b183d786d2a84c5a9978fb",
+      "lines": 63,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
+      "path": "tests/windows_file_stems.py",
+      "sha256": "c311b5d94ff9eb8c75f694d48a753356ad226fa17411a096bcb4a37d0fee7811",
+      "lines": 30,
       "scope": "auxiliary",
       "evidence": [
         "file_enumerated_and_hashed",
@@ -2559,8 +2659,8 @@
     },
     {
       "path": "xmake/papyrus/project.lua",
-      "sha256": "5fe8a20306b21b3445942894b267e75c6219c23ce99eabdafc106992180df905",
-      "lines": 69,
+      "sha256": "676bc97f871fe5cd4849f25429922b20e67dab582d2480d7f69b35086c78471e",
+      "lines": 74,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"

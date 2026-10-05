@@ -86,10 +86,11 @@ namespace Registry
 
     void Voice::SaveToFile(std::string_view a_fileLocation) const
     {
-        const std::string_view id{ GetId().data() };
+        const auto voiceId = GetId();
         // IDs are metadata too, but must be a single file stem when exported.
-        if (id.empty() || id == "." || id == ".." || id.find_first_of("/\\:") != std::string_view::npos)
+        if (voiceId.empty() || !Util::IsSafeFileStem(voiceId.c_str()))
             throw std::invalid_argument("Voice ID cannot be used as a file name");
+        const std::string_view id{ voiceId.c_str() };
         const auto path = fs::path{ a_fileLocation } / std::format("{}.yaml", id);
         if (fs::exists(path)) {
             return;
@@ -129,7 +130,7 @@ namespace Registry
         for (auto&& e : extrasets) {
             root["Extra"].push_back(e.AsYaml());
         }
-        Util::AtomicWrite(path, YAML::Dump(root));
+        Util::AtomicWrite(path, YAML::Dump(root), false);
     }
 
     void Voice::Save(YAML::Node& a_node) const

@@ -35,7 +35,7 @@ print('PASS: animation list skips sparse aliases, caps selection with bounded pr
 
 runtime=helper('sslBaseAnimation','GetTimersRunTime','StageTimers',{
     'Registry':'scene',
-    'SexLabRegistry':SimpleNamespace(GetPathMax=lambda *_:Array(['a','b','c']),GetFixedLength=lambda scene,stage:{'a':1000.,'b':0.,'c':2500.}[stage])})
+    'SexLabRegistry':SimpleNamespace(GetPathMax=lambda *_:Array(['a','b','c']),GetFixedLength=lambda scene,stage:{'a':1.,'b':0.,'c':2.5}[stage])})
 assert runtime(StrictArray([10.,20.,30.]))==23.5
 calls=[]
 set_offset=helper('sslThreadController','SetSceneOffset','afOffsetValue,asOffsetType,abIncrement=False',{
@@ -45,4 +45,4 @@ set_offset=helper('sslThreadController','SetSceneOffset','afOffsetValue,asOffset
 set_offset(10.,'R',True);assert abs(calls[-1][1]-100.)<1e-6
 set_offset(5.,'X',True);assert calls[-1][1]==17.
 set_offset(5.,'invalid',True);assert len(calls)==2
-print('PASS: actual legacy runtime converts milliseconds to seconds; scene rotation increments convert radians to degrees and reject invalid axis')
+print('PASS: actual legacy runtime preserves native seconds; scene rotation increments convert radians to degrees and reject invalid axis')

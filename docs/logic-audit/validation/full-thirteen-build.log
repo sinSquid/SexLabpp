@@ -1,0 +1,3 @@
+PASS: Lua dependency detector: no-op, missing PEX, include edits/add/delete, flags, optimize, anonymize
+PASS: spriggit callback tracks source membership/tool and missing output timestamp
+xmake v2.9.5 upstream depend.lua SHA256: 90fb3cbbb347b81c1b7b4f927a6ad786f425c0c8c67ee754eb257336a56a0804

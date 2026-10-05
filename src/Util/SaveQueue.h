@@ -22,7 +22,7 @@
 
 namespace Util
 {
-    inline void AtomicWrite(const std::filesystem::path& path, const std::string& bytes)
+    inline void AtomicWrite(const std::filesystem::path& path, const std::string& bytes, bool overwrite = true)
     {
         if (!path.parent_path().empty())
             std::filesystem::create_directories(path.parent_path());
@@ -46,10 +46,23 @@ namespace Util
             output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
             output.close();
 #ifdef _WIN32
-            if (!::MoveFileExW(temporary.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
-                throw std::system_error(static_cast<int>(::GetLastError()), std::system_category(), "Replace save file");
+            const auto flags = MOVEFILE_WRITE_THROUGH | (overwrite ? MOVEFILE_REPLACE_EXISTING : 0);
+            if (!::MoveFileExW(temporary.c_str(), path.c_str(), flags)) {
+                const auto error = ::GetLastError();
+                if (overwrite || (error != ERROR_FILE_EXISTS && error != ERROR_ALREADY_EXISTS))
+                    throw std::system_error(static_cast<int>(error), std::system_category(), "Publish save file");
+            }
 #else
-            std::filesystem::rename(temporary, path);
+            if (overwrite) {
+                std::filesystem::rename(temporary, path);
+            } else {
+                // Publishing a hard link is atomic and cannot replace another
+                // writer's file; the staging copy is removed below.
+                std::error_code error;
+                std::filesystem::create_hard_link(temporary, path, error);
+                if (error && error != std::errc::file_exists)
+                    throw std::system_error(error, "Publish save file");
+            }
 #endif
         } catch (...) {
             std::error_code ignored;

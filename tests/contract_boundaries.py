@@ -221,10 +221,10 @@ namespace RE {
 }
 namespace SKEE {
  struct Interface {
- int version=3,writes=0;float output=0,newBase=1;bool remove=false;
+ int version=3,writes=0,mutations=0;float output=0,newBase=1;bool remove=false;
  uint32_t GetVersion(){return version;}
- template<class...T>void AddNodeTransformScaleMode(T&&...){}
- bool RemoveNodeTransformScale(RE::Actor* actor,bool,bool,const char*,const char*){if(remove)actor->base=newBase;return remove;}
+ template<class...T>void AddNodeTransformScaleMode(T&&...){++mutations;}
+ bool RemoveNodeTransformScale(RE::Actor* actor,bool,bool,const char*,const char*){++mutations;if(remove)actor->base=newBase;return remove;}
  template<class...T>void UpdateNodeTransforms(T&&...){}
  void AddNodeTransformScale(RE::Actor*,bool,bool,const char*,const char*,float v){++writes;output=v;}
  };
@@ -233,8 +233,8 @@ namespace SKEE {
  struct FixedString{FixedString(const char*){}};
  struct OverrideVariant {enum{ScaleMode,Scale};float v=0;void SetInt(int,int){}void SetFloat(int,float x){v=x;}};
  struct INiTransformInterface:Interface {
-  template<class... T>bool RemoveNodeTransformComponent(RE::Actor* actor,T&&...){if(remove)actor->base=newBase;return remove;}
-  void AddNodeTransform(RE::Actor*,bool,bool,FixedString,FixedString,OverrideVariant& v){if(v.v!=0){++writes;output=v.v;}}
+  template<class... T>bool RemoveNodeTransformComponent(RE::Actor* actor,T&&...){++mutations;if(remove)actor->base=newBase;return remove;}
+  void AddNodeTransform(RE::Actor*,bool,bool,FixedString,FixedString,OverrideVariant& v){++mutations;if(v.v!=0){++writes;output=v.v;}}
  };
  }
 }
@@ -242,8 +242,8 @@ namespace SKEE {
 // Production interface casts remain in the body; ABI/layout is not certified.
 struct Both: SKEE::INiTransformInterface {
  using FixedString=SKEE::Legacy::FixedString;using OverrideVariant=SKEE::Legacy::OverrideVariant;
- template<class... T>bool RemoveNodeTransformComponent(RE::Actor* a,T&&...){if(remove)a->base=newBase;return remove;}
- void AddNodeTransform(RE::Actor*,bool,bool,FixedString,FixedString,OverrideVariant& v){if(v.v!=0){++writes;output=v.v;}}
+ template<class... T>bool RemoveNodeTransformComponent(RE::Actor* a,T&&...){++mutations;if(remove)a->base=newBase;return remove;}
+ void AddNodeTransform(RE::Actor*,bool,bool,FixedString,FixedString,OverrideVariant& v){++mutations;if(v.v!=0){++writes;output=v.v;}}
 };
 namespace Registry {
  struct RaceKey {enum Value{Human,AshHopper,Chaurus,ChaurusHunter,Chicken,Fox,FrostAtronach,Spider,LargeSpider,GiantSpider,Horker,Mudcrab};Value value=Human;operator Value()const{return value;}};
@@ -263,6 +263,13 @@ int main(){
   plugin.version=version;
   for(float target:{NAN,INFINITY,-INFINITY,-1.f,0.f}){plugin.writes=0;s.SetScale(&actor,{},target);assert(plugin.writes==0);}
   for(float base:{NAN,INFINITY,-INFINITY,-1.f,0.f}){actor.base=base;plugin.writes=0;s.SetScale(&actor,{},2);assert(plugin.writes==0);}
+  plugin.remove=true;plugin.newBase=1;actor.base=2;plugin.mutations=0;
+  s.SetScale(&actor,{Registry::RaceKey::GiantSpider},std::numeric_limits<float>::max());
+  assert(plugin.mutations==0&&actor.base==2);
+  s.SetScale(&actor,{Registry::RaceKey::Chaurus},std::numeric_limits<float>::denorm_min());
+  assert(plugin.mutations==0&&actor.base==2);
+  for(float base:{NAN,INFINITY,-INFINITY,-1.f,0.f}){actor.base=base;plugin.mutations=0;s.SetScale(&actor,{},2);assert(plugin.mutations==0);}
+  plugin.remove=false;
   actor.base=2;plugin.writes=0;s.SetScale(&actor,{},1);assert(plugin.writes==1&&plugin.output==.5f);
   actor.base=std::numeric_limits<float>::min();plugin.writes=0;s.SetScale(&actor,{},std::numeric_limits<float>::max());assert(plugin.writes==0);
   plugin.remove=true;plugin.newBase=0;actor.base=1;plugin.writes=0;s.SetScale(&actor,{},2);assert(plugin.writes==0);
@@ -298,7 +305,7 @@ namespace stl {template<class E>struct enumeration {
 namespace Registry {
  static const std::map<RE::BSFixedString,Tag>TagTable{{"Anal",Tag::Anal}};
 '''
-    for sig in ('void TagData::AddTag(Tag','void TagData::AddTag(RE::BSFixedString','void TagData::RemoveTag(Tag','void TagData::RemoveAnnotation','bool TagData::HasTag(Tag','bool TagData::HasTag(const RE::BSFixedString','bool TagData::HasTags(','bool TagData::IsEmpty(','bool TagData::HasAnnotation(','void TagData::AddAnnotation(','void TagData::AddExtraTag(','bool TagData::HasExtraTag('):
+    for sig in ('void TagData::AddTag(Tag','void TagData::AddTag(RE::BSFixedString','void TagData::RemoveTag(Tag','void TagData::RemoveTag(const TagData&','void TagData::RemoveExtraTag(','void TagData::RemoveAnnotation','bool TagData::HasTag(Tag','bool TagData::HasTag(const RE::BSFixedString','bool TagData::HasTags(','bool TagData::IsEmpty(','bool TagData::HasAnnotation(','void TagData::AddAnnotation(','void TagData::AddExtraTag(','bool TagData::HasExtraTag('):
         code+=function(production,sig)+'\n'
     code+='}\n'+r'''
 int main(){
@@ -310,6 +317,9 @@ int main(){
  TagData query(std::vector<std::string>{"custom"});assert(tags.HasTags(query,true));
  TagData base(std::vector<std::string>{"Anal"});assert(!tags.HasTags(base,true));
  tags.AddTag("Anal");assert(tags.HasTags(base,true));
+ TagData self;self.AddTag("one");self.AddTag("two");self.AddTag("three");self.AddTag(Tag::Anal);self.AddAnnotation("keep");
+ self.RemoveTag(self);assert(!self.HasTag("one")&&!self.HasTag("two")&&!self.HasTag("three"));
+ assert(!self.HasTag(Tag::Anal)&&self.HasAnnotation("keep"));
 }
 '''
     run('contract_tag_priority',code)

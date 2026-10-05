@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/sin/code/mine/SexLabpp/tests/legacy_runtime_units.py", line 31, in <module>
+    main()
+    ~~~~^^
+  File "/Users/sin/code/mine/SexLabpp/tests/legacy_runtime_units.py", line 19, in main
+    assert runtime(Array([10.0, 20.0])) == 23.75
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

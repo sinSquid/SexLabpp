@@ -93,7 +93,7 @@ assert 'if (!node.IsDefined())' in tags
 save=function(voice_source,'void Voice::SaveToFile(')
 for field in ('root["DisplayName"]','root["Actor"]["Pitch"]','root["Tags"] = YAML::Node(YAML::NodeType::Sequence)'):
     assert field in save
-assert 'Util::AtomicWrite(path, YAML::Dump(root))' in save
+assert 'Util::AtomicWrite(path, YAML::Dump(root), false)' in save
 assert 'Unable to save voice' in function(source('src/Registry/Library.cpp'),'void Library::WriteVoiceToFile(')
 print('PASS: voice metadata/empty-tags/atomic-publication source contracts (not yaml-cpp/game execution)')
 

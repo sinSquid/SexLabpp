@@ -1,0 +1,229 @@
+PASS: 116079 assignment graphs match exhaustive enumeration
+PASS: 24 callback permutations and interleaved issuance
+5x24 index choices: 98280 unique keys vs 7962624 tuples, 0.0757488s
+PASS: required matching, exact index equivalence, record bounds, serialized atomic saving
+PASS: real SLR decode rejects oversized/truncated allocations, count bounds, valid/empty strings and signed fixed-point
+PASS: actual expression interpolation stays finite for finite extreme profiles and preserves ordinary results
+PASS: actual finalization runs in game task, ignores old-world/same-request work and handles queue/construction failure
+PASS: actual profile creation/save reject unsafe IDs, safe paths stay under root, nonfinite updates preserve old data
+PASS: actual SaveScenes skips invalid package name/hash, retains normal filename and saves valid neighbors
+PASS: actual Papyrus mood predicate switches different IDs, skips no-op/open-mouth override and removes redundant native reads (limited translator)
+PASS: actual controller helpers preserve all 16 original flag combinations, shared/replacement ownership, unrelated bits and Revert without stale writes
+PASS: actual Revert cancels creators, discards old Actors/registries and releases instances outside locks
+PASS: actual queued creation ignores tasks from a reverted world
+/var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/sexlab-test-y66q7qfm/collision_foot_ik.cpp:44:23: warning: 'offsetof' on non-standard-layout type 'hkbFootIkDriver' [-Winvalid-offsetof]
+   44 |         static_assert(offsetof(hkbFootIkDriver, alignedGroundRotation) == 0x30);
+      |                       ^                         ~~~~~~~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include/__stddef_offsetof.h:16:24: note: expanded from macro 'offsetof'
+   16 | #define offsetof(t, d) __builtin_offsetof(t, d)
+      |                        ^                     ~
+/var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/sexlab-test-y66q7qfm/collision_foot_ik.cpp:45:23: warning: 'offsetof' on non-standard-layout type 'hkbFootIkDriver' [-Winvalid-offsetof]
+   45 |         static_assert(offsetof(hkbFootIkDriver, disableFootIk) == 0x4A);
+      |                       ^                         ~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include/__stddef_offsetof.h:16:24: note: expanded from macro 'offsetof'
+   16 | #define offsetof(t, d) __builtin_offsetof(t, d)
+      |                        ^                     ~
+/var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/sexlab-test-y66q7qfm/collision_foot_ik.cpp:52:23: warning: 'offsetof' on non-standard-layout type 'ShadowhkbCharacter' [-Winvalid-offsetof]
+   52 |         static_assert(offsetof(ShadowhkbCharacter, footIkDriver) == 0x40);
+      |                       ^                            ~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include/__stddef_offsetof.h:16:24: note: expanded from macro 'offsetof'
+   16 | #define offsetof(t, d) __builtin_offsetof(t, d)
+      |                        ^                     ~
+3 warnings generated.
+PASS: actual Foot IK preserves original flag/quaternion, deduplicates shared graphs, counts owners and discards Revert state
+PASS: actual motion/PCA distinguishes origin, missing/nonfinite samples and contiguous ring histories
+PASS: actual native restore preserves completed/new deaths, original markers and thread ownership
+PASS: actual native HUD query rejects missing instances and other owners
+PASS: actual HUD paths honor ownership/failure; aggression setter maps to inverse consent and position reads are bounded
+PASS: actual reposition wait is bounded, stale continuations stop; alias captures graph state before native recovery
+PASS: actual Ending wait bounds failed cleanup, skips empty aliases and rejects stale continuations
+PASS: actual dead-alias cleanup restores the shared actor-base essential flag
+PASS: actual legacy expression/offset/gender/search guards reject invalid inputs and preserve valid behavior
+PASS: actual race animation helper validates genders before querying and tolerates sparse aliases
+PASS: actual ReleaseAnimations deduplicates shared managers, orders locks independently of actors and releases clips
+PASS: animation list skips sparse aliases, caps selection with bounded progress; page counts handle empty/exact/invalid sizes
+PASS: actual legacy runtime converts milliseconds to seconds; scene rotation increments convert radians to degrees and reject invalid axis
+PASS: actual thread/hook source control flow rejects invalid indices; hook initializes storage before writing
+PASS: actual UI conversion, voice path prefix and large sequence loop blocks
+PASS: actual filtered proxy query handles UINT32_MAX without allocating from an untrusted limit
+PASS: real collision save/remove/revert restore original mass/gravity, preserve first snapshot and release body after cache unlock
+PASS: actual creature count entry/helper reject invalid and extreme integers before arithmetic/search
+PASS: actual ObjectBound validity rejects non-finite local/world/rotation data and preserves rotated world corners
+PASS: actual setters reject non-finite values; actual YAML loader preserves the prior offset on conversion/non-finite failure
+PASS: actual fragment-list and position entry points reject null, duplicate, oversized and unsupported actors
+PASS: default bedroll half-turn uses radians and retains the vertical offset
+PASS: editor validates bad edits before publishing and preserves valid edits
+PASS: reachable path, repeated obstacle and maximum traversal work
+PASS: mixed species candidates, required actors, validity, distance and invalid search inputs
+PASS: translation BOM, TODO gaps, stable merge, missing target and atomic failure
+PASS: numeric_settings_theme
+PASS: race_contracts
+PASS: slr_domains
+PASS: excitement_storage
+PASS: scale_division
+PASS: tag_priority
+PASS: slr_scene_fields
+PASS: assignment_score_totals
+PASS: linkage, property/native boundaries, fragment bits, weighted selection, geometry, navigation, layout and hash CLI (engine stand-ins)
+PASS: 7 native audit groups (production functions, engine stand-ins; snapshot invalidation source contracts)
+PASS: pregnancy_candidates (translated Papyrus, not VM)
+PASS: stage_history (translated Papyrus, not VM)
+PASS: stage_timers (translated Papyrus, not VM)
+PASS: rejected_scene_reset (translated Papyrus, not VM)
+PASS: tag_filters (translated Papyrus, not VM)
+PASS: alias_boundaries (translated Papyrus, not VM)
+PASS: offset_arrays (translated Papyrus, not VM)
+PASS: canceled_move (translated Papyrus, not VM)
+PASS: registry_sex_flags (translated Papyrus, not VM)
+PASS: base_object_tags (translated Papyrus, not VM)
+PASS: bed_helpers (translated Papyrus, not VM)
+PASS: expression_selection (translated Papyrus, not VM)
+PASS: expression_sparse_filter (translated Papyrus, not VM)
+PASS: expression_registration (translated Papyrus, not VM)
+PASS: voice_registration (translated Papyrus, not VM)
+PASS: legacy_animation_data (translated Papyrus, not VM)
+PASS: stripping_weapons (translated Papyrus, not VM)
+PASS: creature_filters (translated Papyrus, not VM)
+PASS: gender_sorting (translated Papyrus, not VM)
+PASS: expression_units (translated Papyrus, not VM)
+PASS: legacy_properties_and_relationships (translated Papyrus, not VM)
+PASS: framework_forwarding (translated Papyrus, not VM)
+PASS: config_expression_controls (translated Papyrus, not VM)
+PASS: config_key_prefixes (translated Papyrus, not VM)
+PASS: alias_permutation_refresh (translated Papyrus, not VM)
+PASS: similar_stage_contract (translated Papyrus, not VM)
+PASS: actor_sex_overrides (translated Papyrus, not VM)
+PASS: legacy_slot_pages (translated Papyrus, not VM)
+PASS: overlay_last_layer (translated Papyrus, not VM)
+PASS: bounded_camera_wait (translated Papyrus, not VM)
+PASS: legacy_default_positions (translated Papyrus, not VM)
+PASS: matchmaker_and_install_wait (translated Papyrus, not VM)
+PASS: legacy_diagnostic_boundaries (translated Papyrus, not VM)
+PASS: order-independent partner requirements, remaining capacity, unique inputs and invalid totals
+PASS: exclusive temporary ownership, occupied reservations and failed replacement cleanup
+PASS: 192 concurrent real atomic writes preserve whole snapshots without collisions
+PASS: production INI percentages reject invalid values and normalize large finite totals safely
+PASS: production statistics constructor receives valid zero, sub-unit and collapsed random intervals
+PASS: production skeleton-chain traversal retains parent ownership across growth and handles branches
+PASS: production skeleton-chain traversal retains parent ownership across growth and handles branches
+PASS: production PCA skeleton segments preserve root-to-tip direction across orientations and degenerate endpoints
+PASS: test_top_partners (translated Papyrus, API stand-ins)
+PASS: test_duplicate_removal (translated Papyrus, API stand-ins)
+PASS: seventh-round script regressions; Papyrus compilation/game VM were not tested
+PASS: legacy reverse queries scan every action and deduplicate matching source actors
+PASS: climax wildcard/bounds and stage-reset success/error reporting
+PASS: production legacy statistics round trips, collapsed ranges and strict actor ordering
+PASS: furniture rays apply local offsets in world space; signed/periodic/nonfinite tilt is filtered in degrees
+PASS: head interaction depth feature uses the penetrating partner's pelvis
+PASS: test_merge (translated production script, API stand-ins)
+PASS: test_trim (translated production script, API stand-ins)
+PASS: test_phase (translated production script, API stand-ins)
+PASS: test_lips (translated production script, API stand-ins)
+PASS: test_stat_float (translated production script, API stand-ins)
+PASS: test_tag_replacement (translated production script, API stand-ins)
+PASS: script regressions; Papyrus compilation and game runtime were not tested
+PASS: complete voice condition fallback, matching legacy edits, missing-set creation and threshold parity
+PASS: voice metadata/empty-tags/atomic-publication source contracts (not yaml-cpp/game execution)
+Renamed: /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmpmp5oca35/P/soft/a.wav to /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmpmp5oca35/P/soft/P_s01.wav
+Renamed: /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmpmp5oca35/P/soft/P_s01.wav to /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmpmp5oca35/P/soft/P_s02.wav
+PASS: audio rename collision safety, natural-order idempotence, rollback and retained recovery bytes/manifest
+PASS: queue shutdown drains accepted tasks, task exceptions are isolated, failed launch is recoverable
+PASS: record string slices/null-data empty strings preserve wire format; zero stride and failed writes reject safely
+PASS: form parser checks base/range, empty values, upper/lower hex prefixes and module IDs
+PASS: furniture scan count bounds reject excessive/nonfinite input and counters stay finite at large coordinates
+PASS: source contracts for bounded physics retries and atomic theme publication (not engine execution)
+PASS: FX canonical names, 255 entries, missing index and vanished directory
+PASS: all five initializers run exactly once, including thread launch failure and VR mode
+PASS: all five initializers run exactly once, including thread launch failure and VR mode
+PASS: scene settings visit present keys, ignore unknown IDs, and survive directory disappearance
+PASS: exception-boundary source contracts for all eight resource enumerators
+
+=== Act Binary Model ===
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00         1
+           1       1.00      1.00      1.00         1
+
+    accuracy                           1.00         2
+   macro avg       1.00      1.00      1.00         2
+weighted avg       1.00      1.00      1.00         2
+
+Skipping Act: need at least two samples per class for held-out evaluation.
+
+=== Softmax Model (Multi) ===
+              precision    recall  f1-score   support
+
+           A       1.00      1.00      1.00         1
+           B       1.00      1.00      1.00         1
+           C       1.00      1.00      1.00         1
+
+    accuracy                           1.00         3
+   macro avg       1.00      1.00      1.00         3
+weighted avg       1.00      1.00      1.00         3
+
+Skipping softmax RareMulti: need at least two samples per class for held-out evaluation.
+
+Training models for cluster: Small, interactions: 1
+
+=== Act Binary Model ===
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00         1
+           1       1.00      1.00      1.00         1
+
+    accuracy                           1.00         2
+   macro avg       1.00      1.00      1.00         2
+weighted avg       1.00      1.00      1.00         2
+
+Exporting Act model to INI...
+Exported Act to /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmpsm76dyt8/models/run-bg59v25c/act.ini
+
+Training models for cluster: Small, interactions: 1
+
+=== Act Binary Model ===
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00         1
+           1       1.00      1.00      1.00         1
+
+    accuracy                           1.00         2
+   macro avg       1.00      1.00      1.00         2
+weighted avg       1.00      1.00      1.00         2
+
+Exporting Act model to INI...
+Exported Act to /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmpsm76dyt8/models/run-8k_bonzk/act.ini
+Unified INI file exported to /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmpsm76dyt8/combined.ini
+No new INI exports; existing model configuration left unchanged.
+No new INI exports; existing model configuration left unchanged.
+PASS: small/rare class handling, isolated training runs, stale export exclusion and atomic INI failure recovery
+PASS: PCA orthogonal seeds/tiny motions/dominant axis, limited antiparallel rotation and projected radians
+PASS: 200 rotated negative-coordinate bounds, SAT separation/penetration/containment and corners
+PASS: cross-file CSV schema validation accepts reordered columns and rejects missing/extra fields
+PASS: source contracts for initialized Havok translation, unaligned stores and linear install registration
+PASS: audio conversion preserves source on failure/existing output and publishes completed output before deletion
+PASS: production closest-segment crossing, point/parallel cases and 1000 randomized symmetry/optimality checks
+PASS: production tracking v1 roundtrip, unresolved IDs, every truncation, malformed counts/delimiter and concurrent callbacks
+PASS: production min/max shared scan preserves empty and NaN behavior
+PASS: production default coordinate is the identity transform
+PASS: production legacy conditional voice selection and zero-copy orgasm lookup
+PASS: raycast layer mask handles every 7-bit value without oversized shifts
+PASS: source contracts for failed-start cleanup and graph stack boundary (not game execution)
+PASS: production ML cluster handoff and queue submission outside frame mutex
+PASS: production strip deletion/reset, unavailable plugin preservation and atomic reload
+PASS: production path functions, 1024 DAGs/all roots and cycle
+PASS: production statistics serialization/migration, missing IDs, encounters, locks and reset
+PASS: production multi-frame hysteresis, disappearing types, immutable query snapshots
+PASS: production destruction clears both registries, pending creation and quick-reset ownership
+PASS: production CSV schema remains fixed across reordered/missing/empty descriptors
+PASS: 287 Papyrus native declarations matched to registrations
+PASS: sklearn -> INI -> production C++ cluster predictor (2/3 classes, absent descriptor)
+Exported class Anal
+Exported class Vaginal
+Softmax model exported to /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmp6mzrdekv/model.ini
+Exported class Anal
+Exported class Crotch_NONE
+Exported class Vaginal
+Softmax model exported to /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmp6mzrdekv/model.ini
+Exported Vaginal to /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmp6mzrdekv/model.ini
+Unified INI file exported to /var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/tmp6mzrdekv/combined.ini
+PASS: all portable tests; DLL and game runtime were not tested

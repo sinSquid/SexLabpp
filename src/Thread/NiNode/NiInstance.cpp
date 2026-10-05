@@ -8,7 +8,8 @@ namespace Thread::NiNode
     {
         assert(a_positions.size() <= std::numeric_limits<int8_t>::max());
         positions.reserve(a_positions.size());
-        states.reserve(a_positions.size() * (a_positions.size() - 1));
+        // Self pairs are evaluated too: the loops below create n * n states.
+        states.reserve(a_positions.size() * a_positions.size());
         for (size_t i = 0; i < a_positions.size(); i++) {
             const auto sex = a_scene->GetNthPosition(i)->data.GetSex().get();
             positions.emplace_back(a_positions[i], sex);
