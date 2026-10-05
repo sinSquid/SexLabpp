@@ -135,7 +135,7 @@ namespace Thread::NiNode
         // a_motionB: penetrating actor (with schlong)
         NiInteractionCluster result{};
         assert(a_motionA.HasSufficientData() && a_motionB.HasSufficientData());
-        if (!a_motionB.HasMomentData(NiMotion::pSchlongTip)) {
+        if (!a_motionB.HasMomentData(NiMotion::pSchlongTip) || !a_motionB.HasMomentData(NiMotion::pSchlongBase)) {
             return result;
         }
 
@@ -152,7 +152,7 @@ namespace Thread::NiNode
 
         const auto EvaluateInteraction = [&](NiMotion::Anchor motionAnchor, NiMotion::Anchor motionAnchorEnd)
             -> std::optional<std::tuple<const MotionDescriptor, RE::NiPoint3, float, float, float>> {
-            if (!a_motionA.HasMomentData(motionAnchor)) {
+            if (!a_motionA.HasMomentData(motionAnchor) || !a_motionA.HasMomentData(motionAnchorEnd)) {
                 return std::nullopt;
             }
             const auto motion = a_motionA.DescribeMotion(motionAnchor);
@@ -224,7 +224,8 @@ namespace Thread::NiNode
         NiInteractionCluster result{};
         assert(a_motionA.HasSufficientData() && a_motionB.HasSufficientData());
         const auto headBound = a_motionA.GetLatestHeadBound();
-        if (!a_motionB.HasMomentData(NiMotion::pSchlongBase) || !headBound.IsValid()) {
+        if (!a_motionB.HasMomentData(NiMotion::pSchlongBase) || !a_motionB.HasMomentData(NiMotion::pSchlongTip) ||
+            !a_motionA.HasMomentData(NiMotion::pHead) || !a_motionA.HasMomentData(NiMotion::pMouth) || !headBound.IsValid()) {
             return result;
         }
 
@@ -301,6 +302,9 @@ namespace Thread::NiNode
     {
         NiInteractionCluster result{};
         assert(a_motionA.HasSufficientData() && a_motionB.HasSufficientData());
+
+        if (!a_motionA.HasMomentData(NiMotion::pMouth) || !a_motionB.HasMomentData(NiMotion::pMouth))
+            return result;
 
         const auto mouthA = a_motionA.DescribeMotion(NiMotion::pMouth);
         const auto mouthB = a_motionB.DescribeMotion(NiMotion::pMouth);

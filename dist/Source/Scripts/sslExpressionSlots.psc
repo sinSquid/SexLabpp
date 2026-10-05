@@ -42,9 +42,7 @@ String[] Property Registry
 		int ii = 0
 		While (i < aliases.Length)
 			sslBaseExpression it = aliases[i] as sslBaseExpression
-			If (!it)
-				i = aliases.Length
-			ElseIf (it.Registered)
+			If (it && it.Registered)
 				ret[ii] = it.Name
 				ii += 1
 			EndIf
@@ -69,12 +67,16 @@ Function SyncBackend()
 	String[] profiles = GetAllProfileIDs()
 	int i = 0
 	int ii = 0
-	While (i < aliases.Length && ii < profiles.Length)
+	While (i < aliases.Length)
 		sslBaseExpression expr = aliases[i] as sslBaseExpression
 		If (expr)
 			expr.Registry = expr.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
-			expr.Registry = profiles[ii]
-			ii += 1
+			If (ii < profiles.Length)
+				expr.Registry = profiles[ii]
+				ii += 1
+			Else
+				expr.Registry = ""
+			EndIf
 		EndIf
 		i += 1
 	EndWhile
@@ -105,7 +107,7 @@ sslBaseExpression function PickByStatus(Actor ActorRef, bool IsVictim = false, b
 	If (!ret.Length)
 		return none
 	EndIf
-	return ret[Utility.RandomInt(0, ret.length)]
+	return ret[Utility.RandomInt(0, ret.Length - 1)]
 endFunction
 
 sslBaseExpression[] function GetByStatus(Actor ActorRef, bool IsVictim = false, bool IsAggressor = false)
@@ -125,7 +127,7 @@ sslBaseExpression function RandomByTag(string Tag, bool ForFemale = true)
 	If (!ret.Length)
 		return none
 	EndIf
-	return ret[Utility.RandomInt(0, ret.length)]
+	return ret[Utility.RandomInt(0, ret.Length - 1)]
 endFunction
 
 sslBaseExpression[] function GetByTag(string Tag, bool ForFemale = true)
@@ -145,23 +147,11 @@ sslBaseExpression[] function GetByTag(string Tag, bool ForFemale = true)
 endFunction
 
 sslBaseExpression function SelectRandom(bool[] Valid)
-	int n = Utility.RandomInt(0, (Slotted - 1))
-	int Slot = Valid.Find(true, n)
-	if Slot == -1
-		Slot = Valid.RFind(true, n)
-	endIf
-	Alias[] aliases = GetAliases()
-	int i = 0
-	While (i < aliases.Length)
-		sslBaseExpression it = aliases[i] as sslBaseExpression
-		If (slot == 0)
-			return it
-		Else
-			Slot -= 1
-		EndIf
-		i += 1
-	EndWhile
-	return none
+	sslBaseExpression[] choices = GetList(Valid)
+	If (!choices.Length)
+		return none
+	EndIf
+	return choices[Utility.RandomInt(0, choices.Length - 1)]
 endFunction
 
 ; ------------------------------------------------------- ;
@@ -169,22 +159,31 @@ endFunction
 ; ------------------------------------------------------- ;
 
 sslBaseExpression[] function GetList(bool[] Valid)
-	sslBaseExpression[] Output
-	If (Valid.Length <= 0 || Valid.Find(true) == -1)
-		return Output
-	EndIf
-	Output = sslUtility.ExpressionArray(PapyrusUtil.CountBool(Valid, true))
+	sslBaseExpression[] Output = sslUtility.ExpressionArray(PapyrusUtil.CountBool(Valid, true))
 	Alias[] aliases = GetAliases()
 	int i = 0
-	int ii = 0
-	While (i < aliases.Length && ii < Output.Length)
+	int input = 0
+	int outputIdx = 0
+	While (i < aliases.Length && input < Valid.Length)
 		sslBaseExpression it = aliases[i] as sslBaseExpression
-		If (it && it.Registered && Valid[ii])
-			Output[ii] = it
-			ii += 1
+		If (it && it.Registered)
+			If (Valid[input])
+				Output[outputIdx] = it
+				outputIdx += 1
+			EndIf
+			input += 1
 		EndIf
 		i += 1
 	EndWhile
+	If (outputIdx < Output.Length)
+		sslBaseExpression[] trimmed = sslUtility.ExpressionArray(outputIdx)
+		int n = 0
+		While (n < outputIdx)
+			trimmed[n] = Output[n]
+			n += 1
+		EndWhile
+		return trimmed
+	EndIf
 	return Output
 endFunction
 
@@ -248,10 +247,12 @@ endFunction
 ; ------------------------------------------------------- ;
 
 int function PageCount(int perpage = 125)
+	perpage = PapyrusUtil.ClampInt(perpage, 1, 128)
 	return Math.Ceiling(Slotted as float / perpage as float)
 endFunction
 
 int function FindPage(string Registrar, int perpage = 125)
+	perpage = PapyrusUtil.ClampInt(perpage, 1, 128)
 	int i = Registry.Find(Registrar)
 	if i != -1
 		return (i / perpage) + 1
@@ -299,30 +300,39 @@ endFunction
 ; ------------------------------------------------------- ;
 
 int Function FindEmpty()
-	int n = Slotted
-	If (GetNthAlias(n + 1))
-		return n + 1
-	EndIf
+	Alias[] aliases = GetAliases()
+	int i = 0
+	While (i < aliases.Length)
+		sslBaseExpression it = aliases[i] as sslBaseExpression
+		If (it && !it.Registered)
+			return i
+		EndIf
+		i += 1
+	EndWhile
 	return -1
 EndFunction
 
 bool RegisterLock = false
 int function Register(string Registrar)
-	if Registrar == "" || Registry.Find(Registrar) != -1
+	if Registrar == ""
 		return -1
 	endIf
 	while RegisterLock
 		Utility.WaitMenuMode(0.5)
 	endWhile
 	RegisterLock = true
-	int ret = FindEmpty()
-	If (ret == -1 || !sslBaseExpression.CreateEmptyProfile(Registrar))
-		sslBaseExpression it = GetBySlot(ret) as sslBaseExpression
-		it.Registry = it.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
-		it.Registry = Registrar
+	SyncBackend()
+	If (FindByRegistrar(Registrar) != -1 || FindEmpty() == -1)
 		RegisterLock = false
 		return -1
 	EndIf
+	If (!sslBaseExpression.CreateEmptyProfile(Registrar))
+		RegisterLock = false
+		return -1
+	EndIf
+	; Native IDs can reorder the aliases, so return the actual bound slot.
+	SyncBackend()
+	int ret = FindByRegistrar(Registrar)
 	RegisterLock = false
 	return ret
 endFunction

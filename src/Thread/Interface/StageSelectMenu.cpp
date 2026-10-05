@@ -1,6 +1,8 @@
 #include "StageSelectMenu.h"
 #include "SceneHUD.h"
 
+#include <charconv>
+
 namespace Thread::Interface
 {
     using UI::DrawTextShadowed;
@@ -25,8 +27,9 @@ namespace Thread::Interface
                         const bool isIndex = !digits.empty() &&
                                              std::ranges::all_of(digits, [](char c) { return std::isdigit(static_cast<unsigned char>(c)); });
                         if (isIndex) {
-                            const size_t idx = static_cast<size_t>(std::stoul(std::string{ digits }));
-                            const RE::Actor* actor = idx < a_actors.size() ? a_actors[idx] : nullptr;
+                            size_t idx{};
+                            const auto parsed = std::from_chars(digits.data(), digits.data() + digits.size(), idx);
+                            const RE::Actor* actor = parsed.ec == std::errc{} && idx < a_actors.size() ? a_actors[idx] : nullptr;
                             out += actor ? actor->GetName() : "{}";
                             i = close + 1;
                             continue;
@@ -43,6 +46,16 @@ namespace Thread::Interface
     {
         static StageSelectMenu singleton;
         return singleton;
+    }
+
+    void StageSelectMenu::Revert()
+    {
+        Close();
+        _linkedThread = nullptr;
+        _graphScene = nullptr;
+        _graphNodes.clear();
+        _graphEdges.clear();
+        _graphCurrentIndex = -1;
     }
 
     bool StageSelectMenu::Register()
@@ -477,6 +490,12 @@ namespace Thread::Interface
 
     void StageSelectMenu::RenderSceneGraphView()
     {
+        auto inst = Instance::GetInstance(_linkedThread);
+        if (!inst) {
+            Close();
+            return;
+        }
+
         auto& scale = SceneHUD::GetSingleton().GetScale();
         auto* io = ImGuiMCP::GetIO();
         const float dw = io->DisplaySize.x;
@@ -655,12 +674,6 @@ namespace Thread::Interface
                 const ImGuiMCP::ImVec2 wRight{ tip.x - ux * wingSize + uy * wingSize * 0.6f, tip.y - uy * wingSize - ux * wingSize * 0.6f };
                 ImGuiMCP::ImDrawListManager::AddTriangleFilled(dl, tip, wLeft, wRight, UI::Theme::Color.borderHovered);
             }
-        }
-
-        auto inst = Instance::GetInstance(_linkedThread);
-        if (!inst) {
-            ImGuiMCP::ImDrawListManager::PopClipRect(dl);
-            return;
         }
 
         // Nodes

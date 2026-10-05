@@ -54,12 +54,13 @@ namespace Papyrus::SexLabRegistry
 
     std::vector<int32_t> GetRaceIDA(STATICARGS, RE::Actor* a_actor)
     {
-        const auto key = GetRaceID(a_vm, a_stackID, nullptr, a_actor);
-        if (key == 0) {
+        const Registry::RaceKey racekey{ a_actor };
+        if (!racekey.IsValid()) {
+            a_vm->TraceStack("Cannot get race ids of a none or unrecognized actor", a_stackID);
             return {};
         }
-        std::vector<int32_t> ret{ key };
-        const auto alternate = Registry::RaceKey(Registry::RaceKey::Value(key)).GetMetaRace();
+        std::vector<int32_t> ret{ static_cast<int32_t>(racekey.value) };
+        const auto alternate = racekey.GetMetaRace();
         if (alternate.IsValid()) {
             ret.push_back(static_cast<int32_t>(alternate));
         }
@@ -68,12 +69,12 @@ namespace Papyrus::SexLabRegistry
 
     std::vector<int32_t> MapRaceKeyToIDA(STATICARGS, RE::BSFixedString a_racekey)
     {
-        const auto key = MapRaceKeyToID(a_vm, a_stackID, nullptr, a_racekey);
-        if (key == 0) {
+        const Registry::RaceKey racekey{ a_racekey };
+        if (!racekey.IsValid()) {
+            a_vm->TraceStack("Cannot map an unrecognized race key", a_stackID);
             return {};
         }
-        std::vector<int32_t> ret{ key };
-        const Registry::RaceKey racekey{ a_racekey };
+        std::vector<int32_t> ret{ static_cast<int32_t>(racekey.value) };
         const auto alternate = racekey.GetMetaRace();
         if (alternate.IsValid()) {
             ret.push_back(static_cast<int32_t>(alternate.value));
@@ -113,6 +114,8 @@ namespace Papyrus::SexLabRegistry
 
     RE::BSFixedString MapRaceIDToRaceKey(RE::StaticFunctionTag*, int32_t a_raceid)
     {
+        if (a_raceid < 0 || a_raceid > Registry::RaceKey::Wolf)
+            return {};
         return Registry::RaceKey(Registry::RaceKey::Value(a_raceid)).AsString();
     }
 
@@ -144,6 +147,8 @@ namespace Papyrus::SexLabRegistry
 
     std::vector<RE::BSFixedString> MapRaceIDToRaceKeyA(RE::StaticFunctionTag*, int32_t a_raceid)
     {
+        if (a_raceid < 0 || a_raceid > Registry::RaceKey::Wolf)
+            return {};
         const Registry::RaceKey key{ Registry::RaceKey::Value(a_raceid) };
         const auto key1 = key.AsString();
         if (key1.empty())
@@ -359,6 +364,10 @@ namespace Papyrus::SexLabRegistry
             a_vm->TraceStack("Array is empty or contains none", a_stackID);
             return -1;
         }
+        std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
+        const auto fragments = Registry::ActorFragment::MakeFragmentList(positions, { a_victim });
+        if (fragments.empty())
+            return -1;
         const auto lib = Registry::Library::GetSingleton();
         for (size_t i = 0; i < a_sceneids.size(); i++) {
             const auto scene = lib->GetSceneById(a_sceneids[i]);
@@ -366,8 +375,6 @@ namespace Papyrus::SexLabRegistry
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
                 break;
             }
-            std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
-            const auto fragments = Registry::ActorFragment::MakeFragmentList(positions, { a_victim });
             const auto result = scene->FindAssignments(fragments);
             if (result.empty())
                 continue;
@@ -390,6 +397,10 @@ namespace Papyrus::SexLabRegistry
             a_vm->TraceStack("Array is empty or contains none", a_stackID);
             return -1;
         }
+        std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
+        const auto fragments = Registry::ActorFragment::MakeFragmentList(positions, a_victims);
+        if (fragments.empty())
+            return -1;
         const auto lib = Registry::Library::GetSingleton();
         for (size_t i = 0; i < a_sceneids.size(); i++) {
             const auto scene = lib->GetSceneById(a_sceneids[i]);
@@ -397,8 +408,6 @@ namespace Papyrus::SexLabRegistry
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
                 break;
             }
-            std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
-            const auto fragments = Registry::ActorFragment::MakeFragmentList(positions, a_victims);
             const auto result = scene->FindAssignments(fragments);
             if (result.empty())
                 continue;
@@ -821,6 +830,7 @@ namespace Papyrus::SexLabRegistry
             a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
             return;
         }
+        a_newoffset[3] = glm::radians(a_newoffset[3]);
         const auto& func = [&](auto scene) {
             const Registry::Coordinate coordinate{ a_newoffset };
             scene->furnitureOffset.SetOffset(coordinate);
@@ -897,6 +907,7 @@ namespace Papyrus::SexLabRegistry
                 a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
                 return;
             }
+            a_newoffset[3] = glm::radians(a_newoffset[3]);
             const Registry::Coordinate coordinate{ a_newoffset };
             if (a_stage.empty()) {
                 scene->ForEachStage([&](Registry::Stage* a_stage) {

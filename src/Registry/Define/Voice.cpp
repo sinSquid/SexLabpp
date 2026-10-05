@@ -86,7 +86,11 @@ namespace Registry
 
     void Voice::SaveToFile(std::string_view a_fileLocation) const
     {
-        const auto path = std::format("{}\\{}.yaml", a_fileLocation, GetId());
+        const std::string_view id{ GetId().data() };
+        // IDs are metadata too, but must be a single file stem when exported.
+        if (id.empty() || id == "." || id == ".." || id.find_first_of("/\\:") != std::string_view::npos)
+            throw std::invalid_argument("Voice ID cannot be used as a file name");
+        const auto path = fs::path{ a_fileLocation } / std::format("{}.yaml", id);
         if (fs::exists(path)) {
             return;
         }
@@ -155,12 +159,12 @@ namespace Registry
                 data.emplace_back(sound, static_cast<uint8_t>(priority));
             }
         } else {
-            const auto max = static_cast<float>(v.size());
-            for (float i = 0; i < max; i++) {
+            const auto max = v.size();
+            for (size_t i = 0; i < max; ++i) {
                 auto sound = Util::FormFromString<RE::TESSound*>(v[i].as<std::string>());
                 if (!sound)
                     continue;
-                data.emplace_back(sound, static_cast<uint8_t>((i / max) * 100.0f));
+                data.emplace_back(sound, static_cast<uint8_t>((static_cast<double>(i) / static_cast<double>(max)) * 100.0));
             }
         }
         if (data.empty()) {

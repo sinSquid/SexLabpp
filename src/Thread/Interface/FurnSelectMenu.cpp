@@ -11,6 +11,15 @@ namespace Thread::Interface
         return singleton;
     }
 
+    void FurnSelectMenu::Revert()
+    {
+        const std::scoped_lock lock{ _stateMutex };
+        Hide();
+        _linkedThread = nullptr;
+        _startupRequest = 0;
+        _items.clear();
+    }
+
     bool FurnSelectMenu::Register()
     {
         if (!RegisterWindow(RenderCallback, true)) {
@@ -53,7 +62,10 @@ namespace Thread::Interface
         if (!quest)
             return;
         const auto request = _startupRequest;
-        SKSE::GetTaskInterface()->AddTask([quest, request, a_index]() {
+        const auto generation = Instance::GetWorldGeneration();
+        SKSE::GetTaskInterface()->AddTask([quest, request, a_index, generation]() {
+            if (Instance::GetWorldGeneration() != generation)
+                return;
             auto inst = Instance::GetPendingInstance(quest);
             if (!inst || !inst->IsStartupRequest(request))
                 return;

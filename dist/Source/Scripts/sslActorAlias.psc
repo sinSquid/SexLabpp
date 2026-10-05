@@ -229,7 +229,7 @@ int Property PATHING_ENABLE = 0 AutoReadOnly
 int Property PATHING_FORCE = 1 AutoReadOnly
 
 Function SetPathing(int aiPathingFlag)
-	_PathingFlag = PapyrusUtil.ClampInt(_PathingFlag, PATHING_DISABLE, PATHING_FORCE)
+	_PathingFlag = PapyrusUtil.ClampInt(aiPathingFlag, PATHING_DISABLE, PATHING_FORCE)
 EndFunction
 
 ; *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* ;
@@ -384,6 +384,10 @@ Auto State Empty
 		EndIf
 		_sex = SexLabRegistry.GetSex(_ActorRef, true)
 		_raceID = SexLabRegistry.GetRaceID(_ActorRef)
+		If (_sex <= 2)
+			_AnimVarIsNPC = _ActorRef.GetAnimationVariableInt("IsNPC")
+			_AnimVarbHumanoidFootIKDisable = _ActorRef.GetAnimationVariableBool("bHumanoidFootIKDisable")
+		EndIf
 		_ActorRef.SetFactionRank(_AnimatingFaction, 1)
 		TrackedEvent(TRACK_ADDED)
 		GoToState(STATE_SETUP)
@@ -392,10 +396,14 @@ Auto State Empty
 
 	Function Clear()
 		If (GetIsDead())
-			If (_ActorRef.IsEssential())
+			bool wasEssential = _ActorRef.IsEssential()
+			If (wasEssential)
 				_ActorRef.GetActorBase().SetEssential(false)
 			EndIf
 			_ActorRef.KillSilent(_killer)
+			If (wasEssential)
+				_ActorRef.GetActorBase().SetEssential(true)
+			EndIf
 		Else
 			_Thread.RequestStatisticUpdate(_ActorRef, _StartedAt)
 		EndIf
@@ -468,10 +476,6 @@ State Ready
 		If (_ActorRef != preparingActor || GetState() != STATE_SETUP || _Thread.StartupRequest != request)
 			return
 		EndIf
-		If (_sex <= 2)
-			_AnimVarIsNPC = _ActorRef.GetAnimationVariableInt("IsNPC")
-			_AnimVarbHumanoidFootIKDisable = _ActorRef.GetAnimationVariableBool("bHumanoidFootIKDisable")
-		EndIf		
 		GoToState(STATE_PAUSED)
 		; Delayed Initialization
 		If (_sex <= 2)
@@ -936,7 +940,7 @@ State Animating
 			If (sslLovense.IsLovenseInstalled())
 				_LoopLovenseDelay = sslSystemConfig.GetSettingFlt("fLovenseDurationOrgasm")
 				int strength = sslSystemConfig.GetSettingInt("iLovenseStrengthOrgasm")
-				float duration = sslSystemConfig.GetSettingInt("fLovenseDurationOrgasm")
+				float duration = sslSystemConfig.GetSettingFlt("fLovenseDurationOrgasm")
 				sslLovense.StartOrgasmAction(strength, duration)
 			EndIf
 		EndIf
@@ -1480,20 +1484,28 @@ bool Function WaitForOrgasm()
 EndFunction
 
 Function StoreExcitementState(String arg = "")
-	string ActorName = GetActorName()
+	If !_ActorRef
+		return
+	EndIf
 	If (arg == "Backup")
-		StorageUtil.SetFloatValue(None, ("EnjBackupTime_" + ActorName),  SexLabUtil.GetCurrentGameRealTime())
-		StorageUtil.SetIntValue(None, ("LastOrgasmCount_" + ActorName), _OrgasmCount)
+		StorageUtil.SetFloatValue(_ActorRef, "SexLab.EnjBackupTime",  SexLabUtil.GetCurrentGameRealTime())
+		StorageUtil.SetIntValue(_ActorRef, "SexLab.LastOrgasmCount", _OrgasmCount)
 		If _FullEnjoyment > 10
-			StorageUtil.SetIntValue(None, ("LastEnjoyment_" + ActorName), _FullEnjoyment)
+			StorageUtil.SetIntValue(_ActorRef, "SexLab.LastEnjoyment", _FullEnjoyment)
+		Else
+			StorageUtil.SetIntValue(_ActorRef, "SexLab.LastEnjoyment", 0)
 		EndIf
 	ElseIf (arg == "Restore")
-		float TimeSinceEnjBackup = (SexLabUtil.GetCurrentGameRealTime() - StorageUtil.GetFloatValue(None, ("EnjBackupTime_" + ActorName)))
-		If (TimeSinceEnjBackup < 60)
-			_OrgasmCount = StorageUtil.GetIntValue(None, ("LastOrgasmCount_" + ActorName))
-			int LastEnjoyment = StorageUtil.GetIntValue(None, ("LastEnjoyment_" + ActorName))
+		If !StorageUtil.HasFloatValue(_ActorRef, "SexLab.EnjBackupTime")
+			return
+		EndIf
+		float TimeSinceEnjBackup = (SexLabUtil.GetCurrentGameRealTime() - StorageUtil.GetFloatValue(_ActorRef, "SexLab.EnjBackupTime"))
+		If (TimeSinceEnjBackup >= 0 && TimeSinceEnjBackup < 60)
+			_OrgasmCount = StorageUtil.GetIntValue(_ActorRef, "SexLab.LastOrgasmCount")
+			int LastEnjoyment = StorageUtil.GetIntValue(_ActorRef, "SexLab.LastEnjoyment")
 			; Decay the saved enjoyment, then keep it in the normal range.
-			_FullEnjoyment = PapyrusUtil.ClampInt((LastEnjoyment as float * (1 - (TimeSinceEnjBackup/60))) as int, -100, 100)
+			float DecayedEnjoyment = LastEnjoyment as float * (1 - (TimeSinceEnjBackup/60))
+			_FullEnjoyment = PapyrusUtil.ClampInt(DecayedEnjoyment as int, -100, 100)
 		EndIf
 	EndIf
 EndFunction
@@ -1563,7 +1575,7 @@ EndFunction
 ; *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* ;
 
 function OffsetCoords(float[] Output, float[] CenterCoords, float[] OffsetBy) global
-	If (OffsetBy.Length != 4 && CenterCoords.Length != 6 && Output.Length != 6)
+	If (OffsetBy.Length != 4 || CenterCoords.Length != 6 || Output.Length != 6)
 		return
 	EndIf
 	float pi = 2.0 * Math.asin(1.0)

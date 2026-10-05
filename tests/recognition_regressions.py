@@ -6,8 +6,10 @@ code=r'''
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -62,6 +64,11 @@ int main(){using namespace Thread::NiNode;
  step(.5f,4);assert(instance.GetInteractions(0,0,NiType::Type::None).empty());
  visible=false;step(.8f,5);assert(instance.state.interactionClusters[1].interactions.empty());
  visible=true;step(.5f,6);assert(instance.GetInteractions(0,0,NiType::Type::None).empty());
+ for(float invalid:{std::numeric_limits<float>::quiet_NaN(),std::numeric_limits<float>::infinity(),-std::numeric_limits<float>::infinity()}){
+  step(.8f,7);step(invalid,8);
+  assert(instance.GetInteractions(0,0,NiType::Type::None).empty());
+  assert(instance.state.interactionClusters[1].interactions[0].timeActive==0);
+ }
  std::cout<<"PASS: production multi-frame hysteresis, disappearing types, immutable query snapshots\n";
 }
 '''

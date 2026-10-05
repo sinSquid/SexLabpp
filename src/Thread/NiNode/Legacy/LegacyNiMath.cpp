@@ -22,12 +22,15 @@ namespace Thread::LegacyNiNode::NiMath
             const auto vUvV = vV.Dot(vU);
             const auto det = lU * lV - vUvV * vUvV;
 
-            if (det < FLT_EPSILON * lU * lV) {
-                s = std::clamp(vUvR / lU, 0.0f, 1.0f);
+            s = det <= FLT_EPSILON * lU * lV ? 0.0f :
+                std::clamp((vUvR * lV - vVvR * vUvV) / det, 0.0f, 1.0f);
+            t = (s * vUvV - vVvR) / lV;
+            if (t < 0.0f) {
                 t = 0.0f;
-            } else {
-                s = std::clamp((vUvR * lV - vVvR * vUvV) / det, 0.0f, 1.0f);
-                t = std::clamp((vUvR + s * vUvV) / lV, 0.0f, 1.0f);
+                s = std::clamp(vUvR / lU, 0.0f, 1.0f);
+            } else if (t > 1.0f) {
+                t = 1.0f;
+                s = std::clamp((vUvR + vUvV) / lU, 0.0f, 1.0f);
             }
         }
 

@@ -189,8 +189,8 @@ namespace Thread::NiNode
             constexpr auto NaN = std::numeric_limits<float>::quiet_NaN();
             std::string section{ magic_enum::enum_name<NiType::Type>(Id) };
             bias = static_cast<float>(inifile.GetDoubleValue(section.c_str(), "bias", NaN));
-            if (std::isnan(bias)) {
-                const auto err = std::format("Descriptor '{}': Missing bias value", section);
+            if (!std::isfinite(bias)) {
+                const auto err = std::format("Descriptor '{}': Missing or non-finite bias value", section);
                 throw std::runtime_error(err);
             }
             clusterModel = std::string_view(inifile.GetValue(section.c_str(), "schema", "legacy")) == "cluster-v2";
@@ -212,8 +212,8 @@ namespace Thread::NiNode
             for (const auto& [feature, name] : features) {
                 const auto lowerName = Util::CastLower(std::string{ name });
                 const auto value = static_cast<float>(inifile.GetDoubleValue(section.c_str(), lowerName.c_str(), NaN));
-                if (std::isnan(value)) {
-                    const auto err = std::format("Descriptor '{}': Missing value for feature '{}'", section, name);
+                if (!std::isfinite(value)) {
+                    const auto err = std::format("Descriptor '{}': Missing or non-finite value for feature '{}'", section, name);
                     throw std::runtime_error(err);
                 }
                 coefficients[static_cast<size_t>(feature)] = value;

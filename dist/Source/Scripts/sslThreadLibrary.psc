@@ -34,10 +34,10 @@ bool Function IsBedRoll(ObjectReference BedRef)
   return GetBedType(BedRef) == BedType_BedRoll
 EndFunction
 bool function IsDoubleBed(ObjectReference BedRef)
-  return GetBedType(BedRef) == BedType_Single
+  return GetBedType(BedRef) == BedType_Double
 endFunction
 bool function IsSingleBed(ObjectReference BedRef)
-  return GetBedType(BedRef) == BedType_Double
+  return GetBedType(BedRef) == BedType_Single
 endFunction
 
 bool Function IsBedAvailable(ObjectReference BedRef)
@@ -58,7 +58,7 @@ ObjectReference Function FindBed(ObjectReference CenterRef, float Radius = 1000.
   ObjectReference[] beds = FindBeds(CenterRef, Radius)
   int i = 0
   While(i < beds.Length)
-    If(beds[i] != IgnoreRef1 && beds[i] != IgnoreRef2 && (IgnoreUsed || IsBedAvailable(beds[i])))
+    If(beds[i] != IgnoreRef1 && beds[i] != IgnoreRef2 && (!IgnoreUsed || IsBedAvailable(beds[i])))
       return beds[i]
     EndIf
     i += 1
@@ -111,12 +111,20 @@ Actor[] Function SortActors(Actor[] Positions, bool FemaleFirst = true)
   return retVal
 EndFunction
 bool Function IsLesserGender(int i, int n, bool abFemaleFirst)
-  If (n == i)
-    return false
-  ElseIf (n == 0 && !abFemaleFirst)
-    return true
+  ; A non-strict comparison keeps actors of the same sex in input order.
+  If (abFemaleFirst)
+    If (i == 1)
+      i = 0
+    ElseIf (i == 0)
+      i = 1
+    EndIf
+    If (n == 1)
+      n = 0
+    ElseIf (n == 0)
+      n = 1
+    EndIf
   EndIf
-  return i < n
+  return i <= n
 EndFunction
 
 Actor[] Function SortActorsByAnimationImpl(String asSceneID, Actor[] akPositions, Actor[] akVictims) native
@@ -201,9 +209,12 @@ bool function CheckActor(Actor CheckRef, int CheckGender = -1)
 endFunction
 
 int function FindNext(Actor[] Positions, sslBaseAnimation Animation, int offset, bool FindCreature)
-  while offset
+  if !Animation || offset < 0 || offset > Positions.Length
+    return -1
+  endIf
+  while offset > 0
     offset -= 1
-    if Animation.HasRace(Positions[offset].GetLeveledActorBase().GetRace()) == FindCreature
+    if Positions[offset] && Animation.HasRace(Positions[offset].GetLeveledActorBase().GetRace()) == FindCreature
       return offset
     endIf
   endwhile

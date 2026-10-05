@@ -10,6 +10,7 @@ namespace Thread::NiNode
         }
         _headBounds.resize(_capacity);
         _timestamps.resize(_capacity);
+        _present.resize(_capacity);
     }
 
     void NiMotion::Push(const Node::NodeData& nodes, float timeStamp)
@@ -17,22 +18,29 @@ namespace Thread::NiNode
         for (auto& entry : descriptorCache)
             entry.reset();
         const size_t idx = _writeIndex;
+        _present[idx].reset();
+        const auto store = [&](Anchor anchor, const RE::NiPoint3& value) {
+            if (std::isfinite(timeStamp) && std::isfinite(value.x) && std::isfinite(value.y) && std::isfinite(value.z)) {
+                _moments[anchor][idx] = value;
+                _present[idx].set(static_cast<size_t>(anchor));
+            }
+        };
         for (auto& moment : _moments)
             moment[idx] = RE::NiPoint3::Zero();
         _headBounds[idx] = ObjectBound{};
         _timestamps[idx] = timeStamp;
 
         if (const auto niHead = nodes.head) {
-            _moments[Anchor::vHeadX][idx] = niHead->world.rotate.GetVectorX();
-            _moments[Anchor::vHeadY][idx] = niHead->world.rotate.GetVectorY();
-            _moments[Anchor::vHeadZ][idx] = niHead->world.rotate.GetVectorZ();
-            _moments[Anchor::pHead][idx] = nodes.head->world.translate;
+            store(Anchor::vHeadX, niHead->world.rotate.GetVectorX());
+            store(Anchor::vHeadY, niHead->world.rotate.GetVectorY());
+            store(Anchor::vHeadZ, niHead->world.rotate.GetVectorZ());
+            store(Anchor::pHead, nodes.head->world.translate);
             if (auto opt = ObjectBound::MakeBoundingBox(niHead.get())) {
                 _headBounds[idx] = *opt;
                 const auto down = _headBounds[idx].boundMin.z * 0.17f;
                 const auto forward = _headBounds[idx].boundMax.y * 0.88f;
-                _moments[Anchor::pThroat][idx] = (_moments[Anchor::vHeadZ][idx] * down) + _moments[Anchor::pHead][idx];
-                _moments[Anchor::pMouth][idx] = (_moments[Anchor::vHeadY][idx] * forward) + _moments[Anchor::pThroat][idx];
+                store(Anchor::pThroat, (_moments[Anchor::vHeadZ][idx] * down) + _moments[Anchor::pHead][idx]);
+                store(Anchor::pMouth, (_moments[Anchor::vHeadY][idx] * forward) + _moments[Anchor::pThroat][idx]);
             } else {
                 _headBounds[idx] = ObjectBound{};
                 logger::warn("Failed to get head bounding box");
@@ -41,26 +49,26 @@ namespace Thread::NiNode
 
         if (!nodes.schlongs.empty()) {
             const auto sSchlong = nodes.schlongs.front()->GetReferenceSegment();
-            _moments[Anchor::pSchlongBase][idx] = sSchlong.first;
-            _moments[Anchor::pSchlongTip][idx] = sSchlong.second;
+            store(Anchor::pSchlongBase, sSchlong.first);
+            store(Anchor::pSchlongTip, sSchlong.second);
         }
 
         if (const auto sVaginal = nodes.GetVaginalSegment()) {
-            _moments[Anchor::pVaginalStart][idx] = sVaginal->first;
-            _moments[Anchor::pVaginalEnd][idx] = sVaginal->second;
+            store(Anchor::pVaginalStart, sVaginal->first);
+            store(Anchor::pVaginalEnd, sVaginal->second);
         }
         if (const auto& niClitoris = nodes.clitoris) {
-            _moments[Anchor::pClitoris][idx] = niClitoris->world.translate;
+            store(Anchor::pClitoris, niClitoris->world.translate);
         }
 
         if (const auto sAnal = nodes.GetAnalSegment()) {
-            _moments[Anchor::pAnalStart][idx] = sAnal->first;
-            _moments[Anchor::pAnalEnd][idx] = sAnal->second;
+            store(Anchor::pAnalStart, sAnal->first);
+            store(Anchor::pAnalEnd, sAnal->second);
         }
 
         const auto sCrotch = nodes.GetCrotchSegment();
-        _moments[Anchor::pSpineLower][idx] = sCrotch.first;
-        _moments[Anchor::pPelvis][idx] = sCrotch.second;
+        store(Anchor::pSpineLower, sCrotch.first);
+        store(Anchor::pPelvis, sCrotch.second);
 
         _writeIndex = (_writeIndex + 1) % _capacity;
         _size = std::min(_size + 1, _capacity);
@@ -68,7 +76,7 @@ namespace Thread::NiNode
 
     void NiMotion::ForEachMoment(Anchor c, const std::function<bool(const RE::NiPoint3&, float)>& func) const
     {
-        for (size_t i = 0; i < _size; i++) {
+        for (size_t i = ValidStart(c); i < _size; i++) {
             if (func(GetNthMoment(c, i), GetNthTimestamp(i))) {
                 break;
             }
@@ -77,13 +85,21 @@ namespace Thread::NiNode
 
     NiMath::Segment NiMotion::GetMotion(Anchor c) const
     {
-        if (_size < 2) {
-            return NiMath::Segment(_size == 1 ? GetNthMoment(c, 0) : RE::NiPoint3::Zero());
+        const auto start = ValidStart(c);
+        const auto count = _size - start;
+        if (count < 2) {
+            return NiMath::Segment(count == 1 ? GetNthMoment(c, start) : RE::NiPoint3::Zero());
         }
-        if (_size == 2)
-            return NiMath::Segment(GetNthMoment(c, 0), GetNthMoment(c, 1));
-        // PCA is order independent; the valid samples occupy the first _size slots.
-        return NiMath::BestFit(std::span<const RE::NiPoint3>{ _moments[c].data(), _size });
+        if (count == 2)
+            return NiMath::Segment(GetNthMoment(c, start), GetNthMoment(c, start + 1));
+        // PCA is order independent; a fully valid window occupies the first _size slots.
+        if (start == 0)
+            return NiMath::BestFit(std::span<const RE::NiPoint3>{ _moments[c].data(), _size });
+        std::vector<RE::NiPoint3> valid;
+        valid.reserve(count);
+        for (size_t i = start; i < _size; ++i)
+            valid.push_back(GetNthMoment(c, i));
+        return NiMath::BestFit(std::span<const RE::NiPoint3>{ valid.data(), valid.size() });
     }
 
     MotionDescriptor NiMotion::DescribeMotion(Anchor c) const
@@ -98,11 +114,13 @@ namespace Thread::NiNode
     {
         MotionDescriptor out{ GetMotion(c) };
 
-        if (!HasSufficientData() || _size < 2) {
+        const auto start = ValidStart(c);
+        const auto count = _size - start;
+        if (count < _minMoments || count < 2) {
             return out;
         }
 
-        out.duration = GetNthTimestamp(_size - 1) - GetNthTimestamp(0);
+        out.duration = GetNthTimestamp(_size - 1) - GetNthTimestamp(start);
         auto axis = out.trajectory.Vector();
         axis.Unitize();
         const auto mean = out.Mean();
@@ -117,7 +135,7 @@ namespace Thread::NiNode
 
         RE::NiPoint3 avgDir{};
         std::vector<RE::NiPoint3> dirs;
-        dirs.reserve(_size - 1);
+        dirs.reserve(count - 1);
 
         // Cached values for pairwise/triple calculations
         const RE::NiPoint3 *p0 = nullptr, *p1 = nullptr;
@@ -176,8 +194,8 @@ namespace Thread::NiNode
         out.totalDistance = totalDist;
         out.avgSpeed = out.duration > 0.0f ? totalDist / out.duration : 0.0f;
         out.peakSpeed = peakSpeed;
-        out.positionalVariance = posVar / static_cast<float>(_size);
-        out.oscillation = static_cast<float>(signChanges) / static_cast<float>(_size - 1);
+        out.positionalVariance = posVar / static_cast<float>(count);
+        out.oscillation = static_cast<float>(signChanges) / static_cast<float>(count - 1);
         out.impulse = impulse;
 
         // Directional variance
@@ -192,6 +210,14 @@ namespace Thread::NiNode
         out.directionalVariance = dirVar;
 
         return out;
+    }
+
+    size_t NiMotion::ValidStart(Anchor c) const
+    {
+        size_t start = _size;
+        while (start > 0 && _present[AbsoluteToRelativeIndex(start - 1)].test(static_cast<size_t>(c)))
+            --start;
+        return start;
     }
 
     size_t NiMotion::AbsoluteToRelativeIndex(size_t n) const

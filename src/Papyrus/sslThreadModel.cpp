@@ -7,6 +7,7 @@
 #include "Thread/Collision/CollisionHandler.h"
 #include "Thread/NiNode/Node.h"
 #include "Thread/Thread.h"
+#include "Thread/Interface/SceneHUD.h"
 #include "UserData/StripData.h"
 #include "Util/Script.h"
 #include "Util/StringUtil.h"
@@ -276,6 +277,7 @@ namespace Papyrus::ThreadModel
         std::vector<RE::BSFixedString> a_scenesCustom,
         int a_furniturepref)
     {
+        const auto generation = Thread::Instance::GetWorldGeneration();
         const auto script = Script::GetScriptObject(a_qst, "sslThreadModel");
         const auto requestProperty = script ? script->GetProperty("StartupRequest") : nullptr;
         if (!requestProperty) {
@@ -305,11 +307,13 @@ namespace Papyrus::ThreadModel
             toVector(a_scenesCustom)
         };
         try {
-            std::thread([=]() {
+            SKSE::GetTaskInterface()->AddTask([=]() {
+                if (Thread::Instance::GetWorldGeneration() != generation)
+                    return;
                 Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference, request);
-            }).detach();
+            });
         } catch (const std::exception& error) {
-            logger::error("Unable to start instance creation worker: {}", error.what());
+            logger::error("Unable to queue instance creation: {}", error.what());
             Thread::Instance::DispatchContinueSetup(a_qst, false, request);
         }
     }
@@ -389,9 +393,9 @@ namespace Papyrus::ThreadModel
         }
         if (instance->GetActiveStage() == stage && !a_history.empty()) {
             instance->RealignActors();
-            return a_history;
+        } else {
+            instance->AdvanceScene(stage);
         }
-        instance->AdvanceScene(stage);
         a_history.push_back(a_nextStage);
         return a_history;
     }
@@ -409,13 +413,17 @@ namespace Papyrus::ThreadModel
         if (!adj || adj->empty())
             return 0;
         Registry::TagData tags{ a_tags };
-        std::vector<int> weights{};
-        int n = 0;
-        for (auto&& i : *adj) {
-            auto c = i->tags.CountTags(tags);
-            weights.resize(weights.size() + c + 1, n++);
+        // Store one cumulative boundary per stage instead of repeating its
+        // index once for every matching tag. Selection probabilities stay equal.
+        std::vector<uint64_t> cumulative;
+        cumulative.reserve(adj->size());
+        uint64_t total = 0;
+        for (const auto* next : *adj) {
+            total += uint64_t{ next->tags.CountTags(tags) } + 1;
+            cumulative.push_back(total);
         }
-        return Random::draw(weights);
+        const auto selected = Random::draw<uint64_t>(0, total - 1);
+        return static_cast<int>(std::upper_bound(cumulative.begin(), cumulative.end(), selected) - cumulative.begin());
     }
 
     bool SetActiveScene(QUESTARGS, RE::BSFixedString a_sceneid)
@@ -441,12 +449,20 @@ namespace Papyrus::ThreadModel
 
     bool SetNextPermutation(QUESTARGS, RE::Actor* a_position)
     {
+        if (!a_position) {
+            a_vm->TraceStack("Actor is none", a_stackID);
+            return false;
+        }
         GET_INSTANCE(false);
         return instance->SetNextPermutation(a_position);
     }
 
     void UpdatePlacement(QUESTARGS, RE::Actor* a_position)
     {
+        if (!a_position) {
+            a_vm->TraceStack("Actor is none", a_stackID);
+            return;
+        }
         GET_INSTANCE();
         instance->UpdatePlacement(a_position);
     }
@@ -1004,6 +1020,12 @@ namespace Papyrus::ThreadModel
         GET_INSTANCE();
         return instance->InitSceneHUDImpl();
     }
+    bool IsSceneHUDActiveImpl(QUESTARGS)
+    {
+        GET_INSTANCE(false);
+        return Thread::Interface::SceneHUD::GetSingleton().GetForThread(a_qst) != nullptr;
+    }
+
     void DestroySceneHUDImpl(QUESTARGS)
     {
         GET_INSTANCE();

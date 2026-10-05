@@ -17,8 +17,8 @@ namespace Papyrus::ThreadLibrary
         if (!a_center) {
             a_vm->TraceStack("Cannot find refs from a none center", a_stackID);
             return {};
-        } else if (a_radius < 0.0f) {
-            a_vm->TraceStack("Cannot find refs within a negative radius", a_stackID);
+        } else if (!std::isfinite(a_radius) || !std::isfinite(a_radiusZ) || a_radius < 0.0f) {
+            a_vm->TraceStack("Cannot find refs with a nonfinite radius or negative search radius", a_stackID);
             return {};
         }
         const auto center = a_center->GetPosition();
@@ -64,12 +64,12 @@ namespace Papyrus::ThreadLibrary
             const auto err = std::format("Invalid target sex. Argument should be in [{}; {}]", std::to_underlying(LegacySex::None), std::to_underlying(LegacySex::CrtFemale));
             a_vm->TraceStack(err.c_str(), a_stackID);
             return {};
-        } else if (a_radius < 0) {
-            a_vm->TraceStack("Cannot find actor in negative radius", a_stackID);
+        } else if (!std::isfinite(a_radius) || a_radius < 0) {
+            a_vm->TraceStack("Cannot find actor with a nonfinite or negative radius", a_stackID);
             return {};
         }
         const auto centerPosition = a_center->GetPosition();
-        const auto radiusSquared = a_radius * a_radius;
+        const auto radiusSquared = double(a_radius) * a_radius;
         const Registry::RaceKey targetrace{ a_targetrace.empty() ? "Human" : a_targetrace };
         const auto targetsex = [&]() {
             if (a_targetsex >= LegacySex::CrtMale || !targetrace.Is(Registry::RaceKey::Human)) {
@@ -92,7 +92,8 @@ namespace Papyrus::ThreadLibrary
                 actor.get() == ignore_ref04)
                 continue;
 
-            if (actor->GetPosition().GetSquaredDistance(centerPosition) > radiusSquared)
+            const auto distance = actor->GetPosition().GetSquaredDistance(centerPosition);
+            if (!std::isfinite(distance) || distance > radiusSquared)
                 continue;
 
             if (!targetrace.IsCompatibleWith(actor.get()))
@@ -224,15 +225,26 @@ namespace Papyrus::ThreadLibrary
             return {};
         }
         std::vector<RE::Actor*> ret{};
-        auto valids = FindAvailableActors(a_vm, a_stackID, nullptr,
-            a_center,
-            a_radius,
-            LegacySex::None,
-            a_includes.size() > 0 ? a_includes[0] : nullptr,
-            a_includes.size() > 1 ? a_includes[1] : nullptr,
-            a_includes.size() > 2 ? a_includes[2] : nullptr,
-            a_includes.size() > 3 ? a_includes[3] : nullptr,
-            "");
+        if (!a_center || !std::isfinite(a_radius) || a_radius < 0.0f) {
+            a_vm->TraceStack("Scene search requires a center and finite nonnegative radius", a_stackID);
+            return {};
+        }
+        const auto centerPosition = a_center->GetPosition();
+        const auto radiusSquared = double(a_radius) * a_radius;
+        std::vector<RE::Actor*> valids;
+        // An empty race in FindAvailableActors means Human. Scene matching must
+        // consider every enabled species, then let each position score it.
+        const auto processes = RE::ProcessLists::GetSingleton();
+        if (processes) {
+            for (const auto& handle : processes->highActorHandles) {
+                const auto actor = handle.get();
+                if (!actor)
+                    continue;
+                const auto distance = actor->GetPosition().GetSquaredDistance(centerPosition);
+                if (std::isfinite(distance) && distance <= radiusSquared && Registry::IsValidActor(actor.get()))
+                    valids.push_back(actor.get());
+            }
+        }
 
         std::vector<RE::Actor*> candidates;
         for (auto* actor : a_includes) {
@@ -274,13 +286,18 @@ namespace Papyrus::ThreadLibrary
             return a_positions;
         }
         auto subcount = scene->CountSubmissives();
-        std::vector<Registry::ActorFragment> fragments;
+        std::vector<RE::Actor*> submissives;
         for (auto&& actor : a_positions) {
             const auto submissive = subcount > 0 && std::find(a_submissives.begin(), a_submissives.end(), actor) != a_submissives.end();
-            if (submissive)
+            if (submissive) {
                 subcount--;
-            const auto fragment = Registry::ActorFragment{ actor, submissive };
-            fragments.push_back(fragment);
+                submissives.push_back(actor);
+            }
+        }
+        const auto fragments = Registry::ActorFragment::MakeFragmentList(a_positions, submissives);
+        if (fragments.empty()) {
+            a_vm->TraceStack("Invalid, duplicate or unsupported actors", a_stackID);
+            return {};
         }
         auto ret = scene->FindAssignments(fragments);
         return ret.empty() ? a_positions : ret.front();

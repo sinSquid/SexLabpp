@@ -36,7 +36,7 @@ state Test2
  		int i = -1
 		; END any variable preparions needed
 		baseline += Utility.GetCurrentRealTime()
-		while nth
+		while nth > 0
 			nth -= 1
 			; START code to benchmark
 			arr1 = AnimSlots.GetByTags(2, "MF,Cowgirl,Arrok")
@@ -63,7 +63,7 @@ state Test1
  		int i = -1
 		; END any variable preparions needed
 		baseline += Utility.GetCurrentRealTime()
-		while nth
+		while nth > 0
 			nth -= 1
 			; START code to benchmark
 			; arr1 = AnimSlots.GetByTags2(2, "MF,Cowgirl,Arrok")
@@ -75,6 +75,9 @@ state Test1
 endState
 
 function StartBenchmark(int Tests = 1, int Iterations = 5000, int Loops = 10, bool UseBaseLoop = false)
+	If (Tests < 1 || Tests > 128 || Iterations < 0 || Loops < 1)
+		return
+	EndIf
 	Setup()
 	PreBenchmarkSetup()
 
@@ -146,7 +149,7 @@ string function Proof()
 endFunction
 float function RunTest(int nth = 5000, float baseline = 0.0)
 	baseline += Utility.GetCurrentRealTime()
-	while nth
+	while nth > 0
 		nth -= 1
 	endWhile
 	return Utility.GetCurrentRealTime() - baseline

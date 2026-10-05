@@ -32,6 +32,8 @@ namespace Thread
             RE::ACTOR_LIFE_STATE lifeState;
             int32_t isNPC{ 0 };
             bool humanoidFootIKDisabled{ false };
+            float variable05{ 0.0f };
+            bool hasVariable05{ false };
             bool hasIsNPC{ false };
             bool hasHumanoidFootIKDisabled{ false };
         };
@@ -71,10 +73,14 @@ namespace Thread
                 if (inserted) {
                     switch (preparation.lifeState) {
                     case RE::ACTOR_LIFE_STATE::kUnconcious:
+                        preparation.variable05 = a_actor->AsActorValueOwner()->GetBaseActorValue(RE::ActorValue::kVariable05);
+                        preparation.hasVariable05 = true;
                         a_actor->AsActorValueOwner()->SetActorValue(RE::ActorValue::kVariable05, ActorStatus::Unconscious);
                         break;
                     case RE::ACTOR_LIFE_STATE::kDying:
                     case RE::ACTOR_LIFE_STATE::kDead:
+                        preparation.variable05 = a_actor->AsActorValueOwner()->GetBaseActorValue(RE::ActorValue::kVariable05);
+                        preparation.hasVariable05 = true;
                         a_actor->AsActorValueOwner()->SetActorValue(RE::ActorValue::kVariable05, ActorStatus::Dying);
                         a_actor->Resurrect(false, true);
                         break;
@@ -125,9 +131,14 @@ namespace Thread
                 if (preparation.hasHumanoidFootIKDisabled) {
                     actor->SetGraphVariableBool("bHumanoidFootIKDisable", preparation.humanoidFootIKDisabled);
                 }
-                actor->AsActorState()->actorState1.lifeState = preparation.lifeState == RE::ACTOR_LIFE_STATE::kUnconcious ? RE::ACTOR_LIFE_STATE::kUnconcious : RE::ACTOR_LIFE_STATE::kAlive;
-                if (!actor->IsPlayerRef()) {
-                    actor->AsActorValueOwner()->SetActorValue(RE::ActorValue::kVariable05, 0.0f);
+                // Alias cleanup may already have killed an originally dead actor.
+                // Do not turn that completed cleanup (or a new death) back into kAlive.
+                const auto currentLife = actor->AsActorState()->GetLifeState();
+                if (currentLife != RE::ACTOR_LIFE_STATE::kDead && currentLife != RE::ACTOR_LIFE_STATE::kDying) {
+                    actor->AsActorState()->actorState1.lifeState = preparation.lifeState == RE::ACTOR_LIFE_STATE::kUnconcious ? RE::ACTOR_LIFE_STATE::kUnconcious : RE::ACTOR_LIFE_STATE::kAlive;
+                }
+                if (preparation.hasVariable05) {
+                    actor->AsActorValueOwner()->SetActorValue(RE::ActorValue::kVariable05, preparation.variable05);
                 }
             }
             if (restorePlayer) {
@@ -137,6 +148,13 @@ namespace Thread
                 logger::info("Restored {} natively prepared actor(s) for thread {:X}.", restore.size(), a_owner->GetFormID());
             }
         }
+    }
+
+    void Instance::DiscardPreparedActors()
+    {
+        const std::scoped_lock lock{ actorPreparationLock };
+        // Revert drops old-world records without dereferencing or restoring Actors.
+        actorPreparations.clear();
     }
 
     void Instance::RestorePreparedActors(RE::TESQuest* a_linkedQst)
@@ -620,7 +638,9 @@ namespace Thread
     void Instance::ReleaseAnimations()
     {
         std::vector<RE::BSAnimationGraphManagerPtr> graphManagers;
+        std::vector<RE::BSSpinLock*> graphLocks;
         std::vector<std::unique_ptr<RE::BSSpinLockGuard>> locks;
+        graphLocks.reserve(pendingAnimations.size());
         graphManagers.reserve(pendingAnimations.size());
         locks.reserve(pendingAnimations.size());
 
@@ -635,7 +655,15 @@ namespace Thread
                 continue;
             }
             graphManagers.emplace_back(graphManager);
-            locks.emplace_back(std::make_unique<RE::BSSpinLockGuard>(graphManager->GetRuntimeData().updateLock));
+            graphLocks.push_back(&graphManager->GetRuntimeData().updateLock);
+        }
+
+        // Different actors can share a manager. Acquire each lock once and use
+        // the same total order across instances before holding multiple locks.
+        std::sort(graphLocks.begin(), graphLocks.end(), std::less<RE::BSSpinLock*>{});
+        graphLocks.erase(std::unique(graphLocks.begin(), graphLocks.end()), graphLocks.end());
+        for (auto* graphLock : graphLocks) {
+            locks.emplace_back(std::make_unique<RE::BSSpinLockGuard>(*graphLock));
         }
 
         for (size_t i = 0; i < pendingAnimations.size(); i++) {

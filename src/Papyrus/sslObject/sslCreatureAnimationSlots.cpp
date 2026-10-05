@@ -2,6 +2,7 @@
 
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Library.h"
+#include "Util/RequiredMatching.h"
 
 namespace Papyrus::CreatureAnimationSlots
 {
@@ -53,6 +54,19 @@ namespace Papyrus::CreatureAnimationSlots
             return {};
         }
 
+        std::vector<Registry::RaceKey> requiredRaces;
+        requiredRaces.reserve(a_creatures.size());
+        for (auto* creature : a_creatures) {
+            const Registry::RaceKey racekey{ creature };
+            if (!racekey.IsValid()) {
+                a_vm->TraceStack("Invalid racekey", a_stackID);
+                return {};
+            }
+            // Legacy callers can supply humans, which do not constrain creature slots.
+            if (!racekey.Is(Registry::RaceKey::Human))
+                requiredRaces.push_back(racekey);
+        }
+
         Registry::TagDetails tagdetails{ a_tags };
         std::vector<RE::BSFixedString> ret{};
         ret.reserve(256);
@@ -64,32 +78,17 @@ namespace Papyrus::CreatureAnimationSlots
             if (!a_scene->IsCompatibleTags(tagdetails))
                 return false;
 
-            int32_t reqtrue = static_cast<int32_t>(a_creatures.size());
-            std::vector<bool> control(a_actorcount, false);
-            for (auto&& creature : a_creatures) {
-                const Registry::RaceKey racekey{ creature };
-                if (!racekey.IsValid()) {
-                    a_vm->TraceStack("Invalid racekey", a_stackID);
-                    ret.clear();
-                    return true;
-                }
-                if (racekey.Is(Registry::RaceKey::Human)) {
-                    reqtrue -= 1;
-                    continue;
-                }
-                for (size_t i = 0; i < a_scene->positions.size(); i++) {
-                    if (control[i])
-                        continue;
-                    const auto& position = a_scene->positions[i];
-                    if (position.data.GetRace().IsCompatibleWith(racekey)) {
-                        control[i] = true;
-                        break;
-                    }
+            std::vector<std::vector<size_t>> edges(a_scene->positions.size());
+            for (size_t actor = 0; actor < edges.size(); ++actor) {
+                for (size_t slot = 0; slot < a_scene->positions.size(); ++slot) {
+                    // Optional dummy actors fill the positions unconstrained by the input.
+                    if (actor >= requiredRaces.size() ||
+                        a_scene->positions[slot].data.GetRace().IsCompatibleWith(requiredRaces[actor]))
+                        edges[actor].push_back(slot);
                 }
             }
-            if (reqtrue != std::count(control.begin(), control.end(), true)) {
+            if (Util::MatchRequired(edges, a_scene->positions.size(), requiredRaces.size()).empty())
                 return false;
-            }
             ret.push_back(a_scene->id);
             return ret.size() == ret.capacity();
         });
@@ -108,8 +107,8 @@ namespace Papyrus::CreatureAnimationSlots
             a_vm->TraceStack(err.c_str(), a_stackID);
             return {};
         }
-        if (a_malecrt + a_femalecrt > a_actorcount) {
-            a_vm->TraceStack("Expecting more creatures than total positions", a_stackID);
+        if (a_malecrt < 0 || a_femalecrt < 0 || a_malecrt > a_actorcount || a_femalecrt > a_actorcount - a_malecrt) {
+            a_vm->TraceStack("Invalid creature counts for total positions", a_stackID);
             return {};
         }
         const Registry::RaceKey racekey{ a_racekey };

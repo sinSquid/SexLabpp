@@ -33,6 +33,7 @@ namespace Thread::LegacyNiNode
 
         static std::shared_ptr<NiInstance> Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Registry::Scene* a_scene) noexcept;
         static void Unregister(RE::FormID a_id) noexcept;
+        static void Revert();
 
       private:
         friend void stl::write_thunk_call<NiUpdate>(std::uintptr_t);

@@ -174,9 +174,11 @@ run('voices',code)
 source=(ROOT/'dist/Source/Scripts/SexLabFramework.psc').read_text()
 assert 'Failed to add some actors to thread")\n    thread.EndAnimation(true)\n    return none' in source
 source=(ROOT/'src/Thread/Interface/StageSelectMenu.cpp').read_text()
-block=source[source.index('        // Edges\n'):source.index('        // Nodes\n',source.index('        // Edges\n'))]
-assert 'if (!inst) {\n            ImGuiMCP::ImDrawListManager::PopClipRect(dl);\n            return;' in block
-print('PASS: source contracts for failed-start cleanup and graph clip restoration (not game execution)')
+block=function(source, 'void StageSelectMenu::RenderSceneGraphView()')
+# A missing thread is rejected before the window/clip stack is entered.
+assert block.index('if (!inst)') < block.index('ImGuiMCP::Begin(') < block.index('PushClipRect')
+assert 'Close();' in block[:block.index('ImGuiMCP::Begin(')]
+print('PASS: source contracts for failed-start cleanup and graph stack boundary (not game execution)')
 
 source=(ROOT/'src/Registry/Util/RayCast/bhkLinearCastCollector.h').read_text()
 code='#include <cstdint>\n#include <cassert>\n#include <iostream>\n'+function(source,'constexpr bool IsRaycastLayerAccepted')+r'''

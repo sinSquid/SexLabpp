@@ -344,14 +344,9 @@ namespace Papyrus::ActorStats
         return ret;
     }
 
-    float GetLegacyStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id)
+    float GetLegacyStatisticFromSnapshot(VM* a_vm, StackID a_stackID, RE::Actor* a_actor, int id, const Registry::Statistics::ActorStats& stats)
     {
-        if (!a_actor) {
-            a_vm->TraceStack("Actor is none", a_stackID);
-            return 0.0;
-        }
         const auto statdata = Registry::Statistics::StatisticsData::GetSingleton();
-        const auto stats = statdata->GetStatisticsSnapshot(a_actor);
         switch (LegacyStatistics(id)) {
         case LegacyStatistics::L_Foreplay:
             {
@@ -448,6 +443,16 @@ namespace Papyrus::ActorStats
         }
     }
 
+    float GetLegacyStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id)
+    {
+        if (!a_actor) {
+            a_vm->TraceStack("Actor is none", a_stackID);
+            return 0.0;
+        }
+        const auto stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatisticsSnapshot(a_actor);
+        return GetLegacyStatisticFromSnapshot(a_vm, a_stackID, a_actor, id, stats);
+    }
+
     std::vector<float> GetAllLegycSkills(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
     {
         constexpr auto count = static_cast<int>(LegacyStatistics::Total);
@@ -455,10 +460,11 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return std::vector<float>(count);
         }
+        const auto stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatisticsSnapshot(a_actor);
         std::vector<float> ret{};
         ret.reserve(count);
         for (int i = 0; i < count; i++) {
-            ret.push_back(GetLegacyStatistic(a_vm, a_stackID, nullptr, a_actor, i));
+            ret.push_back(GetLegacyStatisticFromSnapshot(a_vm, a_stackID, a_actor, i, stats));
         }
         return ret;
     }

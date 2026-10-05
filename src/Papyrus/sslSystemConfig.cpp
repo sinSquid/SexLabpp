@@ -1,4 +1,5 @@
 #include "sslSystemConfig.h"
+#include "UserData/SettingsValidation.h"
 
 #include "Registry/Library.h"
 #include "UserData/StripData.h"
@@ -79,6 +80,10 @@ namespace Papyrus::SystemConfig
 
     void SetSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, int a_value)
     {
+        if (!SettingsValidation::IsValid(a_setting, a_value)) {
+            a_vm->TraceStack("Setting value is outside its valid range", a_stackID);
+            return;
+        }
         std::scoped_lock lock{ Settings::saveMutex };
         auto s = GetSetting<int*>(a_vm, a_stackID, a_setting);
         if (!s)
@@ -89,6 +94,10 @@ namespace Papyrus::SystemConfig
 
     void SetSettingFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, float a_value)
     {
+        if (!SettingsValidation::IsValid(a_setting, a_value)) {
+            a_vm->TraceStack("Setting value is outside its valid range", a_stackID);
+            return;
+        }
         std::scoped_lock lock{ Settings::saveMutex };
         auto s = GetSetting<float*>(a_vm, a_stackID, a_setting);
         if (!s)
@@ -134,6 +143,10 @@ namespace Papyrus::SystemConfig
 
     void SetSettingFltA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, float a_value, int n)
     {
+        if (!SettingsValidation::IsValid(a_setting, a_value)) {
+            a_vm->TraceStack("Setting value is outside its valid range", a_stackID);
+            return;
+        }
         std::scoped_lock lock{ Settings::saveMutex };
         auto s = GetSetting<std::vector<float>*>(a_vm, a_stackID, a_setting);
         if (!s)

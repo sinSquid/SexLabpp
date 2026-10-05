@@ -10,8 +10,36 @@
 
 namespace Thread
 {
+    void Instance::Revert()
+    {
+        decltype(instances) releasedInstances;
+        decltype(pendingInstances) releasedPending;
+        {
+            const std::unique_lock lock{ _mInstances };
+            worldGeneration.fetch_add(1);
+            for (auto& [quest, cancelled] : creatingInstances)
+                cancelled->store(true);
+            for (auto& instance : instances)
+                instance->creationCancelled->store(true);
+            for (auto& instance : pendingInstances)
+                instance->creationCancelled->store(true);
+            creatingInstances.clear();
+            releasedInstances.swap(instances);
+            releasedPending.swap(pendingInstances);
+        }
+        // Destruction/ref release is outside registry locks. Never restore the old world.
+        NiNode::NiUpdate::Revert();
+        LegacyNiNode::NiUpdate::Revert();
+        DiscardPreparedActors();
+        Interface::SceneHUD::GetSingleton().Destroy();
+        Interface::FurnSelectMenu::GetSingleton().Revert();
+        Interface::StageSelectMenu::GetSingleton().Revert();
+        Hooks::SetWeaponDrawBlocked(false);
+    }
+
     void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request)
     {
+        const auto generation = GetWorldGeneration();
         const auto script = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
         const auto request = script ? script->GetProperty("StartupRequest") : nullptr;
         if (!request || RE::BSScript::UnpackValue<int32_t>(request) != a_request)
@@ -38,7 +66,9 @@ namespace Thread
             std::unique_lock lock{ _mInstances };
             const auto creating = creatingInstances.find(a_linkedQst);
             if (cancelled->load() || creating == creatingInstances.end() || creating->second != cancelled) {
-                SKSE::GetTaskInterface()->AddTask([a_linkedQst, a_request]() {
+                SKSE::GetTaskInterface()->AddTask([a_linkedQst, a_request, generation]() {
+                    if (GetWorldGeneration() != generation)
+                        return;
                     Interface::FurnSelectMenu::GetSingleton().Cancel(a_linkedQst, a_request);
                 });
                 return;
@@ -49,6 +79,8 @@ namespace Thread
                 lock.unlock();
                 // Publish before accepting input; build and show the menu on the game thread.
                 SKSE::GetTaskInterface()->AddTask([instance]() {
+                    if (instance->creationCancelled->load())
+                        return;
                     try {
                         instance->ShowCenterRefMenu();
                     } catch (const std::exception& error) {
@@ -82,7 +114,9 @@ namespace Thread
             if (!cancelled->load())
                 DispatchContinueSetup(a_linkedQst, false, a_request);
             else
-                SKSE::GetTaskInterface()->AddTask([a_linkedQst, a_request]() {
+                SKSE::GetTaskInterface()->AddTask([a_linkedQst, a_request, generation]() {
+                    if (GetWorldGeneration() != generation)
+                        return;
                     Interface::FurnSelectMenu::GetSingleton().Cancel(a_linkedQst, a_request);
                 });
             return;
@@ -91,6 +125,7 @@ namespace Thread
 
     void Instance::DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors)
     {
+        const auto generation = GetWorldGeneration();
         std::vector<int32_t> cancelledSelections;
         {
             std::unique_lock lock{ _mInstances };
@@ -123,7 +158,9 @@ namespace Thread
             });
         }
         for (const auto request : cancelledSelections)
-            SKSE::GetTaskInterface()->AddTask([a_linkedQst, request]() {
+            SKSE::GetTaskInterface()->AddTask([a_linkedQst, request, generation]() {
+                if (GetWorldGeneration() != generation)
+                    return;
                 Interface::FurnSelectMenu::GetSingleton().Cancel(a_linkedQst, request);
             });
         if (!a_preservePreparedActors) {
@@ -219,6 +256,8 @@ namespace Thread
             return false;
         }
         CancelFixedLengthTimer();
+        UnregisterNiInstance();
+        UnregisterNiInstanceLegacy();
         assignments = newAssignments;
         activeScene = a_scene;
         ReleaseAnimations();
@@ -521,6 +560,8 @@ namespace Thread
             const auto actorIt = std::find(it->begin(), it->end(), a_actor);
             if (std::distance(it->begin(), actorIt) == *targetPosition) {
                 activeAssignment = it;
+                UnregisterNiInstance();
+                UnregisterNiInstanceLegacy();
                 AdvanceScene(activeStage);
                 logger::info("Actor {} changed to scene position {}.", a_actor->GetFormID(), *targetPosition + 1);
                 return true;

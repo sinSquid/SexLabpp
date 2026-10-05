@@ -86,11 +86,11 @@ namespace Papyrus::AnimationSlots
     {
         if (a_tags.empty() && a_package.empty())
             return Registry::Library::GetSingleton()->GetLegacyProxyIds(a_returnsize, crt_specifier);
+        const auto lib = Registry::Library::GetSingleton();
         std::vector<const Registry::Scene*> ret{};
         if (a_returnsize > 0)
-            ret.reserve(a_returnsize);
+            ret.reserve(std::min<size_t>(a_returnsize, lib->GetSceneCount()));
         auto tags = Registry::TagDetails{ a_tags };
-        const auto lib = Registry::Library::GetSingleton();
         RE::BSFixedString hash = "";
         lib->ForEachPackage([&](const Registry::AnimPackage* package) {
             if (package->GetName() == a_package) {

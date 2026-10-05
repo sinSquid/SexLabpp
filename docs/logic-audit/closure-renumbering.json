@@ -1,0 +1,1780 @@
+{
+  "unchanged_records": [
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:288:(const auto& a_list)",
+      "to": "src/Papyrus/sslThreadModel.cpp:289:(const auto& a_list)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "(const auto& a_list)",
+      "sha256": "068ceff19859216ad93fffde80896dad8b0da8dd1e9f10e15a34cd07fc8d7dce",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:318:GetStartupClock(RE::TESQuest*)",
+      "to": "src/Papyrus/sslThreadModel.cpp:321:GetStartupClock(RE::TESQuest*)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetStartupClock(RE::TESQuest*)",
+      "sha256": "e8bf3a1de18f6096ee497c89a5e3cf81c83314411369888c5e9c38696591ab60",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:323:IsCenterSelectionPending(RE::TESQuest* a_qst)",
+      "to": "src/Papyrus/sslThreadModel.cpp:326:IsCenterSelectionPending(RE::TESQuest* a_qst)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "IsCenterSelectionPending(RE::TESQuest* a_qst)",
+      "sha256": "6a92c9394d44c7273bae5017adb32646616b551bfcd9288aa2aad8d4111f3286",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:328:LogStartupPhase(RE::TESQuest* a_qst, RE::BSFixedString a_phase, float a_phaseElapsed, float a_totalElapsed)",
+      "to": "src/Papyrus/sslThreadModel.cpp:331:LogStartupPhase(RE::TESQuest* a_qst, RE::BSFixedString a_phase, float a_phaseElapsed, float a_totalElapsed)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "LogStartupPhase(RE::TESQuest* a_qst, RE::BSFixedString a_phase, float a_phaseElapsed, float a_totalElapsed)",
+      "sha256": "42bb51d16b368c81e999a9a7650fc214fdec190e8c353ac6eed06cd0b0889d0a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:334:DestroyInstance(RE::TESQuest* a_qst, bool a_preservePreparedActors)",
+      "to": "src/Papyrus/sslThreadModel.cpp:337:DestroyInstance(RE::TESQuest* a_qst, bool a_preservePreparedActors)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "DestroyInstance(RE::TESQuest* a_qst, bool a_preservePreparedActors)",
+      "sha256": "7e2c8bbbafcd93eca6e89d90913d924c5d33c34b251d0d62c19a0594ace2e4c3",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:339:CancelPendingAnimations(RE::TESQuest* a_qst)",
+      "to": "src/Papyrus/sslThreadModel.cpp:342:CancelPendingAnimations(RE::TESQuest* a_qst)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "CancelPendingAnimations(RE::TESQuest* a_qst)",
+      "sha256": "53e691c073ed5d5e6663ec98d9d4fad6efbb22643a860a57eb9774d90800fda1",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:344:BeginActorRecovery(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:347:BeginActorRecovery(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "BeginActorRecovery(QUESTARGS)",
+      "sha256": "fef731b6bb4b52595907213d2bc63b33117d94d30e88b991e591a3c46c245992",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:350:BeginPlayerDialogueWait(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:353:BeginPlayerDialogueWait(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "BeginPlayerDialogueWait(QUESTARGS)",
+      "sha256": "db3fccd4626a22e5f22774814df4cb38733c019e3081e511e06eb8fb4a5926f7",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:356:BeginPlayerSheatheWait(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:359:BeginPlayerSheatheWait(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "BeginPlayerSheatheWait(QUESTARGS)",
+      "sha256": "00efc7acc21c3f97a6004379bc0ad2f6acb94eee54509e3805fec7cbb6168a79",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:362:GetLeadInScenes(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:365:GetLeadInScenes(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetLeadInScenes(QUESTARGS)",
+      "sha256": "d9e384c34902ca5c59d6873081ca6f53a02107c5a4d02621b8f489de7ab9c6ba",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:369:GetPrimaryScenes(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:372:GetPrimaryScenes(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetPrimaryScenes(QUESTARGS)",
+      "sha256": "464ca314218f3557dd0798854f2ffec62b572a77d92028d821f733dd1e665ce9",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:376:GetCustomScenes(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:379:GetCustomScenes(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetCustomScenes(QUESTARGS)",
+      "sha256": "2bbd819ee5f282bdedd819098df87e8942177302e5d618e9cff85a60f93ae454",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:383:AdvanceScene(QUESTARGS, std::vector<RE::BSFixedString> a_history, RE::BSFixedString a_nextStage)",
+      "to": "src/Papyrus/sslThreadModel.cpp:386:AdvanceScene(QUESTARGS, std::vector<RE::BSFixedString> a_history, RE::BSFixedString a_nextStage)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "AdvanceScene(QUESTARGS, std::vector<RE::BSFixedString> a_history, RE::BSFixedString a_nextStage)",
+      "sha256": "d1aca4ce69cac2fc7df0e62296e6a04c78fb49093efd4a6d39acb55842aa82dd",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:400:SelectNextStage(QUESTARGS, std::vector<RE::BSFixedString> a_tags)",
+      "to": "src/Papyrus/sslThreadModel.cpp:403:SelectNextStage(QUESTARGS, std::vector<RE::BSFixedString> a_tags)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "SelectNextStage(QUESTARGS, std::vector<RE::BSFixedString> a_tags)",
+      "sha256": "7ee0f8e43eb2ab783262e846df812d60f731e81c26291a76d94550cd05fbb677",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:426:SetActiveScene(QUESTARGS, RE::BSFixedString a_sceneid)",
+      "to": "src/Papyrus/sslThreadModel.cpp:429:SetActiveScene(QUESTARGS, RE::BSFixedString a_sceneid)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "SetActiveScene(QUESTARGS, RE::BSFixedString a_sceneid)",
+      "sha256": "ff46e470327e9098f81011795f7d025e42d9fceb0f749aff6dd0c41352878d14",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:437:ReassignCenter(QUESTARGS, RE::TESObjectREFR* a_centeron)",
+      "to": "src/Papyrus/sslThreadModel.cpp:440:ReassignCenter(QUESTARGS, RE::TESObjectREFR* a_centeron)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "ReassignCenter(QUESTARGS, RE::TESObjectREFR* a_centeron)",
+      "sha256": "ea0882cb333b4b2be32fbe38f2d3c161573f454fded43c68e847507c6399a7a9",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:447:SetNextPermutation(QUESTARGS, RE::Actor* a_position)",
+      "to": "src/Papyrus/sslThreadModel.cpp:450:SetNextPermutation(QUESTARGS, RE::Actor* a_position)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "SetNextPermutation(QUESTARGS, RE::Actor* a_position)",
+      "sha256": "9ab4ba7249befe384faa62808b8c9cc29fea88e8ef466f69315b98796b245835",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:457:UpdatePlacement(QUESTARGS, RE::Actor* a_position)",
+      "to": "src/Papyrus/sslThreadModel.cpp:460:UpdatePlacement(QUESTARGS, RE::Actor* a_position)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "UpdatePlacement(QUESTARGS, RE::Actor* a_position)",
+      "sha256": "0f067dc7ce6ee90ade1bb22f5fe40ba6f7bf9060596ef84e2b6f76bfb5a439a0",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:467:GetIsCompatiblecenter(QUESTARGS, RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center)",
+      "to": "src/Papyrus/sslThreadModel.cpp:470:GetIsCompatiblecenter(QUESTARGS, RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetIsCompatiblecenter(QUESTARGS, RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center)",
+      "sha256": "790c7f012041fce61bcbc3913c30a76970358286613173a48bd894863c1abf39",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:484:IsCollisionRegisteredML(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:487:IsCollisionRegisteredML(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "IsCollisionRegisteredML(QUESTARGS)",
+      "sha256": "8c9c8bd4760eed2d75d46466d9e4a435593c34566229a5dee621dfcd83a09e9f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:490:UnregisterCollisionML(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:493:UnregisterCollisionML(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "UnregisterCollisionML(QUESTARGS)",
+      "sha256": "a882ed06b76a05e3480a012a915659fd9995c5ccf1f02a09cc9bace248e73bc8",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:496:GetCollisionActionsML(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)",
+      "to": "src/Papyrus/sslThreadModel.cpp:499:GetCollisionActionsML(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetCollisionActionsML(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)",
+      "sha256": "48d354aa683be4697367953efbb5ba3503e49ba48c6e7121e6f1e424c5dcd382",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:514:HasCollisionActionML(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)",
+      "to": "src/Papyrus/sslThreadModel.cpp:517:HasCollisionActionML(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "HasCollisionActionML(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)",
+      "sha256": "bfe46fe2c8c872d1b9be86972a0d44123acafc7fb314ff9fea48c2d335b9327e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:528:* GetPartnerByActionML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:531:* GetPartnerByActionML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "* GetPartnerByActionML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "aec900e83989cc62b5b47d7185492e87efae3768acc0c091e0a66ae0d0cdb620",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:538:GetPartnersByActionML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:541:GetPartnersByActionML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetPartnersByActionML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "6ed2b688d49eee2cdd0c3c807744f7f26278537ef503eee091d34eda1570cd84",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:550:* GetPartnerByActionRevML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:553:* GetPartnerByActionRevML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "* GetPartnerByActionRevML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "88451c5c5c8bff62347c8e3f0d6b6a90cbe77e2e734cc54d58ef4ee5ecc894f2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:560:GetPartnersByActionRevML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:563:GetPartnersByActionRevML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetPartnersByActionRevML(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "449caa119c658d8c4cbe610fda7e99d12f09cbe141484f52483fd8a4e36d6176",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:572:GetActionVelocityML(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:575:GetActionVelocityML(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetActionVelocityML(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)",
+      "sha256": "c8402e46f6fef3cb2aec92da66e7795d10e716bd66055d8414bbd6fccac0914b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:603:IsCollisionRegisteredLegacy(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:606:IsCollisionRegisteredLegacy(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "IsCollisionRegisteredLegacy(QUESTARGS)",
+      "sha256": "1029e40b2aebda3494f178c40c77b5d9a828958a57431fc75e08837be0c5035e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:609:UnregisterCollisionLegacy(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:612:UnregisterCollisionLegacy(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "UnregisterCollisionLegacy(QUESTARGS)",
+      "sha256": "7bbc526aa61dad91a3690da94775766475d13a80860cee9dff30013c77a1ef05",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:615:GetCollisionActionsLegacy(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)",
+      "to": "src/Papyrus/sslThreadModel.cpp:618:GetCollisionActionsLegacy(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetCollisionActionsLegacy(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)",
+      "sha256": "568c17bcc7867f37f05695db7be3d0e7ec33a19487b97746e233ddafc46a37f7",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:624:(auto& p)",
+      "to": "src/Papyrus/sslThreadModel.cpp:627:(auto& p)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "(auto& p)",
+      "sha256": "10938fc14b07d51db9fde2074c108455b8c5fb6224e8bb0db5ee24f65aa89c5d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:637:HasCollisionActionLegacy(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)",
+      "to": "src/Papyrus/sslThreadModel.cpp:640:HasCollisionActionLegacy(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "HasCollisionActionLegacy(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)",
+      "sha256": "5ba4e45412ad6583cd7fb9e4c19d809b3302bebb09f16792d1f4d866d853509d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:645:(auto& p)",
+      "to": "src/Papyrus/sslThreadModel.cpp:648:(auto& p)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "(auto& p)",
+      "sha256": "4ce1f7d741cffd969a255db3f4e280c61daeb0deb67943595ff224f8028fd0c7",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:659:* GetPartnerByActionLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:662:* GetPartnerByActionLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "* GetPartnerByActionLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "25062a3494b54b022b1b77dde156a384643b6bc13e2a77fae9ca06bf157f4488",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:672:(auto& p)",
+      "to": "src/Papyrus/sslThreadModel.cpp:675:(auto& p)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "(auto& p)",
+      "sha256": "1608d843ffc77f19a684ae35fe147f9171999ac9c564c46bcb51da1a70d24b0b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:686:GetPartnersByActionLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:689:GetPartnersByActionLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetPartnersByActionLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "97fb97a327c69742e359cc11804c121795f9d5f8536eecb7ebe18ec8801ec89a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:695:(auto& p)",
+      "to": "src/Papyrus/sslThreadModel.cpp:698:(auto& p)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "(auto& p)",
+      "sha256": "355f48ddc67886dd030cd650a8a83cc6b2486284afbaf4bbbeb892a9d0bbfea7",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:708:* GetPartnerByActionRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:711:* GetPartnerByActionRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "* GetPartnerByActionRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "bfa0b0a1173a166d7b0bbd0f36fbf6c9d033879be4e29f1b4eea2b85a1c6b083",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:721:(auto& p)",
+      "to": "src/Papyrus/sslThreadModel.cpp:724:(auto& p)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "(auto& p)",
+      "sha256": "30bafcf567f9505f4089d0009b8680d1769f6092da14553b03033045274763a3",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:735:GetPartnersByActionRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:738:GetPartnersByActionRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetPartnersByActionRevLegacy(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "c7bd18e955db2bf8ecea8f4ca321a9ee188224ff3a729a0d9b6c969bec4291d8",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:744:(auto& p)",
+      "to": "src/Papyrus/sslThreadModel.cpp:747:(auto& p)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "(auto& p)",
+      "sha256": "8b1eb42eb253849dc28c61c1af81efbc9f54d4e7779b3fa8754a17ca52647205",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:758:GetActionVelocityLegacy(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:761:GetActionVelocityLegacy(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetActionVelocityLegacy(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)",
+      "sha256": "318e410b812e87e07e038235c07ad895f8d8ca44e909faa3e645ec612998d668",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:775:(auto& p)",
+      "to": "src/Papyrus/sslThreadModel.cpp:778:(auto& p)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "(auto& p)",
+      "sha256": "2dd1a5b8d8d7ac2ac0f0552c71a42c7c93c5fc42854705732e611da0a286446a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:794:IsCollisionRegistered(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:797:IsCollisionRegistered(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "IsCollisionRegistered(QUESTARGS)",
+      "sha256": "f63356e154e26a66c616703701f718abb44484c8d3d8fa95e0b67d44c53970a8",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:799:UnregisterCollision(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:802:UnregisterCollision(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "UnregisterCollision(QUESTARGS)",
+      "sha256": "64ac0e24d929878edeb2a99b0e5e6a724f870ac4075766569dd50aadb940fa77",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:804:GetCollisionActions(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)",
+      "to": "src/Papyrus/sslThreadModel.cpp:807:GetCollisionActions(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetCollisionActions(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner)",
+      "sha256": "4a8d22b16f5aaf1e6e53a37b501fd14856e0b65d0e79c58f2c84df312fc582a0",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:809:HasCollisionAction(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)",
+      "to": "src/Papyrus/sslThreadModel.cpp:812:HasCollisionAction(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "HasCollisionAction(QUESTARGS, int a_type, RE::Actor* a_position, RE::Actor* a_partner)",
+      "sha256": "f8f6ca334c6478a42e6564d5a8c3e94fe3ae7e6bf00e16f4ea99bdb52276ec94",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:814:* GetPartnerByAction(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:817:* GetPartnerByAction(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "* GetPartnerByAction(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "a9e95019ce97149ee5ce8bab90549650af08359374d730d2141c29a3367c55d2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:819:GetPartnersByAction(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:822:GetPartnersByAction(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetPartnersByAction(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "01f92703393e11393c5a5649549c5bf335cf445b5fa3a28559d34a635cf1c4d5",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:824:* GetPartnerByActionRev(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:827:* GetPartnerByActionRev(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "* GetPartnerByActionRev(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "9418c6d37e1c60e9ebdc400750284d19b00ee0353620f0fe41019d7af85ed227",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:829:GetPartnersByActionRev(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:832:GetPartnersByActionRev(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetPartnersByActionRev(QUESTARGS, RE::Actor* a_position, int a_type)",
+      "sha256": "6cba10ae8499c62c95649181de1badf7ee85346a1a30cabf08a049989a725952",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:834:GetActionVelocity(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)",
+      "to": "src/Papyrus/sslThreadModel.cpp:837:GetActionVelocity(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "GetActionVelocity(QUESTARGS, RE::Actor* a_position, RE::Actor* a_partner, int a_type)",
+      "sha256": "2f79e7802020f01a952aba9d6c11544d258c092f4f691b9d22f2eaaf073b8cc9",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:842:SetAnimationPlaybackSpeed(QUESTARGS, float a_playbackSpeed)",
+      "to": "src/Papyrus/sslThreadModel.cpp:845:SetAnimationPlaybackSpeed(QUESTARGS, float a_playbackSpeed)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "SetAnimationPlaybackSpeed(QUESTARGS, float a_playbackSpeed)",
+      "sha256": "eea3c38b38bbf23cb5a0a33ebefc48564f182d1d42988a91b8dae2fc29197467",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:848:CommitPlaybackBase(QUESTARGS, float a_baseSpeed, int32_t a_request, int32_t a_sequence)",
+      "to": "src/Papyrus/sslThreadModel.cpp:851:CommitPlaybackBase(QUESTARGS, float a_baseSpeed, int32_t a_request, int32_t a_sequence)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "CommitPlaybackBase(QUESTARGS, float a_baseSpeed, int32_t a_request, int32_t a_sequence)",
+      "sha256": "7cb056218072436df5d600847de88d7987d28b00afdef97d6e94acbf6342f0dc",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:867:RestartFixedLengthTimer(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:870:RestartFixedLengthTimer(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "RestartFixedLengthTimer(QUESTARGS)",
+      "sha256": "9e789d4a58dd2b2c8f75d45e5d80ab1bbb5f046494ef2002980db5b6fd2e46bd",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:873:AdjustFixedLengthTimer(QUESTARGS, float a_delta)",
+      "to": "src/Papyrus/sslThreadModel.cpp:876:AdjustFixedLengthTimer(QUESTARGS, float a_delta)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "AdjustFixedLengthTimer(QUESTARGS, float a_delta)",
+      "sha256": "36306b3da8e2f8aca4da826ff507ddb7258f032b7842b8f55257783459ae1f89",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:879:SetFixedLengthTimerPaused(QUESTARGS, bool a_paused)",
+      "to": "src/Papyrus/sslThreadModel.cpp:882:SetFixedLengthTimerPaused(QUESTARGS, bool a_paused)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "SetFixedLengthTimerPaused(QUESTARGS, bool a_paused)",
+      "sha256": "e79d8165e69c22457d2a4b7f12f08bc1e7a162ea4571400917225cb157c976f4",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:885:ConsumeFixedLengthTimerExpiration(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:888:ConsumeFixedLengthTimerExpiration(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "ConsumeFixedLengthTimerExpiration(QUESTARGS)",
+      "sha256": "d7f9fc8ff957e380a9cba30ec65ed8994339d641b9965457c8930aa8d1d16f2a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:891:AddExperience(QUESTARGS, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages)",
+      "to": "src/Papyrus/sslThreadModel.cpp:894:AddExperience(QUESTARGS, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "AddExperience(QUESTARGS, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages)",
+      "sha256": "e6c8c8dd20fff3d896eded5d80b2f43cc846049f58c9f970048df9c19ef8ff0c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:924:UpdateStatistics(QUESTARGS, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time)",
+      "to": "src/Papyrus/sslThreadModel.cpp:927:UpdateStatistics(QUESTARGS, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "UpdateStatistics(QUESTARGS, RE::Actor* a_actor, std::vector<RE::Actor*> a_positions, RE::BSFixedString a_scene, std::vector<RE::BSFixedString> a_playedstages, float a_time)",
+      "sha256": "fbcbdcef94fda75aa283df9916417f49aca430b3f3ce595095c5f84dd8cad002",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:1015:InitSceneHUDImpl(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:1018:InitSceneHUDImpl(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "InitSceneHUDImpl(QUESTARGS)",
+      "sha256": "2ed01a98187ea466e1407021829f56839834c9e9d1fa9168102b73af8ec48a4f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:1020:IsSceneHUDActiveImpl(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:1023:IsSceneHUDActiveImpl(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "IsSceneHUDActiveImpl(QUESTARGS)",
+      "sha256": "59603279037c459c110228e7dfc1f4643d8529936b1561a49e419fd96fe59642",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:1026:DestroySceneHUDImpl(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:1029:DestroySceneHUDImpl(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "DestroySceneHUDImpl(QUESTARGS)",
+      "sha256": "219fe82ab49eb15ee05f54cc7ef457b18f22306a27acbf4bf5352fc2dfbb3f63",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:1032:SetFocusSceneHUDImpl(QUESTARGS, bool a_focused)",
+      "to": "src/Papyrus/sslThreadModel.cpp:1035:SetFocusSceneHUDImpl(QUESTARGS, bool a_focused)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "SetFocusSceneHUDImpl(QUESTARGS, bool a_focused)",
+      "sha256": "548de6530cf4e470dfc3d79ce0f390fa12a2c3f83fbce74dd1f921fe4c146dfa",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:1038:UpdateMenuTimerDisplay(QUESTARGS, float a_duration, float a_time)",
+      "to": "src/Papyrus/sslThreadModel.cpp:1041:UpdateMenuTimerDisplay(QUESTARGS, float a_duration, float a_time)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "UpdateMenuTimerDisplay(QUESTARGS, float a_duration, float a_time)",
+      "sha256": "39ddc2efaae73d4137480994bb9dce5d7885beac0e31a0640223833d2881fbaa",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:1044:OnStageChangedUpdateHUD(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:1047:OnStageChangedUpdateHUD(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "OnStageChangedUpdateHUD(QUESTARGS)",
+      "sha256": "fc8cfcc9bbbe050e821ae6fa68dfed3968a8d418f65d6c050ad2ba1535144cb3",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:1050:EnjBarsChangeHighlightedPartner(QUESTARGS, RE::Actor* a_actor)",
+      "to": "src/Papyrus/sslThreadModel.cpp:1053:EnjBarsChangeHighlightedPartner(QUESTARGS, RE::Actor* a_actor)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "EnjBarsChangeHighlightedPartner(QUESTARGS, RE::Actor* a_actor)",
+      "sha256": "b224b9c01ed17f9788df379f95e3440540968157897291a7fa5420721be7d365",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:1056:OpenStageSelectMenuImpl(QUESTARGS)",
+      "to": "src/Papyrus/sslThreadModel.cpp:1059:OpenStageSelectMenuImpl(QUESTARGS)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "OpenStageSelectMenuImpl(QUESTARGS)",
+      "sha256": "27bcb9ab86e07ab6a60d786bf6a22312fcf4fbafa74d6723236efad56398a459",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Papyrus/sslThreadModel.cpp:1062:SetVisibilitySceneGraphImpl(QUESTARGS, bool a_open)",
+      "to": "src/Papyrus/sslThreadModel.cpp:1065:SetVisibilitySceneGraphImpl(QUESTARGS, bool a_open)",
+      "path": "src/Papyrus/sslThreadModel.cpp",
+      "name": "SetVisibilitySceneGraphImpl(QUESTARGS, bool a_open)",
+      "sha256": "2cc9ebbc9757014666bd2754e0e302c14bf5903455fb59c53a5d1ffb10ac6c7f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Serialization.h:9:GetTypeName(uint32_t a_type)",
+      "to": "src/Serialization.h:10:GetTypeName(uint32_t a_type)",
+      "path": "src/Serialization.h",
+      "name": "GetTypeName(uint32_t a_type)",
+      "sha256": "a20acab4eb053dcd3f19d0aca34b3b7c6233c6c2cb267459072a76a0c2d668d9",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Serialization.h:34:SaveCallback(SKSE::SerializationInterface* a_intfc)",
+      "to": "src/Serialization.h:35:SaveCallback(SKSE::SerializationInterface* a_intfc)",
+      "path": "src/Serialization.h",
+      "name": "SaveCallback(SKSE::SerializationInterface* a_intfc)",
+      "sha256": "f46d0fdf96edfe8e49df8efca1839fce2d080aac2312e88165db349edcb1f887",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Serialization.h:49:LoadCallback(SKSE::SerializationInterface* a_intfc)",
+      "to": "src/Serialization.h:50:LoadCallback(SKSE::SerializationInterface* a_intfc)",
+      "path": "src/Serialization.h",
+      "name": "LoadCallback(SKSE::SerializationInterface* a_intfc)",
+      "sha256": "c870a61b648cd77bdded8b76215a2c9542ab9db9127a96fd9e3a9a89dfa61616",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Serialization.h:81:FormDeleteCallback(RE::VMHandle)",
+      "to": "src/Serialization.h:83:FormDeleteCallback(RE::VMHandle)",
+      "path": "src/Serialization.h",
+      "name": "FormDeleteCallback(RE::VMHandle)",
+      "sha256": "9c50386386adf9bcc2dee44d39298046b805cce844319a43c00a1aa2593de8ba",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Collision/CollisionHandler.cpp:91:CollisionHandler::Install()",
+      "to": "src/Thread/Collision/CollisionHandler.cpp:118:CollisionHandler::Install()",
+      "path": "src/Thread/Collision/CollisionHandler.cpp",
+      "name": "CollisionHandler::Install()",
+      "sha256": "a660dcad9753c470c7ae211e22dd5b003d4be8fe1bab3e2aa2564fd2bf479a4a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Collision/CollisionHandler.cpp:113:CollisionHandler::HasActor(RE::FormID a_actor)",
+      "to": "src/Thread/Collision/CollisionHandler.cpp:148:CollisionHandler::HasActor(RE::FormID a_actor)",
+      "path": "src/Thread/Collision/CollisionHandler.cpp",
+      "name": "CollisionHandler::HasActor(RE::FormID a_actor)",
+      "sha256": "4d118f322baddddb65dd866da6ae3626b0ac73d21e7b1da1c958e887772b5986",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Collision/CollisionHandler.cpp:119:CollisionHandler::ConfigureControllerForNoCollision(RE::bhkCharacterController* a_controller)",
+      "to": "src/Thread/Collision/CollisionHandler.cpp:190:CollisionHandler::ConfigureControllerForNoCollision(RE::bhkCharacterController* a_controller)",
+      "path": "src/Thread/Collision/CollisionHandler.cpp",
+      "name": "CollisionHandler::ConfigureControllerForNoCollision(RE::bhkCharacterController* a_controller)",
+      "sha256": "df27cfa76dcebe4182fd50ea20f74ad105d4d09b0fd1633244356810aa0beb1a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Collision/CollisionHandler.cpp:151:CollisionHandler::DisableRigidBodyPhysics(RE::Actor* a_actor)",
+      "to": "src/Thread/Collision/CollisionHandler.cpp:222:CollisionHandler::DisableRigidBodyPhysics(RE::Actor* a_actor)",
+      "path": "src/Thread/Collision/CollisionHandler.cpp",
+      "name": "CollisionHandler::DisableRigidBodyPhysics(RE::Actor* a_actor)",
+      "sha256": "328d9211e8569112f243e5779722be3a6dbeb2e3ca027d187c202d2e128d9be2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Collision/CollisionHandler.cpp:204:CollisionHandler::RestoreSavedPhysics(RE::FormID a_actor, RE::hkRefPtr<RE::hkpRigidBody>& a_releaseAfterUnlock)",
+      "to": "src/Thread/Collision/CollisionHandler.cpp:272:CollisionHandler::RestoreSavedPhysics(RE::FormID a_actor, RE::hkRefPtr<RE::hkpRigidBody>& a_releaseAfterUnlock)",
+      "path": "src/Thread/Collision/CollisionHandler.cpp",
+      "name": "CollisionHandler::RestoreSavedPhysics(RE::FormID a_actor, RE::hkRefPtr<RE::hkpRigidBody>& a_releaseAfterUnlock)",
+      "sha256": "2bdca842ff49ce5f19c9d5a97028538c37b033da13fb63c6cda665edf494a6bb",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Collision/CollisionHandler.cpp:256:* CollisionHandler::IsCollisionEnabled(RE::hkpCollidableCollidableFilter* a_this, bool* a_result, const RE::hkpCollidable* a_collidableA, const RE::hkpCollidable* a_collidableB)",
+      "to": "src/Thread/Collision/CollisionHandler.cpp:369:* CollisionHandler::IsCollisionEnabled(RE::hkpCollidableCollidableFilter* a_this, bool* a_result, const RE::hkpCollidable* a_collidableA, const RE::hkpCollidable* a_collidableB)",
+      "path": "src/Thread/Collision/CollisionHandler.cpp",
+      "name": "* CollisionHandler::IsCollisionEnabled(RE::hkpCollidableCollidableFilter* a_this, bool* a_result, const RE::hkpCollidable* a_collidableA, const RE::hkpCollidable* a_collidableB)",
+      "sha256": "161152a776236f694a53819b7681e9583f48655be1b73834d39c813f3c31454b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Collision/CollisionHandler.cpp:283:(RE::FormID id)",
+      "to": "src/Thread/Collision/CollisionHandler.cpp:396:(RE::FormID id)",
+      "path": "src/Thread/Collision/CollisionHandler.cpp",
+      "name": "(RE::FormID id)",
+      "sha256": "41923cc77630f28b8dceab0e954f39da60527db76aa4b70656e2b73008c13443",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/FurnSelectMenu.cpp:14:FurnSelectMenu::Register()",
+      "to": "src/Thread/Interface/FurnSelectMenu.cpp:23:FurnSelectMenu::Register()",
+      "path": "src/Thread/Interface/FurnSelectMenu.cpp",
+      "name": "FurnSelectMenu::Register()",
+      "sha256": "c1e8e776a3882bab10dee36abd827eb9fbbe96ac70899ac42c2d6844a9b35897",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/FurnSelectMenu.cpp:23:FurnSelectMenu::Open(RE::TESQuest* a_quest, const std::vector<Item>& a_items, int32_t a_request)",
+      "to": "src/Thread/Interface/FurnSelectMenu.cpp:32:FurnSelectMenu::Open(RE::TESQuest* a_quest, const std::vector<Item>& a_items, int32_t a_request)",
+      "path": "src/Thread/Interface/FurnSelectMenu.cpp",
+      "name": "FurnSelectMenu::Open(RE::TESQuest* a_quest, const std::vector<Item>& a_items, int32_t a_request)",
+      "sha256": "47642c6bc9c72cfb3eae27886ccd2c170d28f16c7e9ce1207f8d9cff1dba060c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/FurnSelectMenu.cpp:38:FurnSelectMenu::Cancel(RE::TESQuest* a_quest, int32_t a_request)",
+      "to": "src/Thread/Interface/FurnSelectMenu.cpp:47:FurnSelectMenu::Cancel(RE::TESQuest* a_quest, int32_t a_request)",
+      "path": "src/Thread/Interface/FurnSelectMenu.cpp",
+      "name": "FurnSelectMenu::Cancel(RE::TESQuest* a_quest, int32_t a_request)",
+      "sha256": "6dfd194fdce3c42103ca826b64f9b2fef0843b9cdd95151968497013592aaf30",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/FurnSelectMenu.cpp:64:FurnSelectMenu::RenderCallback()",
+      "to": "src/Thread/Interface/FurnSelectMenu.cpp:76:FurnSelectMenu::RenderCallback()",
+      "path": "src/Thread/Interface/FurnSelectMenu.cpp",
+      "name": "FurnSelectMenu::RenderCallback()",
+      "sha256": "b96b0bc3287a5eb7177073ca9dac6a3efdf0e0f009b7695e87a320f271aaa0cd",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/FurnSelectMenu.cpp:69:FurnSelectMenu::Render()",
+      "to": "src/Thread/Interface/FurnSelectMenu.cpp:81:FurnSelectMenu::Render()",
+      "path": "src/Thread/Interface/FurnSelectMenu.cpp",
+      "name": "FurnSelectMenu::Render()",
+      "sha256": "85f4b30c0844ee4b84dbc115ad711ff3b986d2900fee01f42be527157030fb8d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/FurnSelectMenu.h:23:FurnSelectMenu()",
+      "to": "src/Thread/Interface/FurnSelectMenu.h:24:FurnSelectMenu()",
+      "path": "src/Thread/Interface/FurnSelectMenu.h",
+      "name": "FurnSelectMenu()",
+      "sha256": "128e94e9430bc7b51ce1bdf20c4876d35bfac2976661ae6bc0874d8ca1ff1b38",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:51:StageSelectMenu::Register()",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:61:StageSelectMenu::Register()",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::Register()",
+      "sha256": "f68d09948af4f8a0e6880cfbf3c39c0bbc5b8c728ea37c23a4bc4705407f73ac",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:62:StageSelectMenu::OpenStageSelectMenu(RE::TESQuest* a_quest)",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:72:StageSelectMenu::OpenStageSelectMenu(RE::TESQuest* a_quest)",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::OpenStageSelectMenu(RE::TESQuest* a_quest)",
+      "sha256": "e1a30a5adcd75707915ae5c059de3c510ba06aa3164d0fec1084e336f70a95ee",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:101:StageSelectMenu::SetVisibilitySceneGraph(RE::TESQuest* a_quest, bool a_open)",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:111:StageSelectMenu::SetVisibilitySceneGraph(RE::TESQuest* a_quest, bool a_open)",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::SetVisibilitySceneGraph(RE::TESQuest* a_quest, bool a_open)",
+      "sha256": "70863ce063f01a20ab99c841ac30bab1fc207326c8d17362476f17e6a5291daf",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:119:StageSelectMenu::RefreshSceneGraphView(RE::TESQuest* a_quest)",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:129:StageSelectMenu::RefreshSceneGraphView(RE::TESQuest* a_quest)",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::RefreshSceneGraphView(RE::TESQuest* a_quest)",
+      "sha256": "84bb248002a8a8cc8af6b61dad9769cdb5d06ebb603a754b1d0af430d54bee02",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:140:StageSelectMenu::Close()",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:150:StageSelectMenu::Close()",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::Close()",
+      "sha256": "353d42d409254d288fd9071e7834836adb506b4eb90064fc968f526fb4fcbcf5",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:155:StageSelectMenu::HideIfIdle()",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:165:StageSelectMenu::HideIfIdle()",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::HideIfIdle()",
+      "sha256": "2477dc3bf7dc4393413271d372260b13660e63ef8e5177e2330f87a2f7196f76",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:163:StageSelectMenu::ClosePendingChoice()",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:173:StageSelectMenu::ClosePendingChoice()",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::ClosePendingChoice()",
+      "sha256": "20b04e509a197adf9c2f9c2e0777fafcf0c725419bea95a940ade825927f32d5",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:172:StageSelectMenu::CloseGraphView()",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:182:StageSelectMenu::CloseGraphView()",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::CloseGraphView()",
+      "sha256": "ba4f83c5e4cb5d49eb27a52d4aa963335ed8b6ed032d92a55704f92cbf5c1c6a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:178:StageSelectMenu::OnNextBranchSelected(int a_index)",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:188:StageSelectMenu::OnNextBranchSelected(int a_index)",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::OnNextBranchSelected(int a_index)",
+      "sha256": "bb18fc32cd0af2cb6ab6258128eb2c4df9f7b279ade11caa6a2450beb204f464",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:185:StageSelectMenu::BuildSceneGraph(Instance& a_inst)",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:195:StageSelectMenu::BuildSceneGraph(Instance& a_inst)",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::BuildSceneGraph(Instance& a_inst)",
+      "sha256": "43ad6ee43c01140cd5df69412c85f672433011099033beb99eafee771322a6d7",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:274:StageSelectMenu::RenderCallback()",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:284:StageSelectMenu::RenderCallback()",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::RenderCallback()",
+      "sha256": "72487240e8a0ccc81f47e8033bbc1582d387faef0ae246968b115adaa710ce6a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:279:StageSelectMenu::Render()",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:289:StageSelectMenu::Render()",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::Render()",
+      "sha256": "6907a1cf375fa93e803c5b1382d1bbf74d70a6c80449b7fd5661d198b95b8ddc",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:294:StageSelectMenu::RenderStageChoiceCard()",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:304:StageSelectMenu::RenderStageChoiceCard()",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::RenderStageChoiceCard()",
+      "sha256": "96d3e9fa8fd5cc52573b4e5c339695e52b2cee43f6dfff07d8f1792387c5afd3",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:481:StageSelectMenu::RenderSceneGraphView()",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:491:StageSelectMenu::RenderSceneGraphView()",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "StageSelectMenu::RenderSceneGraphView()",
+      "sha256": "f8718b6f5ee7a25c4d0a26828c82e6b40530875d9bc64eda91ab4253dd372651",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:541:(float x0, float y0, float x1, float y1, ImGuiMCP::ImU32 tl, ImGuiMCP::ImU32 tr, ImGuiMCP::ImU32 br, ImGuiMCP::ImU32 bl)",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:551:(float x0, float y0, float x1, float y1, ImGuiMCP::ImU32 tl, ImGuiMCP::ImU32 tr, ImGuiMCP::ImU32 br, ImGuiMCP::ImU32 bl)",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "(float x0, float y0, float x1, float y1, ImGuiMCP::ImU32 tl, ImGuiMCP::ImU32 tr, ImGuiMCP::ImU32 br, ImGuiMCP::ImU32 bl)",
+      "sha256": "d4c2f80dc09b7438d4c53bfa7f315061d3797d06ce69c0f7f9ae6ad0923f3c44",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.cpp:643:(float a_x, float a_y)",
+      "to": "src/Thread/Interface/StageSelectMenu.cpp:653:(float a_x, float a_y)",
+      "path": "src/Thread/Interface/StageSelectMenu.cpp",
+      "name": "(float a_x, float a_y)",
+      "sha256": "8f312fcef771493fc4fd4311f9d94638ab3f2846a8400dd84501e76ace33eb25",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.h:29:IsGraphViewOpen() const",
+      "to": "src/Thread/Interface/StageSelectMenu.h:30:IsGraphViewOpen() const",
+      "path": "src/Thread/Interface/StageSelectMenu.h",
+      "name": "IsGraphViewOpen() const",
+      "sha256": "052b739a6024d39c0634bfcf3b1a276d2313ed009e02abf1ca05e3f964da7469",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.h:30:IsChoicePending() const",
+      "to": "src/Thread/Interface/StageSelectMenu.h:31:IsChoicePending() const",
+      "path": "src/Thread/Interface/StageSelectMenu.h",
+      "name": "IsChoicePending() const",
+      "sha256": "a99c2b65e7d456c3a7d99b00fe11205b28baf24428b820424f191439070b8638",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.h:54:StageSelectMenu()",
+      "to": "src/Thread/Interface/StageSelectMenu.h:55:StageSelectMenu()",
+      "path": "src/Thread/Interface/StageSelectMenu.h",
+      "name": "StageSelectMenu()",
+      "sha256": "349382e07d202916493942e67a22193e797a5a2360b93f5838fc9b1eeb9b939d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.h:55:StageSelectMenu(const StageSelectMenu&)",
+      "to": "src/Thread/Interface/StageSelectMenu.h:56:StageSelectMenu(const StageSelectMenu&)",
+      "path": "src/Thread/Interface/StageSelectMenu.h",
+      "name": "StageSelectMenu(const StageSelectMenu&)",
+      "sha256": "0042138980df1ff3951a9eaa9d0258240b1b4836847ab8057320b3bac666f4d8",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Interface/StageSelectMenu.h:56:& operator=(const StageSelectMenu&)",
+      "to": "src/Thread/Interface/StageSelectMenu.h:57:& operator=(const StageSelectMenu&)",
+      "path": "src/Thread/Interface/StageSelectMenu.h",
+      "name": "& operator=(const StageSelectMenu&)",
+      "sha256": "672ecc9352ff0c73d394026a0f9cb87f6636aac7e05ec8b8aefdc77b3a2ab587",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/Legacy/LegacyNiUpdate.cpp:157:NiUpdate::Unregister(RE::FormID a_id) noexcept",
+      "to": "src/Thread/NiNode/Legacy/LegacyNiUpdate.cpp:166:NiUpdate::Unregister(RE::FormID a_id) noexcept",
+      "path": "src/Thread/NiNode/Legacy/LegacyNiUpdate.cpp",
+      "name": "NiUpdate::Unregister(RE::FormID a_id) noexcept",
+      "sha256": "2f7f023c81ac141efe32f976ae440e20850f36efebb983b200e7f2ddeeb7acbf",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/Legacy/LegacyNiUpdate.cpp:140:(auto& it)",
+      "to": "src/Thread/NiNode/Legacy/LegacyNiUpdate.cpp:169:(auto& it)",
+      "path": "src/Thread/NiNode/Legacy/LegacyNiUpdate.cpp",
+      "name": "(auto& it)",
+      "sha256": "ab7c6221c8261ef69e8b96302dbb0a8a1fe60d9f0c7c6e9de4421ca28bbe7d75",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiUpdate.cpp:134:NiUpdate::Unregister(RE::FormID a_id) noexcept",
+      "to": "src/Thread/NiNode/NiUpdate.cpp:143:NiUpdate::Unregister(RE::FormID a_id) noexcept",
+      "path": "src/Thread/NiNode/NiUpdate.cpp",
+      "name": "NiUpdate::Unregister(RE::FormID a_id) noexcept",
+      "sha256": "f9f47b2b73e1a30a510741505aa51169f643bfd8cd0469737b209ff0a0782faf",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiUpdate.cpp:117:(auto& it)",
+      "to": "src/Thread/NiNode/NiUpdate.cpp:146:(auto& it)",
+      "path": "src/Thread/NiNode/NiUpdate.cpp",
+      "name": "(auto& it)",
+      "sha256": "ab7c6221c8261ef69e8b96302dbb0a8a1fe60d9f0c7c6e9de4421ca28bbe7d75",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiUpdate.cpp:144:NiUpdate::UpdateMLTrainingState(NiType::Type a_type, bool enabled)",
+      "to": "src/Thread/NiNode/NiUpdate.cpp:153:NiUpdate::UpdateMLTrainingState(NiType::Type a_type, bool enabled)",
+      "path": "src/Thread/NiNode/NiUpdate.cpp",
+      "name": "NiUpdate::UpdateMLTrainingState(NiType::Type a_type, bool enabled)",
+      "sha256": "284950b98f6e50b9aa9a3cad301045174da5f1b8eb18d683daec29652c01d76e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiUpdate.cpp:168:NiUpdate::SetMLTrainingFrameInterval(size_t interval)",
+      "to": "src/Thread/NiNode/NiUpdate.cpp:177:NiUpdate::SetMLTrainingFrameInterval(size_t interval)",
+      "path": "src/Thread/NiNode/NiUpdate.cpp",
+      "name": "NiUpdate::SetMLTrainingFrameInterval(size_t interval)",
+      "sha256": "ef83f8dad0439c5d4c00ea7c4775f68fc2451f67719772b71f2301cce740f91d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiUpdate.cpp:175:NiUpdate::ClearMLTrainingData()",
+      "to": "src/Thread/NiNode/NiUpdate.cpp:184:NiUpdate::ClearMLTrainingData()",
+      "path": "src/Thread/NiNode/NiUpdate.cpp",
+      "name": "NiUpdate::ClearMLTrainingData()",
+      "sha256": "a3cf1bb006006960e947b071cbe887d1ad18b801253710ae5b5eb782bf4b72cc",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiUpdate.cpp:183:NiUpdate::IsMLTrainingEnabled()",
+      "to": "src/Thread/NiNode/NiUpdate.cpp:192:NiUpdate::IsMLTrainingEnabled()",
+      "path": "src/Thread/NiNode/NiUpdate.cpp",
+      "name": "NiUpdate::IsMLTrainingEnabled()",
+      "sha256": "64fcbd4d9c5fb5cc6439ecb679015cd7d40d0d61bc58a7534fc870d5b072dd06",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiUpdate.cpp:189:NiUpdate::GetMLTrainingState()",
+      "to": "src/Thread/NiNode/NiUpdate.cpp:198:NiUpdate::GetMLTrainingState()",
+      "path": "src/Thread/NiNode/NiUpdate.cpp",
+      "name": "NiUpdate::GetMLTrainingState()",
+      "sha256": "863339977a885cca73408ead01a32a001b0a615f1da98d3f6a1cfdc1af086506",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:26:(const auto& instance)",
+      "to": "src/Thread/Thread.cpp:54:(const auto& instance)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(const auto& instance)",
+      "sha256": "956ab210ec4348367267c5ea22cd90018a1341bf3c37e5afeb0f9ab0440d10ae",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:26:(const auto& instance)",
+      "to": "src/Thread/Thread.cpp:55:(const auto& instance)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(const auto& instance)",
+      "sha256": "956ab210ec4348367267c5ea22cd90018a1341bf3c37e5afeb0f9ab0440d10ae",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:77:(const auto& instance)",
+      "to": "src/Thread/Thread.cpp:109:(const auto& instance)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(const auto& instance)",
+      "sha256": "00597dc36173a6cc0d22911759769611f2ff3efdc3d81d2c56ed84fd78aac54b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:101:(const auto& instance)",
+      "to": "src/Thread/Thread.cpp:136:(const auto& instance)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(const auto& instance)",
+      "sha256": "e4b4b0cacf630eece08daf3651f1ce6cb913be50d0b74807f4dd292774ee193f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:111:(const auto& instance)",
+      "to": "src/Thread/Thread.cpp:146:(const auto& instance)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(const auto& instance)",
+      "sha256": "78487b5f6bdadf2ca77308b8f169320a2e51ec64ce1167779ea0e062894ed079",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:134:Instance::GetInstance(RE::TESQuest* a_linkedQst)",
+      "to": "src/Thread/Thread.cpp:171:Instance::GetInstance(RE::TESQuest* a_linkedQst)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::GetInstance(RE::TESQuest* a_linkedQst)",
+      "sha256": "b8538847985d58d997d95638f3e05823396c1fe54e8e3648f59cf894c620689e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:145:Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)",
+      "to": "src/Thread/Thread.cpp:182:Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)",
+      "sha256": "f758157cc33ee68a7614cea53669472ec1958d12288c02264fa71899663cfaf0",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:156:Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int32_t a_request)",
+      "to": "src/Thread/Thread.cpp:193:Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int32_t a_request)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int32_t a_request)",
+      "sha256": "d4bfe97c553b8058d179bb33456eeafc7d48cebb76839d63da859b0cf42721bc",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:164:Instance::Center::SetReference(RE::TESObjectREFR* a_ref, Registry::FurnitureOffset a_offset)",
+      "to": "src/Thread/Thread.cpp:201:Instance::Center::SetReference(RE::TESObjectREFR* a_ref, Registry::FurnitureOffset a_offset)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::Center::SetReference(RE::TESObjectREFR* a_ref, Registry::FurnitureOffset a_offset)",
+      "sha256": "6f04821db5e8564beaf168a03e026ad1e676b7e973e3a0ed1b9c3831a86f8125",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:172:Instance::AdvanceScene(const Registry::Stage* a_nextStage)",
+      "to": "src/Thread/Thread.cpp:209:Instance::AdvanceScene(const Registry::Stage* a_nextStage)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::AdvanceScene(const Registry::Stage* a_nextStage)",
+      "sha256": "65be415276dd57fdf108a308e166d94cad97b789d239e00edcf9ca0e72dbaf16",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:198:Instance::RealignActors()",
+      "to": "src/Thread/Thread.cpp:235:Instance::RealignActors()",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::RealignActors()",
+      "sha256": "91cb58f2f1b1b2cd9a61d23684a53f428de4ca3f73253dd27d3a22c23af4e8da",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:205:Instance::SetActiveScene(const Registry::Scene* a_scene, bool a_refreshHUD)",
+      "to": "src/Thread/Thread.cpp:242:Instance::SetActiveScene(const Registry::Scene* a_scene, bool a_refreshHUD)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::SetActiveScene(const Registry::Scene* a_scene, bool a_refreshHUD)",
+      "sha256": "b73634c56c507d00835fb41f3d26ea263fe70f0b61c42e0b17d2bb1131e7570f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:246:Instance::GetThreadScenes(SceneType a_type)",
+      "to": "src/Thread/Thread.cpp:283:Instance::GetThreadScenes(SceneType a_type)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::GetThreadScenes(SceneType a_type)",
+      "sha256": "4b4843001886a3ff8969ed53dfe1e211d7979d067690d83cc79d4a7a76e8121d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:252:Instance::GetThreadScenes()",
+      "to": "src/Thread/Thread.cpp:289:Instance::GetThreadScenes()",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::GetThreadScenes()",
+      "sha256": "c47cff22caa737cf9ce1bf51c6940bae614485d2861929d3a86e8edf6cbb4d41",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:262:& Instance::GetActors()",
+      "to": "src/Thread/Thread.cpp:299:& Instance::GetActors()",
+      "path": "src/Thread/Thread.cpp",
+      "name": "& Instance::GetActors()",
+      "sha256": "ca20b29ec4b22aa79fe3ebe5d41597ecccd2f9184e1c1ac01e15d404c91c233e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:268:* Instance::GetPosition(RE::Actor* a_actor)",
+      "to": "src/Thread/Thread.cpp:305:* Instance::GetPosition(RE::Actor* a_actor)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "* Instance::GetPosition(RE::Actor* a_actor)",
+      "sha256": "9776d69be8f9db96d4ffb38ea13c324506142e843e2808ae4375b9210262342b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:279:* Instance::GetPositionInfo(RE::Actor* a_actor)",
+      "to": "src/Thread/Thread.cpp:316:* Instance::GetPositionInfo(RE::Actor* a_actor)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "* Instance::GetPositionInfo(RE::Actor* a_actor)",
+      "sha256": "0df4e428f879fd13d94369d41fa351e4986044d22c7fa67acfb220a6aff6c0cd",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:291:Instance::UpdatePlacement(RE::Actor* a_actor)",
+      "to": "src/Thread/Thread.cpp:328:Instance::UpdatePlacement(RE::Actor* a_actor)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::UpdatePlacement(RE::Actor* a_actor)",
+      "sha256": "c500f2afb28cf0766d535432a79ae011cbf48bcedcebc6dd6b6dc1dbda9e62f2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:303:Instance::ReassertPlacement(size_t a_position, bool a_force)",
+      "to": "src/Thread/Thread.cpp:340:Instance::ReassertPlacement(size_t a_position, bool a_force)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::ReassertPlacement(size_t a_position, bool a_force)",
+      "sha256": "76293a1fce58c2887e6993ccad5a93ca495f85532a84f5e8663492254dee4bbc",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:319:Instance::ReplaceCenterRef(RE::TESObjectREFR* a_ref)",
+      "to": "src/Thread/Thread.cpp:356:Instance::ReplaceCenterRef(RE::TESObjectREFR* a_ref)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::ReplaceCenterRef(RE::TESObjectREFR* a_ref)",
+      "sha256": "3053908d3f17ea1121455fdcde2c1a465858babc06e051eefc4431df6d2052b2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:351:Instance::OffsetAdjustSet(uint32_t actorFormId, Registry::CoordinateType axis, float value)",
+      "to": "src/Thread/Thread.cpp:388:Instance::OffsetAdjustSet(uint32_t actorFormId, Registry::CoordinateType axis, float value)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::OffsetAdjustSet(uint32_t actorFormId, Registry::CoordinateType axis, float value)",
+      "sha256": "5d16cb54f053b08c19548b7970a6b7f2227c5f97fc511a54a23f8e6855515f5c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:358:(Registry::Scene* scene)",
+      "to": "src/Thread/Thread.cpp:395:(Registry::Scene* scene)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(Registry::Scene* scene)",
+      "sha256": "f34c5bf5a3d7dd96b1bb446de8f746ab0380fce314af0f3ad1c6506e12b48aae",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:368:(RE::Actor* a)",
+      "to": "src/Thread/Thread.cpp:405:(RE::Actor* a)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(RE::Actor* a)",
+      "sha256": "c9ab6f80b0ecfd5f3d75d5e83930835c0b2374c55248f49d6b12009b4ab4e2b1",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:373:(Registry::Scene* scene)",
+      "to": "src/Thread/Thread.cpp:410:(Registry::Scene* scene)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(Registry::Scene* scene)",
+      "sha256": "11ea05e873194c6cc165a5bc9864990c4da0e2c0e2c104487ec138d27184aac0",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:379:(Registry::Stage* st)",
+      "to": "src/Thread/Thread.cpp:416:(Registry::Stage* st)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(Registry::Stage* st)",
+      "sha256": "71f8b6305fabc20c2789d1e2a967084d10a1b7302fd914d6e0153a6d849b972e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:390:Instance::OffsetAdjustReset(bool hasFurn)",
+      "to": "src/Thread/Thread.cpp:427:Instance::OffsetAdjustReset(bool hasFurn)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::OffsetAdjustReset(bool hasFurn)",
+      "sha256": "8b344f4e80e41d0bed6265622b1f5334f7e8ec8b4cb029cfc1c2fe9acee52e1b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:394:(Registry::Scene* scene)",
+      "to": "src/Thread/Thread.cpp:431:(Registry::Scene* scene)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(Registry::Scene* scene)",
+      "sha256": "f2150f635ccb1dff921d639a8421f314600003cefa8310612cf9414215e3f1fa",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:400:(Registry::Stage* stage)",
+      "to": "src/Thread/Thread.cpp:437:(Registry::Stage* stage)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "(Registry::Stage* stage)",
+      "sha256": "9abc5862d3c4c6de18e30c22da449581c3e77cac98b88f834c5df977ac74b8d2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:412:* Instance::GetExpression(RE::Actor* a_actor)",
+      "to": "src/Thread/Thread.cpp:449:* Instance::GetExpression(RE::Actor* a_actor)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "* Instance::GetExpression(RE::Actor* a_actor)",
+      "sha256": "dc34f614083ccc8c290ee831f503d0a257180665ea235f64829ef46ea76e711b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:422:Instance::SetExpression(RE::Actor* a_actor, const Registry::Expression* a_expression)",
+      "to": "src/Thread/Thread.cpp:459:Instance::SetExpression(RE::Actor* a_actor, const Registry::Expression* a_expression)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::SetExpression(RE::Actor* a_actor, const Registry::Expression* a_expression)",
+      "sha256": "b9949d72d7f30e7fcba20dcdb358987972eaaa34a28cdf5244da8034c6f284b2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:432:* Instance::GetVoice(RE::Actor* a_actor)",
+      "to": "src/Thread/Thread.cpp:469:* Instance::GetVoice(RE::Actor* a_actor)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "* Instance::GetVoice(RE::Actor* a_actor)",
+      "sha256": "e45b382310aa0261f6575de1fac87c7a8fa8fc0447f4d1a6500657790a0d0c8f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:442:Instance::SetVoice(RE::Actor* a_actor, const Registry::Voice* a_voice)",
+      "to": "src/Thread/Thread.cpp:479:Instance::SetVoice(RE::Actor* a_actor, const Registry::Voice* a_voice)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::SetVoice(RE::Actor* a_actor, const Registry::Voice* a_voice)",
+      "sha256": "20e0fb2f10e7ae121ff99eecb1a8ece737aa3bf8c8349a501b63bfb851bc48e7",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:452:Instance::GetUniquePermutations(RE::Actor* a_actor)",
+      "to": "src/Thread/Thread.cpp:489:Instance::GetUniquePermutations(RE::Actor* a_actor)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::GetUniquePermutations(RE::Actor* a_actor)",
+      "sha256": "70e26f714196571d740230402e1269885db3937117798dc3ebc18adf37c18215",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:462:Instance::GetCurrentPermutation(RE::Actor* a_actor)",
+      "to": "src/Thread/Thread.cpp:499:Instance::GetCurrentPermutation(RE::Actor* a_actor)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::GetCurrentPermutation(RE::Actor* a_actor)",
+      "sha256": "5fab50170e3114d721578ced9e920f27d1d279e527a6a940292b26bb9528a973",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:490:Instance::SetNextPermutation(RE::Actor* a_actor)",
+      "to": "src/Thread/Thread.cpp:527:Instance::SetNextPermutation(RE::Actor* a_actor)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::SetNextPermutation(RE::Actor* a_actor)",
+      "sha256": "852faf06ecd90075caf2e4026269e9b645d975febb70b04375d96397d93c33df",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:540:Instance::GetThreadProperty(const std::string& a_property)",
+      "to": "src/Thread/Thread.cpp:577:Instance::GetThreadProperty(const std::string& a_property)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::GetThreadProperty(const std::string& a_property)",
+      "sha256": "12c816d5ad34420208ad803fa2ec0ef6181a1958c633f802036a2a6c80745e7c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:552:Instance::SetThreadProperty(const std::string& a_property, T a_val)",
+      "to": "src/Thread/Thread.cpp:589:Instance::SetThreadProperty(const std::string& a_property, T a_val)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::SetThreadProperty(const std::string& a_property, T a_val)",
+      "sha256": "da0aaf5a26ed472f9688f9c6ce314499893b3b76f58ab1cb14eb40a29c7c05b2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:565:Instance::InitSceneHUDImpl()",
+      "to": "src/Thread/Thread.cpp:602:Instance::InitSceneHUDImpl()",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::InitSceneHUDImpl()",
+      "sha256": "b444e04c0d1458957ffbab728e45609369450e6e3da0764e132ba729bacf47a4",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:572:Instance::DestroySceneHUDImpl()",
+      "to": "src/Thread/Thread.cpp:609:Instance::DestroySceneHUDImpl()",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::DestroySceneHUDImpl()",
+      "sha256": "ac43033d753404edfa074f495b5dbc0b9f4a590b4036a5f70920375f8f76b786",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:578:Instance::SetFocusSceneHUDImpl(bool a_focused)",
+      "to": "src/Thread/Thread.cpp:615:Instance::SetFocusSceneHUDImpl(bool a_focused)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::SetFocusSceneHUDImpl(bool a_focused)",
+      "sha256": "ef8a36bae464d040781a4994d1fd1737da2b79c0dc1b5e9217945f4154a9a090",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:584:Instance::UpdateMenuTimerDisplay(float a_duration, float a_left)",
+      "to": "src/Thread/Thread.cpp:621:Instance::UpdateMenuTimerDisplay(float a_duration, float a_left)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::UpdateMenuTimerDisplay(float a_duration, float a_left)",
+      "sha256": "fa5757e484b09326cfd38253d2450acfd03354089f403e58feed7743c76c8e2f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:590:Instance::EnjBarsChangeHighlightedPartner(RE::Actor* a_partner)",
+      "to": "src/Thread/Thread.cpp:627:Instance::EnjBarsChangeHighlightedPartner(RE::Actor* a_partner)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::EnjBarsChangeHighlightedPartner(RE::Actor* a_partner)",
+      "sha256": "7f292bc57454b3ad6386a444ec7181070b7b09e5471ec21a9021aa869506b0c9",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:596:Instance::EnjBarsUpdateSlider(RE::Actor* a_position, float a_enjoyment, RE::BSFixedString a_interactions)",
+      "to": "src/Thread/Thread.cpp:633:Instance::EnjBarsUpdateSlider(RE::Actor* a_position, float a_enjoyment, RE::BSFixedString a_interactions)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::EnjBarsUpdateSlider(RE::Actor* a_position, float a_enjoyment, RE::BSFixedString a_interactions)",
+      "sha256": "166ee1f21c4b3be5151ed6530d52399599efbfd2d937ac3b16c0436809c13ab3",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:602:Instance::RegisterRaiseEnjAttempt(RE::Actor* a_position, float a_nextTimeCycle)",
+      "to": "src/Thread/Thread.cpp:639:Instance::RegisterRaiseEnjAttempt(RE::Actor* a_position, float a_nextTimeCycle)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::RegisterRaiseEnjAttempt(RE::Actor* a_position, float a_nextTimeCycle)",
+      "sha256": "dc0cb8139020db159f28bd2ac954db435ef4023a5a2c5a60eb971c3566faa671",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:608:Instance::OnStageChangedUpdateHUD()",
+      "to": "src/Thread/Thread.cpp:645:Instance::OnStageChangedUpdateHUD()",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::OnStageChangedUpdateHUD()",
+      "sha256": "fc9d613a62e1cb248c9d4eacc54058f87cec762feae02dc87de049e14077d487",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:615:Instance::OpenStageSelectMenuImpl()",
+      "to": "src/Thread/Thread.cpp:652:Instance::OpenStageSelectMenuImpl()",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::OpenStageSelectMenuImpl()",
+      "sha256": "18aedf3363f9a3195e89a006e1d4f3e82b6fa8f22902e8b68c0f3b2bccaf6302",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.cpp:622:Instance::SetVisibilitySceneGraphImpl(bool a_open)",
+      "to": "src/Thread/Thread.cpp:659:Instance::SetVisibilitySceneGraphImpl(bool a_open)",
+      "path": "src/Thread/Thread.cpp",
+      "name": "Instance::SetVisibilitySceneGraphImpl(bool a_open)",
+      "sha256": "0660c1b8e94f6e08b25610a04fcd9ab7cb9e914bf2394b00f540c1d21a198f8b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:74:GetStartupClock()",
+      "to": "src/Thread/Thread.h:76:GetStartupClock()",
+      "path": "src/Thread/Thread.h",
+      "name": "GetStartupClock()",
+      "sha256": "d6a8d2680762907dbf44cbe1a1b080049a9e0f4bba99791d832d8e53fc24ca5e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:77:IsStartupRequest(int32_t a_request) const",
+      "to": "src/Thread/Thread.h:79:IsStartupRequest(int32_t a_request) const",
+      "path": "src/Thread/Thread.h",
+      "name": "IsStartupRequest(int32_t a_request) const",
+      "sha256": "76ee0d0a3b3fdf15f80bc5c853018f05d0d70dbbf045c837efcd1df0b99017c5",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:78:GetStartupRequest() const",
+      "to": "src/Thread/Thread.h:80:GetStartupRequest() const",
+      "path": "src/Thread/Thread.h",
+      "name": "GetStartupRequest() const",
+      "sha256": "58ed3f15a3952a8af4e6d1f5d066f9e3fbe5f9b14cf60bab858260b81c66bab0",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:79:NextSpeedRequest()",
+      "to": "src/Thread/Thread.h:81:NextSpeedRequest()",
+      "path": "src/Thread/Thread.h",
+      "name": "NextSpeedRequest()",
+      "sha256": "fe5112f3900926e2ca23341e9b53be7a3c12ef1d9bab08c182bc91f27d17d6f0",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:80:IsCurrentSpeedRequest(int32_t a_sequence) const",
+      "to": "src/Thread/Thread.h:82:IsCurrentSpeedRequest(int32_t a_sequence) const",
+      "path": "src/Thread/Thread.h",
+      "name": "IsCurrentSpeedRequest(int32_t a_sequence) const",
+      "sha256": "ef45c4158fde838b7f5aacd69854ca74eea3af2b9203a30e0275b3606617c022",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:81:HasNiInstance() const",
+      "to": "src/Thread/Thread.h:83:HasNiInstance() const",
+      "path": "src/Thread/Thread.h",
+      "name": "HasNiInstance() const",
+      "sha256": "44e1554b2e4f3121e7a90465f274f43ea4684a58fc18c8c35594b5d7754d4b56",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:82:GetNiInstance()",
+      "to": "src/Thread/Thread.h:84:GetNiInstance()",
+      "path": "src/Thread/Thread.h",
+      "name": "GetNiInstance()",
+      "sha256": "e1be89dbec99a295b7b333a3316565cefe203155351d8770436278a0fd9d8e27",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:83:UnregisterNiInstance()",
+      "to": "src/Thread/Thread.h:85:UnregisterNiInstance()",
+      "path": "src/Thread/Thread.h",
+      "name": "UnregisterNiInstance()",
+      "sha256": "e1e1e097b0826293954b622555ceb89842447a01f353af3d77b541d4d6a1f83c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:85:HasNiInstanceLegacy() const",
+      "to": "src/Thread/Thread.h:87:HasNiInstanceLegacy() const",
+      "path": "src/Thread/Thread.h",
+      "name": "HasNiInstanceLegacy() const",
+      "sha256": "f3db78ceb6ceebca1b0c756a140d2e4b2294039262f6c98630f345048a917dfa",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:86:GetNiInstanceLegacy()",
+      "to": "src/Thread/Thread.h:88:GetNiInstanceLegacy()",
+      "path": "src/Thread/Thread.h",
+      "name": "GetNiInstanceLegacy()",
+      "sha256": "5095581f8ac4b344ecac4c2ae34dd03f75893e8d4b97b5c21c203aef043919ce",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:87:UnregisterNiInstanceLegacy()",
+      "to": "src/Thread/Thread.h:89:UnregisterNiInstanceLegacy()",
+      "path": "src/Thread/Thread.h",
+      "name": "UnregisterNiInstanceLegacy()",
+      "sha256": "1afa1942195a0a4098eafcaeb2b4d04ea5845f19fb4ca92cdeb784d52466e501",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:95:* GetActiveScene()",
+      "to": "src/Thread/Thread.h:97:* GetActiveScene()",
+      "path": "src/Thread/Thread.h",
+      "name": "* GetActiveScene()",
+      "sha256": "3e7e417745c3c6f77c4c1e45958c4b409ad8d516405b626bff3a7987f5e6d31f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:96:* GetActiveStage()",
+      "to": "src/Thread/Thread.h:98:* GetActiveStage()",
+      "path": "src/Thread/Thread.h",
+      "name": "* GetActiveStage()",
+      "sha256": "8abd71ce71518518d58aaf761cf485d7b0c2b1d00107b7ece8a77842a366a11a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:105:* GetCenterRef()",
+      "to": "src/Thread/Thread.h:107:* GetCenterRef()",
+      "path": "src/Thread/Thread.h",
+      "name": "* GetCenterRef()",
+      "sha256": "dd9655036da91de539d791eb24a9deaaf8501aab6cbb274d046476e1e591d4ec",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:106:GetFurnitureType()",
+      "to": "src/Thread/Thread.h:108:GetFurnitureType()",
+      "path": "src/Thread/Thread.h",
+      "name": "GetFurnitureType()",
+      "sha256": "eaafdca1b9d111c0faada0c27b150725026831e51ffd9bcfd6138d7ee35432d9",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/Thread.h:111:GetAnimationPlaybackSpeed() const",
+      "to": "src/Thread/Thread.h:113:GetAnimationPlaybackSpeed() const",
+      "path": "src/Thread/Thread.h",
+      "name": "GetAnimationPlaybackSpeed() const",
+      "sha256": "c29fb132f79eb3563754e7ab9f45e0068e4a88803341bca4906c8102c2a8e27e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:153:Instance::RestorePreparedActors(RE::TESQuest* a_linkedQst)",
+      "to": "src/Thread/ThreadAnimation.cpp:160:Instance::RestorePreparedActors(RE::TESQuest* a_linkedQst)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::RestorePreparedActors(RE::TESQuest* a_linkedQst)",
+      "sha256": "80133f24d14dea597286920e82d5dd7caf2f6559970ad60917e45c4aecdc24f2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:158:Instance::CancelPendingAnimations(RE::TESQuest* a_linkedQst)",
+      "to": "src/Thread/ThreadAnimation.cpp:165:Instance::CancelPendingAnimations(RE::TESQuest* a_linkedQst)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::CancelPendingAnimations(RE::TESQuest* a_linkedQst)",
+      "sha256": "c96ef60e2b0810460566241350a2f626be82a12aacd91fe9816b7ef0e5fca1e7",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:188:Instance::BeginActorRecovery()",
+      "to": "src/Thread/ThreadAnimation.cpp:195:Instance::BeginActorRecovery()",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::BeginActorRecovery()",
+      "sha256": "012cc0188576b026a6972143c0ef3cb07b3334ed72f359d8d9840de5e6c001ea",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:195:Instance::BeginPlayerDialogueWait()",
+      "to": "src/Thread/ThreadAnimation.cpp:202:Instance::BeginPlayerDialogueWait()",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::BeginPlayerDialogueWait()",
+      "sha256": "2f1eaadea3fb0bfb78f68204d8ccde6384810b59bb2190b940d1be4ab9d95363",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:209:Instance::QueueActorRecoveries(bool a_preparationBarrier)",
+      "to": "src/Thread/ThreadAnimation.cpp:216:Instance::QueueActorRecoveries(bool a_preparationBarrier)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::QueueActorRecoveries(bool a_preparationBarrier)",
+      "sha256": "f707a36949edc47d3c48758d4cd140690bdf9a1fad3c1ef18b24d1592e7fb397",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:234:Instance::UpdatePendingRecoveries(float a_delta)",
+      "to": "src/Thread/ThreadAnimation.cpp:241:Instance::UpdatePendingRecoveries(float a_delta)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::UpdatePendingRecoveries(float a_delta)",
+      "sha256": "e1e6cb7db5df20c0c0bd1c8b6341751275c9afbfc52ab3ca283308a708291159",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:324:Instance::BeginPlayerSheatheWait()",
+      "to": "src/Thread/ThreadAnimation.cpp:331:Instance::BeginPlayerSheatheWait()",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::BeginPlayerSheatheWait()",
+      "sha256": "5945831742623587eecf835ad6fc5a094dfa81f076204362bab58a90981d264a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:347:Instance::StartFixedLengthTimer()",
+      "to": "src/Thread/ThreadAnimation.cpp:354:Instance::StartFixedLengthTimer()",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::StartFixedLengthTimer()",
+      "sha256": "5f8f673fcaf1665551d9bdb342837d4563dd83dce3ba7df94c980ec84edde56b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:361:Instance::CancelFixedLengthTimer()",
+      "to": "src/Thread/ThreadAnimation.cpp:368:Instance::CancelFixedLengthTimer()",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::CancelFixedLengthTimer()",
+      "sha256": "6e36935148676d60f565d395b30f46724a5ec1899e0254595238ffd5e8634788",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:366:Instance::RestartFixedLengthTimer()",
+      "to": "src/Thread/ThreadAnimation.cpp:373:Instance::RestartFixedLengthTimer()",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::RestartFixedLengthTimer()",
+      "sha256": "3535a0b9c78d0f613349cd283d08210a888bff73a70e20fa077a0b78c225065b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:371:Instance::AdjustFixedLengthTimer(float a_delta)",
+      "to": "src/Thread/ThreadAnimation.cpp:378:Instance::AdjustFixedLengthTimer(float a_delta)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::AdjustFixedLengthTimer(float a_delta)",
+      "sha256": "73d0ce47619300a8d9a1b1101fce2a45c42278593de99199d1c97e0db8bc7017",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:383:Instance::SetFixedLengthTimerPaused(bool a_paused)",
+      "to": "src/Thread/ThreadAnimation.cpp:390:Instance::SetFixedLengthTimerPaused(bool a_paused)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::SetFixedLengthTimerPaused(bool a_paused)",
+      "sha256": "50e27de55fb6cabafbc38332155a6f393b4ae08916b9bf98a98605f5fda03295",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:388:Instance::ConsumeFixedLengthTimerExpiration()",
+      "to": "src/Thread/ThreadAnimation.cpp:395:Instance::ConsumeFixedLengthTimerExpiration()",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::ConsumeFixedLengthTimerExpiration()",
+      "sha256": "5cd0a75a5ad64f44229a6d8da86dfdab115c67cdf259416867985598759fedff",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:397:Instance::UpdateFixedLengthTimer(float a_delta)",
+      "to": "src/Thread/ThreadAnimation.cpp:404:Instance::UpdateFixedLengthTimer(float a_delta)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::UpdateFixedLengthTimer(float a_delta)",
+      "sha256": "6ecfefa0b5ff91807f81727bdc7c04c4f3a70d0c5198fccdaaa7ce3254fac38d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:418:Instance::UpdateAnimations(float a_delta)",
+      "to": "src/Thread/ThreadAnimation.cpp:425:Instance::UpdateAnimations(float a_delta)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::UpdateAnimations(float a_delta)",
+      "sha256": "87e57a04596a7ca6210d019a8c80f7825a44ddad9c22b1c39b34742263daf059",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:429:Instance::GetActiveClips(RE::Actor* a_actor, std::vector<ActiveClip>& a_clips) const",
+      "to": "src/Thread/ThreadAnimation.cpp:436:Instance::GetActiveClips(RE::Actor* a_actor, std::vector<ActiveClip>& a_clips) const",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::GetActiveClips(RE::Actor* a_actor, std::vector<ActiveClip>& a_clips) const",
+      "sha256": "a780422f42044daba9052de8afa575011fd956018241f183497d5302268af4a7",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:457:(RE::hkbClipGenerator* a_clip)",
+      "to": "src/Thread/ThreadAnimation.cpp:464:(RE::hkbClipGenerator* a_clip)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "(RE::hkbClipGenerator* a_clip)",
+      "sha256": "94d0e37691afd23d78a310505255d2ca31db1a32ff77d28901e0c49151e51139",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:489:Instance::TryStartAnimations()",
+      "to": "src/Thread/ThreadAnimation.cpp:496:Instance::TryStartAnimations()",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::TryStartAnimations()",
+      "sha256": "3079f3223fe4a622fd6b823aa7ec050f0e67a62b36fdfc9cd814fddf975333ac",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:590:Instance::HoldAnimation(PendingAnimation& a_pending)",
+      "to": "src/Thread/ThreadAnimation.cpp:597:Instance::HoldAnimation(PendingAnimation& a_pending)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::HoldAnimation(PendingAnimation& a_pending)",
+      "sha256": "5cdad0b5c8a844a5a80532e7b93c47f13eea2f070d2c78b1dfb2c6cfcd27d4d4",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:631:Instance::ReleaseAnimations()",
+      "to": "src/Thread/ThreadAnimation.cpp:638:Instance::ReleaseAnimations()",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::ReleaseAnimations()",
+      "sha256": "f7774f22951d8223d45d2de43b4bb877240b176506db3beabd8f2fe154d3f2c5",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:698:Instance::UpdatePendingAnimations(float a_delta)",
+      "to": "src/Thread/ThreadAnimation.cpp:705:Instance::UpdatePendingAnimations(float a_delta)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::UpdatePendingAnimations(float a_delta)",
+      "sha256": "805514b52b9f80020229c22e7a2cc2726e6ad4c53bb10f8f5d62cedd0fe07c57",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:869:Instance::SetAnimationPlaybackSpeed(float playbackSpeed)",
+      "to": "src/Thread/ThreadAnimation.cpp:876:Instance::SetAnimationPlaybackSpeed(float playbackSpeed)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "Instance::SetAnimationPlaybackSpeed(float playbackSpeed)",
+      "sha256": "afc8959e4315708d4bf4b3dd6e06e12283649150ac0fac3110b6ba6e3894dfad",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadAnimation.cpp:918:(const auto& pending)",
+      "to": "src/Thread/ThreadAnimation.cpp:925:(const auto& pending)",
+      "path": "src/Thread/ThreadAnimation.cpp",
+      "name": "(const auto& pending)",
+      "sha256": "6e43a5baeac15585368351140252db2d35b95f06015238eb4fac535023c58c4e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:202:Instance::InitializeFixedCenter(RE::Actor* centerAct, std::vector<const Registry::Scene*>& prioScenes, REX::EnumSet<Registry::FurnitureType::Value> sceneTypes)",
+      "to": "src/Thread/ThreadCtor.cpp:206:Instance::InitializeFixedCenter(RE::Actor* centerAct, std::vector<const Registry::Scene*>& prioScenes, REX::EnumSet<Registry::FurnitureType::Value> sceneTypes)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "Instance::InitializeFixedCenter(RE::Actor* centerAct, std::vector<const Registry::Scene*>& prioScenes, REX::EnumSet<Registry::FurnitureType::Value> sceneTypes)",
+      "sha256": "29d5974a38538427f59edf54c639525200a9d6708ccc9107819de626f464aecf",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:212:(const auto& scene)",
+      "to": "src/Thread/ThreadCtor.cpp:216:(const auto& scene)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "(const auto& scene)",
+      "sha256": "39148b7fe64b7bacbe574d3994f879bdeef92b7e5eb7372928f68485ba2f3fcc",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:217:(const auto& scene)",
+      "to": "src/Thread/ThreadCtor.cpp:221:(const auto& scene)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "(const auto& scene)",
+      "sha256": "4493ea620288744925d4fe73254c6d351fd838721b4a25cae7205bdc15363194",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:226:Instance::GetSelectionMethod(FurniturePreference furniturePreference)",
+      "to": "src/Thread/ThreadCtor.cpp:230:Instance::GetSelectionMethod(FurniturePreference furniturePreference)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "Instance::GetSelectionMethod(FurniturePreference furniturePreference)",
+      "sha256": "df2f24b1c41f0c51e0363569de7c6cdeb8b36092e0a26d6fea3a7e2d7b4c52f3",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:233:()",
+      "to": "src/Thread/ThreadCtor.cpp:237:()",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "()",
+      "sha256": "47ebe47391efd0759b2cdb37054fcd8ed51335b3cce6bc3e813befecf63a51d5",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:272:Instance::GetUniqueFurnituesOfTypeInBound(RE::Actor* a_centerAct, REX::EnumSet<Registry::FurnitureType::Value> a_furnitureTypes)",
+      "to": "src/Thread/ThreadCtor.cpp:276:Instance::GetUniqueFurnituesOfTypeInBound(RE::Actor* a_centerAct, REX::EnumSet<Registry::FurnitureType::Value> a_furnitureTypes)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "Instance::GetUniqueFurnituesOfTypeInBound(RE::Actor* a_centerAct, REX::EnumSet<Registry::FurnitureType::Value> a_furnitureTypes)",
+      "sha256": "2d219dfe9c6566d130c689bd8cdd85a2af6844b70a807fec3fd65d47955fbe52",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:296:(RE::TESObjectREFR* a_ref)",
+      "to": "src/Thread/ThreadCtor.cpp:300:(RE::TESObjectREFR* a_ref)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "(RE::TESObjectREFR* a_ref)",
+      "sha256": "1fd3f9968daff6b291783086760c3ea2bb513b3921c847245e6012a0bdac8c33",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:315:(auto&& it)",
+      "to": "src/Thread/ThreadCtor.cpp:319:(auto&& it)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "(auto&& it)",
+      "sha256": "e8b2680d101571b8dbb1b2518e37d9000d4f1ac70f5f0acc9a66f1ebcc000e14",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:348:Instance::InitializeCenterRefMenu(const FurnitureMapping& a_furnitures, RE::Actor* a_tmpCenter)",
+      "to": "src/Thread/ThreadCtor.cpp:352:Instance::InitializeCenterRefMenu(const FurnitureMapping& a_furnitures, RE::Actor* a_tmpCenter)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "Instance::InitializeCenterRefMenu(const FurnitureMapping& a_furnitures, RE::Actor* a_tmpCenter)",
+      "sha256": "9ffac28a2fff69870267842a05e75a12bba4f65d3cf337f57c0d514671f83d7c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:355:Instance::ShowCenterRefMenu()",
+      "to": "src/Thread/ThreadCtor.cpp:359:Instance::ShowCenterRefMenu()",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "Instance::ShowCenterRefMenu()",
+      "sha256": "7781832f0b1e98f6b28e6fb8b1ebb78ab2de70ad2f5baf8b756b3743cdaaf381",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:373:Instance::SetCenterRefSelected(size_t a_index)",
+      "to": "src/Thread/ThreadCtor.cpp:377:Instance::SetCenterRefSelected(size_t a_index)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "Instance::SetCenterRefSelected(size_t a_index)",
+      "sha256": "35a559b14378eb04c0818b122f05435b3d3f44146594731f1021df9baf1612b8",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:399:Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, int32_t a_request)",
+      "to": "src/Thread/ThreadCtor.cpp:403:Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, int32_t a_request)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, int32_t a_request)",
+      "sha256": "4e42f3cfe3158441091da018b6dda621f4bb5d334adff8ac29d51fe4b4b4b229",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:401:()",
+      "to": "src/Thread/ThreadCtor.cpp:405:()",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "()",
+      "sha256": "c4900c9e7c026af3c537ffc7544b73b26d8df787d59c23f827a955a888d656ce",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:405:(const auto& i)",
+      "to": "src/Thread/ThreadCtor.cpp:409:(const auto& i)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "(const auto& i)",
+      "sha256": "e4a51bdefb72dd21cf748593ecb5a2be1ef961306f3a646b5f39de74ea736c75",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:444:(const auto& instance)",
+      "to": "src/Thread/ThreadCtor.cpp:448:(const auto& instance)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "(const auto& instance)",
+      "sha256": "00597dc36173a6cc0d22911759769611f2ff3efdc3d81d2c56ed84fd78aac54b",
+      "checks_unchanged": true
+    }
+  ],
+  "changed_or_new_individually_recorded": [
+    "src/Papyrus/sslThreadModel.cpp:273:CreateInstance(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref)",
+    "src/Papyrus/sslThreadModel.cpp:310:()",
+    "src/Serialization.h:75:RevertCallback(SKSE::SerializationInterface* a_intfc)",
+    "src/Thread/Collision/CollisionHandler.cpp:131:CollisionHandler::Clear()",
+    "src/Thread/Collision/CollisionHandler.cpp:154:CollisionHandler::CaptureController(RE::FormID a_actor, RE::bhkCharacterController* a_controller)",
+    "src/Thread/Collision/CollisionHandler.cpp:168:CollisionHandler::RestoreControllers(RE::FormID a_actor, std::vector<RE::NiPointer<RE::bhkCharacterController>>& a_releaseAfterUnlock)",
+    "src/Thread/Collision/CollisionHandler.cpp:253:CollisionHandler::RestoreRigidBodyPhysics(RE::Actor* a_actor)",
+    "src/Thread/Collision/CollisionHandler.cpp:286:CollisionHandler::DisableFootIK(RE::Actor* a_actor)",
+    "src/Thread/Collision/CollisionHandler.cpp:321:CollisionHandler::RestoreFootIK(RE::FormID a_actor)",
+    "src/Thread/Collision/CollisionHandler.cpp:352:CollisionHandler::Hook_ApplyMovementDelta(RE::Actor* a_actor, float a_delta)",
+    "src/Thread/Collision/CollisionHandler.cpp:404:CollisionHandler::AddActor(RE::FormID a_actor)",
+    "src/Thread/Collision/CollisionHandler.cpp:426:CollisionHandler::RemoveActor(RE::FormID a_actor)",
+    "src/Thread/Interface/FurnSelectMenu.cpp:14:FurnSelectMenu::Revert()",
+    "src/Thread/Interface/FurnSelectMenu.cpp:57:FurnSelectMenu::HandleSelection(std::size_t a_index)",
+    "src/Thread/Interface/FurnSelectMenu.cpp:66:()",
+    "src/Thread/Interface/StageSelectMenu.cpp:51:StageSelectMenu::Revert()",
+    "src/Thread/NiNode/Legacy/LegacyNiUpdate.cpp:157:NiUpdate::Revert()",
+    "src/Thread/NiNode/NiUpdate.cpp:134:NiUpdate::Revert()",
+    "src/Thread/Thread.cpp:13:Instance::Revert()",
+    "src/Thread/Thread.cpp:40:Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request)",
+    "src/Thread/Thread.cpp:69:()",
+    "src/Thread/Thread.cpp:81:()",
+    "src/Thread/Thread.cpp:117:()",
+    "src/Thread/Thread.cpp:126:Instance::DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors)",
+    "src/Thread/Thread.cpp:161:()",
+    "src/Thread/Thread.h:67:GetWorldGeneration()",
+    "src/Thread/ThreadAnimation.cpp:153:Instance::DiscardPreparedActors()",
+    "src/Thread/ThreadCtor.cpp:146:& Instance::InitializeCenter(RE::Actor* centerAct, FurniturePreference furniturePreference)",
+    "src/Thread/ThreadCtor.cpp:158:()"
+  ],
+  "limit": "Exact path/name/body SHA reuse of reading checks only; not automatic validation."
+}

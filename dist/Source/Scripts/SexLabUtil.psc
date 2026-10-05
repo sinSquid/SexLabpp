@@ -166,8 +166,11 @@ Function ForceThirdPerson() global
 		GetConfig().SetPOVModeVRIK(2, abForced=true) ;VRIK_TPP_FREE
 		return
 	Else
-		While (Game.GetCameraState() == 0)
+		int attempts = 0
+		While (Game.GetCameraState() == 0 && attempts < 50)
 			Game.ForceThirdPerson()
+			Utility.Wait(0.02)
+			attempts += 1
 		EndWhile
 	EndIf
 EndFunction
@@ -184,9 +187,9 @@ Function SetActorMovement(Actor akActor, int aiMovement) global
 		return
 	EndIf
 	bool bVRMode = GetConfig().HasVRIK
-	While (!bVRMode && Game.GetCameraState()==0)
-		Game.ForceThirdPerson()
-	EndWhile
+	If (!bVRMode)
+		ForceThirdPerson()
+	EndIf
 	If (aiMovement == 2) ;LOCK
 		bool bVRTPP = bVRMode && (GetConfig().POVModeVR == 2) ;VRIK_TPP_FREE
 		Game.SetPlayerAIDriven(!bVRTPP)

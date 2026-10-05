@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 namespace Decode
 {
     class Reader;
@@ -34,6 +36,10 @@ namespace Registry
         glm::vec4 AsVec4(float w = 0.0f) const { return { location.x, location.y, location.z, w }; }
         std::vector<float> AsVector() const { return { location.x, location.y, location.z, rotation }; }
         float GetDistance(const Coordinate& a_other) const { return glm::distance(location, a_other.location); }
+        bool IsFinite() const
+        {
+            return std::isfinite(location.x) && std::isfinite(location.y) && std::isfinite(location.z) && std::isfinite(rotation);
+        }
 
       public:
         bool operator==(const Coordinate& a_rhs) const { return location == a_rhs.location && rotation == a_rhs.rotation; }

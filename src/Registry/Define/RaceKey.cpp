@@ -62,7 +62,7 @@ namespace Registry
     };
 
     RaceKey::RaceKey(RE::Actor* a_actor) :
-      RaceKey(a_actor->GetRace(), [&]() { auto base = a_actor->GetActorBase(); return base ? base->GetSex() : RE::SEXES::kMale; }()) {}
+      RaceKey(a_actor ? a_actor->GetRace() : nullptr, [&]() { auto base = a_actor ? a_actor->GetActorBase() : nullptr; return base ? base->GetSex() : RE::SEXES::kMale; }()) {}
 
     RaceKey::RaceKey(const RE::BSFixedString& a_raceStr) :
       value(magic_enum::enum_cast<Value>(a_raceStr, magic_enum::case_insensitive).value_or(Value::None))
@@ -75,7 +75,12 @@ namespace Registry
 
     RaceKey::RaceKey(const RE::TESRace* a_race, RE::SEXES::SEX a_sex)
     {
-        const std::string_view rootTMP{ a_race->rootBehaviorGraphNames[a_sex].data() };
+        if (!a_race || (a_sex != RE::SEXES::kMale && a_sex != RE::SEXES::kFemale))
+            return;
+        const auto graph = a_race->rootBehaviorGraphNames[a_sex].data();
+        if (!graph)
+            return;
+        const std::string_view rootTMP{ graph };
         const auto root{ rootTMP.substr(rootTMP.rfind('\\') + 1) };
         static const std::map<std::string_view, RaceKey> behaviorfiles{
             { "0_Master.hkx", Human },

@@ -1,6 +1,8 @@
 #include "OffsetAdjustPanel.h"
 
 #include <numbers>
+#include <limits>
+#include <cmath>
 
 namespace Thread::Interface
 {
@@ -13,6 +15,17 @@ namespace Thread::Interface
             ImGuiMCP::ImGuiWindowFlags_NoTitleBar | ImGuiMCP::ImGuiWindowFlags_NoResize |
             ImGuiMCP::ImGuiWindowFlags_NoMove | ImGuiMCP::ImGuiWindowFlags_NoScrollbar |
             ImGuiMCP::ImGuiWindowFlags_NoCollapse | ImGuiMCP::ImGuiWindowFlags_AlwaysAutoResize;
+
+        int OffsetInputValue(float value)
+        {
+            if (!std::isfinite(value))
+                return 0;
+            // Compare in double: float(INT_MAX) rounds up to an invalid int value.
+            const auto rounded = std::round(static_cast<double>(value));
+            return static_cast<int>(std::clamp(rounded,
+                static_cast<double>(std::numeric_limits<int>::min()),
+                static_cast<double>(std::numeric_limits<int>::max())));
+        }
 
         void DrawPanelHeader(UI::Scale& a_scale, const char* a_title)
         {
@@ -94,8 +107,19 @@ namespace Thread::Interface
         const Registry::Coordinate* offset = nullptr;
         if (a_target.isCenter) {
             offset = &scene->furnitureOffset.GetOffset();
-        } else if (a_target.positionIndex < stage->positions.size()) {
-            offset = &stage->positions[a_target.positionIndex].offset.GetOffset();
+        } else {
+            const auto& actors = instance->GetActors();
+            const auto actor = std::find(actors.begin(), actors.end(), a_target.actor);
+            if (actor == actors.end())
+                return;
+            const auto position = static_cast<std::size_t>(std::distance(actors.begin(), actor));
+            if (position != a_target.positionIndex) {
+                a_target.positionIndex = position;
+                a_target.axes = {};
+                a_target.draggingAxis.reset();
+            }
+            if (position < stage->positions.size())
+                offset = &stage->positions[position].offset.GetOffset();
         }
         if (!offset)
             return;
@@ -217,7 +241,7 @@ namespace Thread::Interface
 
         const float inputHeight = ImGuiMCP::GetFrameHeight();
         ImGuiMCP::SetCursorScreenPos({ trackMax.x + horizontalPadding, rowCenterY - inputHeight * 0.5f });
-        int inputValue = static_cast<int>(std::round(a_state.value));
+        int inputValue = OffsetInputValue(a_state.value);
         ImGuiMCP::SetNextItemWidth(valueWidth);
         ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_FrameBg, UI::Theme::Color.transparent);
         ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Text, UI::Theme::Color.textMuted);

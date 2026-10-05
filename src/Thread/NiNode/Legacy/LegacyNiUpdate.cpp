@@ -154,6 +154,15 @@ namespace Thread::LegacyNiNode
         }
     }
 
+    void NiUpdate::Revert()
+    {
+        decltype(processes) released;
+        {
+            const std::scoped_lock lock{ _m };
+            released.swap(processes);
+        }
+    }
+
     void NiUpdate::Unregister(RE::FormID a_id) noexcept
     {
         std::scoped_lock lock{ _m };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <numbers>
 #include <shared_mutex>
 
 #include "Define/Animation.h"
@@ -154,7 +155,7 @@ namespace Registry
         std::array<std::vector<FxPair>, NUM_FX_TYPES> fxList;
 
         mutable std::shared_mutex _mFurniture{};
-        FurnitureDetails offsetDefaultBedroll{ FurnitureType::BedRoll, Coordinate(std::vector{ 0.0f, 0.0f, 7.5f, 180.0f }) };
+        FurnitureDetails offsetDefaultBedroll{ FurnitureType::BedRoll, Coordinate(0.0f, 0.0f, 7.5f, std::numbers::pi_v<float>) };
         FurnitureDetails offsetDefaultBedsingle{ FurnitureType::BedSingle, Coordinate(std::vector{ 0.0f, -31.0f, 42.5f, 0.0f }) };
         FurnitureDetails offsetDefaultBeddouble{ FurnitureType::BedDouble, Coordinate(std::vector{ 0.0f, -31.0f, 42.5f, 0.0f }) };
         std::map<RE::BSFixedString, std::unique_ptr<FurnitureDetails>, FixedStringCompare> furnitures;

@@ -181,6 +181,7 @@ endFunction
 
 
 event OnInit()
+	Parent.OnInit()
 	OnPlayerLoadGame()
 endEvent
 

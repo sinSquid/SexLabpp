@@ -105,3 +105,50 @@ full_seventh_scripts.py uses the existing limited Papyrus translator for ranked
 partner limits and duplicate removal. REVIEW_BASE_DIR can select saved sources
 from the start of the round while preserving earlier uncommitted changes. Tests
 use engine/API stand-ins; no DLL, Papyrus VM or real game integration is implied.
+
+Systematic audit: systematic_audit.py checks the actual Misc.h across two TUs,
+missing/null script properties, creature fragment sex bits, None actor native
+boundaries, weighted stage selection against every ticket of a reference model,
+legacy segment geometry with randomized optimality checks, and the actual hash
+CLI. systematic_scripts.py checks sparse climax positions, stage history/timers,
+rejected scene reset recovery, tag filters, pathing flags, offset-array bounds
+and canceled movement via the limited production-source translator. Full audit
+coverage and remaining work are tracked separately in docs/logic-audit; passing
+these tests is not a statement that all source or game behavior is verified.
+
+Oct5 audit continuation: systematic_native.py extracts creature matching, legacy
+interaction partner/graph guards, descriptor initialization, kissing-anchor guards,
+repeated-stage history, reordered offset targets and degree-to-radian vector
+setters. Snapshot invalidation order is a source contract, not an engine test.
+systematic_scripts.py additionally covers sparse voice/expression paging and
+backend shrink, reordered aliases, structural stage-tag comparisons and direct
+stage-ID jumps, sex overrides, final overlay layers, bounded camera attempts and
+inactive default definition data. full_sixth_persistence.py now checks bulk legacy
+statistics use one snapshot and match individual conversions. decode_bounds.cpp
+checks all 256 boolean byte values; only 0/1 are accepted. No VM, Windows ABI,
+real ImGui, device/plugin or game scheduling integration is claimed.
+
+Remaining source contracts (2026-10-05):
+  contract_boundaries.py is included in run.py. Eight scoped groups exercise
+  settings/theme fields, RaceID/score domains, SLR positions and four scene
+  versions, actor-scoped temporary storage, both scaling branches, retained tag
+  precedence and 64-bit assignment totals. Uses production headers/functions and
+  engine stand-ins; the legacy SKEE cast is replaced by a common API stand-in.
+  build_contracts.py is an opt-in Lua test requiring lupa and
+  XMAKE_DEPEND_SOURCE=<xmake v2.9.5 modules/core/project/depend.lua>.
+  It runs production Lua with the actual upstream dependency detector and mock
+  compiler/filesystem/target. It does not run a Windows build or download code.
+  Game/VM/ABI acceptance steps: docs/logic-audit/runtime-validation.md.
+
+Current full-source audit additions:
+  motion_presence.py compiles the actual NiMotion class, implementation and PCA
+  with vector/node stand-ins. Tests valid world origin, missing/nonfinite samples,
+  contiguous histories and ring wrap. actor_preparation_restore.py executes
+  actual prepare/restore paths for original/new death, marker and owner state.
+  REVIEW_BASE=HEAD reproduces their committed-source assertion failures.
+  animation_graph_locks.py checks actual ReleaseAnimations using guards that
+  reject duplicate/out-of-order acquisitions. This does not prove external lock order.
+  hud_ownership.py checks script ownership/failure behavior plus the added native
+  query, aggression setter and bounded positions. reposition_lifecycle.py exercises
+  bounded/stale movement, Ending cleanup timeout and shared essential restoration.
+  All are in run.py; VM/ABI/game verification remains separate.

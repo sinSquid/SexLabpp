@@ -1,0 +1,1 @@
+PASS: real SLR decode rejects oversized/truncated allocations, count bounds, valid/empty strings and signed fixed-point

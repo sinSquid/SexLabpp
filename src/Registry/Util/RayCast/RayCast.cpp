@@ -19,7 +19,8 @@ Raycast::RayResult Raycast::CastRay(glm::vec4, glm::vec4, float) noexcept
 Raycast::RayResult Raycast::CastRay(glm::vec4 start, glm::vec4 end, float traceHullSize) noexcept
 {
     if (((bool (*)(void))Offsets::NotOnGameThread.address())()) {
-        logger::error("CastRay was called on wrong thread, this should never happen and can cause random CTD/freezes");
+        logger::error("CastRay called off game thread; query ignored");
+        return {};
     }
     RayResult res;
 
@@ -61,6 +62,8 @@ Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& 
     std::vector<RE::NiAVObject*> filter{};
     filter.reserve(a_filter.size());
     for (auto&& ref : a_filter) {
+        if (!ref)
+            continue;
         auto niobj = ref->Get3D();
         if (niobj) {
             filter.push_back(niobj->AsNode());
@@ -72,7 +75,8 @@ Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& 
 Raycast::RayResult Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end, const std::vector<RE::NiAVObject*>& a_filter) noexcept
 {
     if (((bool (*)(void))Offsets::NotOnGameThread.address())()) {
-        logger::error("hkpCastRay was called on wrong thread, this should never happen and can cause random CTD/freezes");
+        logger::error("hkpCastRay called off game thread; query ignored");
+        return {};
     }
     const auto hkpScale = RE::bhkWorld::GetWorldScale();
     const auto dif = end - start;

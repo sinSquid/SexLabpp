@@ -64,6 +64,8 @@ namespace Thread
         ~Instance() = default;
 
         static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, int32_t a_request);
+        static uint64_t GetWorldGeneration() { return worldGeneration.load(); }
+        static void Revert();
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
         static std::shared_ptr<Instance> GetInstance(RE::TESQuest* a_linkedQst);
@@ -258,8 +260,10 @@ namespace Thread
         void UpdatePendingRecoveries(float a_delta);
         void ReassertPlacement(size_t a_position, bool a_force);
         static void RestorePreparedActors(RE::TESQuest* a_linkedQst);
+        static void DiscardPreparedActors();
 
       private:
+        static inline std::atomic<uint64_t> worldGeneration{ 0 };
         static inline std::shared_mutex _mInstances{};
         static inline std::atomic<float> startupClock{ 0.0f };
         static inline std::vector<std::shared_ptr<Instance>> instances{};

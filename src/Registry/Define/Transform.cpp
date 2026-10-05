@@ -77,17 +77,24 @@ namespace Registry
 
     void Transform::SetOffset(const Coordinate& a_newoffset)
     {
+        if (!a_newoffset.IsFinite()) {
+            logger::warn("Non-finite offset ignored");
+            return;
+        }
         _offset = a_newoffset;
     }
 
     void Transform::SetOffset(float x, float y, float z, float rot)
     {
-        _offset.location = { x, y, z };
-        _offset.rotation = glm::radians(rot);
+        SetOffset(Coordinate{ x, y, z, glm::radians(rot) });
     }
 
     void Transform::SetOffset(float a_value, CoordinateType a_type)
     {
+        if (!std::isfinite(a_value)) {
+            logger::warn("Non-finite offset ignored");
+            return;
+        }
         switch (a_type) {
         case CoordinateType::X:
             _offset.location.x = a_value;
@@ -131,14 +138,18 @@ namespace Registry
 
     void Transform::Load(const YAML::Node& a_node)
     {
+        auto candidate = _offset;
         if (auto loc = a_node["Location"]; loc.IsDefined() && loc.size() == 3) {
-            _offset.location.x = loc[0].as<float>();
-            _offset.location.y = loc[1].as<float>();
-            _offset.location.z = loc[2].as<float>();
+            candidate.location.x = loc[0].as<float>();
+            candidate.location.y = loc[1].as<float>();
+            candidate.location.z = loc[2].as<float>();
         }
         if (auto rot = a_node["Rotation"]; rot.IsDefined()) {
-            _offset.rotation = rot.as<float>();
+            candidate.rotation = rot.as<float>();
         }
+        if (!candidate.IsFinite())
+            throw std::runtime_error("Non-finite transform in user settings");
+        _offset = candidate;
     }
 
     bool Transform::HasChanges() const

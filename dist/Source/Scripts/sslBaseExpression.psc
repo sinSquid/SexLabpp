@@ -189,12 +189,18 @@ function Apply(Actor ActorRef, int Strength, int Gender)
 endFunction
 
 function ApplyPhase(Actor ActorRef, int Phase, int Gender)
+	if Gender < 0 || Gender > 1 || Phase < 1
+		return
+	endIf
 	if Phase <= PhaseCounts[Gender]
 		ApplyPresetFloats(ActorRef, GetNthValues(Registry, Gender, Phase - 1))
 	endIf
 endFunction
 
 int function PickPhase(int Strength, int Gender)
+	if Gender < 0 || Gender >= PhaseCounts.Length || PhaseCounts[Gender] < 1
+		return 0
+	endIf
 	int phase = (PapyrusUtil.ClampInt(Strength, 1, 100) * PhaseCounts[Gender]) / 100
 	return PapyrusUtil.ClampInt(phase, 1, PhaseCounts[Gender])
 endFunction
@@ -277,8 +283,14 @@ endFunction
 ; ------------------------------------------------------- ;
 
 function SetIndex(int Phase, int Gender, int Mode, int id, int value)
+	if Gender < 0 || Gender > 1 || Phase < 1 || Mode < 0 || Mode > 31 || id < 0 || id > 31 - Mode
+		return
+	endIf
 	float[] Preset = GetNthValues(Registry, Gender, Phase - 1)
 	int i = Mode+id
+	if i >= Preset.Length
+		return
+	endIf
 	if value > 100
 		value = 100
 	elseIf value < 0
@@ -288,7 +300,7 @@ function SetIndex(int Phase, int Gender, int Mode, int id, int value)
 	if i != 30
 		Preset[i] = Preset[i] / 100.0
 	endIf
-	SetPhase(Phase, GEnder, Preset)
+	SetPhase(Phase, Gender, Preset)
 endFunction
 
 function SetPreset(int Phase, int Gender, int Mode, int id, int value)
@@ -387,7 +399,18 @@ int function GetMoodAmount(int Phase, int Gender)
 endFunction
 
 int function GetIndex(int Phase, int Gender, int Mode, int id)
-	return (GetNthValues(Registry, Gender, Phase - 1)[Mode + id] * 100.0) as int
+	if Gender < 0 || Gender > 1 || Phase < 1 || Mode < 0 || Mode > 31 || id < 0 || id > 31 - Mode
+		return 0
+	endIf
+	float[] preset = GetNthValues(Registry, Gender, Phase - 1)
+	int index = Mode + id
+	If (index < 0 || index >= preset.Length)
+		return 0
+	EndIf
+	If (index == 30)
+		return preset[index] as int
+	EndIf
+	return (preset[index] * 100.0) as int
 endFunction
 
 int property MoodIDs = 16 autoreadonly
@@ -471,7 +494,7 @@ endFunction
 
 int[] function ToIntArray(float[] FloatArray) global
 	int[] Output = new int[32]
-	int i = FloatArray.Length
+	int i = PapyrusUtil.ClampInt(FloatArray.Length, 0, 32)
 	while i
 		i -= 1
 		if i == 30
@@ -485,7 +508,7 @@ endFunction
 
 float[] function ToFloatArray(int[] IntArray) global
 	float[] Output = new float[32]
-	int i = IntArray.Length
+	int i = PapyrusUtil.ClampInt(IntArray.Length, 0, 32)
 	while i
 		i -= 1
 		if i == 30

@@ -2,6 +2,8 @@
 
 #include "SKSEMenuFramework.h"
 
+#include <cmath>
+
 namespace Thread::Interface::UI::Theme
 {
     struct ColorValues final
@@ -158,6 +160,62 @@ namespace Thread::Interface::UI::Theme
         GeometryValues geometry{};
         FontSizeValues fontSize{};
     };
+
+    // JSON numeric values can be finite yet unsafe as dimensions or divisors.
+    // Reset only invalid fields and retain the rest of a customized theme.
+    inline void Validate(Data& candidate)
+    {
+        const Data defaults{};
+        const auto check = [](float& value, float fallback, float minimum, float maximum) {
+            if (!std::isfinite(value) || value < minimum || value > maximum)
+                value = fallback;
+        };
+        check(candidate.fontSize.detail, defaults.fontSize.detail, 0.1f, 1024.0f);
+        check(candidate.fontSize.smallText, defaults.fontSize.smallText, 0.1f, 1024.0f);
+        check(candidate.fontSize.metadata, defaults.fontSize.metadata, 0.1f, 1024.0f);
+        check(candidate.fontSize.caption, defaults.fontSize.caption, 0.1f, 1024.0f);
+        check(candidate.fontSize.compact, defaults.fontSize.compact, 0.1f, 1024.0f);
+        check(candidate.fontSize.subsectionHeader, defaults.fontSize.subsectionHeader, 0.1f, 1024.0f);
+        check(candidate.fontSize.sectionHeader, defaults.fontSize.sectionHeader, 0.1f, 1024.0f);
+        check(candidate.fontSize.body, defaults.fontSize.body, 0.1f, 1024.0f);
+        check(candidate.fontSize.overlay, defaults.fontSize.overlay, 0.1f, 1024.0f);
+        check(candidate.spacing.xxs, defaults.spacing.xxs, 0.0f, 10000.0f);
+        check(candidate.spacing.xs, defaults.spacing.xs, 0.0f, 10000.0f);
+        check(candidate.spacing.sm, defaults.spacing.sm, 0.0f, 10000.0f);
+        check(candidate.spacing.md, defaults.spacing.md, 0.0f, 10000.0f);
+        check(candidate.spacing.lg, defaults.spacing.lg, 0.0f, 10000.0f);
+        check(candidate.spacing.xl, defaults.spacing.xl, 0.0f, 10000.0f);
+        check(candidate.geometry.roundingSmall, defaults.geometry.roundingSmall, 0.0f, 10000.0f);
+        check(candidate.geometry.roundingPanelTab, defaults.geometry.roundingPanelTab, 0.0f, 10000.0f);
+        check(candidate.geometry.roundingPanel, defaults.geometry.roundingPanel, 0.0f, 10000.0f);
+        check(candidate.geometry.roundingEnjBar, defaults.geometry.roundingEnjBar, 0.0f, 10000.0f);
+        check(candidate.geometry.borderThin, defaults.geometry.borderThin, 0.0f, 10000.0f);
+        check(candidate.geometry.checkboxPaddingY, defaults.geometry.checkboxPaddingY, 0.0f, 10000.0f);
+        check(candidate.geometry.checkboxRowHeight, defaults.geometry.checkboxRowHeight, 0.1f, 10000.0f);
+        check(candidate.geometry.panelTabWidth, defaults.geometry.panelTabWidth, 0.1f, 10000.0f);
+        check(candidate.geometry.panelTabGap, defaults.geometry.panelTabGap, 0.0f, 10000.0f);
+        check(candidate.geometry.nestedMenuScale, defaults.geometry.nestedMenuScale, 0.1f, 10.0f);
+        check(candidate.geometry.nestedHeaderPaddingX, defaults.geometry.nestedHeaderPaddingX, 0.0f, 10000.0f);
+        check(candidate.geometry.nestedHeaderPaddingY, defaults.geometry.nestedHeaderPaddingY, 0.0f, 10000.0f);
+        check(candidate.geometry.nestedHeaderAccentWidth, defaults.geometry.nestedHeaderAccentWidth, 0.0f, 10000.0f);
+        check(candidate.enjoyment.fillEaseRate, defaults.enjoyment.fillEaseRate, 0.0f, 10000.0f);
+        check(candidate.enjoyment.trailEaseRate, defaults.enjoyment.trailEaseRate, 0.0f, 10000.0f);
+        check(candidate.enjoyment.waveIntensity, defaults.enjoyment.waveIntensity, 0.0f, 10000.0f);
+        check(candidate.enjoyment.waveSpeed, defaults.enjoyment.waveSpeed, 0.0f, 10000.0f);
+        check(candidate.enjoyment.waveSpatialFrequency, defaults.enjoyment.waveSpatialFrequency, 0.0f, 10000.0f);
+        check(candidate.enjoyment.waveSecondaryStrength, defaults.enjoyment.waveSecondaryStrength, 0.0f, 10000.0f);
+        check(candidate.offset.panelWidth, defaults.offset.panelWidth, 0.1f, 10000.0f);
+        check(candidate.offset.maxBodyHeight, defaults.offset.maxBodyHeight, 0.1f, 10000.0f);
+        check(candidate.offset.trackHitExtension, defaults.offset.trackHitExtension, 0.0f, 10000.0f);
+        check(candidate.offset.trackValueWidth, defaults.offset.trackValueWidth, 0.0f, 10000.0f);
+        check(candidate.offset.trackLabelWidth, defaults.offset.trackLabelWidth, 0.0f, 10000.0f);
+        check(candidate.offset.trackHeight, defaults.offset.trackHeight, 0.0f, 10000.0f);
+        check(candidate.offset.trackNeedleWidth, defaults.offset.trackNeedleWidth, 0.0f, 10000.0f);
+        check(candidate.offset.trackNeedleExtension, defaults.offset.trackNeedleExtension, 0.0f, 10000.0f);
+        check(candidate.offset.trackNeedleRounding, defaults.offset.trackNeedleRounding, 0.0f, 10000.0f);
+        check(candidate.offset.trackCenterTickExtension, defaults.offset.trackCenterTickExtension, 0.0f, 10000.0f);
+        check(candidate.offset.dragDistance, defaults.offset.dragDistance, 0.1f, 10000.0f);
+    }
 
     inline Data data{};
     inline auto& Color = data.color;

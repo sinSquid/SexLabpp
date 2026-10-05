@@ -7,16 +7,8 @@ namespace Registry
     std::vector<const Scene*> Library::LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
     {
         const auto tStart = std::chrono::high_resolution_clock::now();
-        std::vector<ActorFragment> fragments;
-        fragments.reserve(a_actors.size());
-        for (auto* actor : a_actors) {
-            if (!actor) {
-                logger::warn("Warning: NULL Actor passed to LookupScenes");
-                continue;
-            }
-            fragments.emplace_back(actor, std::ranges::contains(a_submissives, actor));
-        }
-        if (fragments.empty() || fragments.size() > ActorFragment::MAX_ACTOR_COUNT) {
+        auto fragments = ActorFragment::MakeFragmentList(a_actors, a_submissives);
+        if (fragments.empty()) {
             logger::warn("Invalid query: {} valid actors passed to LookupScenes", fragments.size());
             return {};
         }

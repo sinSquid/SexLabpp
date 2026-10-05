@@ -97,6 +97,9 @@ namespace Registry
 
         /// @brief If this has (all of) the arguments tags
         _NODISCARD bool HasTag(Tag a_tag) const;
+        // Built-in names query the immutable base tag namespace first.
+        // A same-name annotation does not override a missing base tag. Use
+        // HasAnnotation to query editable annotations explicitly.
         _NODISCARD bool HasTag(const RE::BSFixedString& a_tag) const;
 
         /// @brief Checks if this has any or all of the arguments tags

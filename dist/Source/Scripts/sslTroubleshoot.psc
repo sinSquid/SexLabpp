@@ -73,8 +73,8 @@ state AnimSlots
 		; Check health of all animations
 		Notify("Checking Animation Health...")
 		bool dirty = false
-		sslBaseAnimation[] Animations = AnimSlots.GetSlots(0, 128)
-		int i = AnimSlots.Slotted
+		sslBaseAnimation[] Animations = AnimSlots.GetSlots(1, 128)
+		int i = Animations.Length
 		while i > 0
 			i -= 1
 			sslBaseAnimation Animation = Animations[i]
@@ -147,7 +147,7 @@ state ThreadSlots
 		; Check health of all threads
 		Notify("Checking Thread Health...")
 		int i
-		while i < 15
+		while i < sslThreadSlots.GetTotalThreadCount()
 			sslThreadController Thread = ThreadSlots.GetController(i)
 			Notify("-- Thread: "+i+" --")
 			if Thread == none

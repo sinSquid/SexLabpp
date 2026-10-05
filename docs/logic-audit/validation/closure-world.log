@@ -1,0 +1,2 @@
+PASS: actual Revert cancels creators, discards old Actors/registries and releases instances outside locks
+PASS: actual queued creation ignores tasks from a reverted world

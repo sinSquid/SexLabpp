@@ -56,6 +56,7 @@ EndFunction
 ;aiCurrentStrength can be used if current expression is the same or we want to start with an offset
 Function SmoothSetExpression(Actor act, Int aiMood, Int aiStrength, float aiModifier = 1.0) global
 	aiMood = PapyrusUtil.ClampInt(aiMood, 0, 16)
+	aiStrength = (aiStrength * aiModifier) as int
 	MfgConsoleFuncExt.SetExpression(act, aiMood, aiStrength)
 EndFunction
 

@@ -16,6 +16,7 @@ namespace Thread::Interface
         static FurnSelectMenu& GetSingleton();
 
         bool Register();
+        void Revert();
         void Open(RE::TESQuest* a_quest, const std::vector<Item>& a_items, int32_t a_request);
         void Cancel(RE::TESQuest* a_quest, int32_t a_request);
 

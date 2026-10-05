@@ -47,6 +47,9 @@ sslThreadModel Function PickModel(float TimeOut = 5.0)
 EndFunction
 
 SexLabThread Function GetThread(int aiThreadID)
+  If (aiThreadID < 0 || aiThreadID >= Threads.Length)
+    return none
+  EndIf
   return Threads[aiThreadID]
 EndFunction
 
@@ -219,6 +222,9 @@ SexLabFramework Property SexLab Hidden
 EndProperty
 
 sslThreadController Function GetController(int tid)
+  If (tid < 0 || tid >= Threads.Length)
+    return none
+  EndIf
   return Threads[tid]
 endfunction
 sslThreadController Function GetActorController(Actor ActorRef)

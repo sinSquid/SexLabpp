@@ -35,15 +35,22 @@ namespace Script
     template <class T>
     inline T GetProperty(ObjectPtr a_obj, const RE::BSFixedString& a_prop)
     {
-        auto var = a_obj->GetProperty(a_prop);
-        assert(var);
+        auto var = a_obj ? a_obj->GetProperty(a_prop) : nullptr;
+        if (!var) {
+            logger::error("Unable to read script property: {}", a_prop.c_str());
+            return T{};
+        }
         return RE::BSScript::UnpackValue<T>(var);
     }
 
     template <class T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
     inline T GetTrivialProperty(ObjectPtr a_obj, const RE::BSFixedString& a_prop)
     {
-        const auto var = a_obj->GetProperty(a_prop);
+        const auto var = a_obj ? a_obj->GetProperty(a_prop) : nullptr;
+        if (!var) {
+            logger::error("Unable to read script property: {}", a_prop.c_str());
+            return T{};
+        }
         const auto type = var->GetType().GetRawType();
         switch (type) {
         case RawType::kBool:
@@ -62,8 +69,11 @@ namespace Script
     template <class T>
     inline void SetProperty(ObjectPtr a_obj, const RE::BSFixedString& a_prop, T a_val)
     {
-        auto var = a_obj->GetProperty(a_prop);
-        assert(var);
+        auto var = a_obj ? a_obj->GetProperty(a_prop) : nullptr;
+        if (!var) {
+            logger::error("Unable to write script property: {}", a_prop.c_str());
+            return;
+        }
         RE::BSScript::PackValue(var, a_val);
     }
 

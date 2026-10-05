@@ -71,7 +71,7 @@ Function RemoveCumFx(Actor akTarget, int aiType)
 	ElseIf (aiType == FX_ANAL)
 		akTarget.RemoveSpell(CumAnalSpell)
 	EndIf
-	StorageUtil.UnsetIntValue(akTarget, ACTIVE_SET_PREFIX + aiType)
+	StorageUtil.UnsetStringValue(akTarget, ACTIVE_SET_PREFIX + aiType)
 	StorageUtil.UnsetIntValue(akTarget, ACTIVE_LAYER_PREFIX + aiType)
 	StorageUtil.UnsetFloatValue(akTarget, LAST_APPLIED_TIME_PREFIX + aiType)
 	StorageUtil.UnsetStringValue(akTarget, LAST_APPLIED_TEXTURE_PREFIX + aiType)
@@ -219,15 +219,19 @@ Function TreatAsSex(Actor akActor, int aiSexTag)
 EndFunction
 
 Function ClearForcedSex(Actor akActor)
-	TreatAsSex(akActor, SexLabRegistry.GetSex(akActor, true))
+	TreatAsSex(akActor, SexLabRegistry.GetSex(akActor, true) % 3)
 EndFunction
 
 int[] Function CountSexAll(Actor[] akPositions) global
 	int[] ret = new int[5]
 	int i = 0
 	While (i < akPositions.Length)
-		int sex = SexLabRegistry.GetSex(akPositions[i], false)
-		ret[sex] = ret[sex] + 1
+		If (akPositions[i])
+			int sex = SexLabRegistry.GetSex(akPositions[i], false)
+			If (sex >= 0 && sex < ret.Length)
+				ret[sex] = ret[sex] + 1
+			EndIf
+		EndIf
 		i += 1
 	EndWhile
 	return ret
@@ -281,14 +285,14 @@ Form[] Function StripActorImpl(Actor akActor, int aiSlots, bool abStripWeapons =
 		Form RightHand = akActor.GetEquippedObject(1)
 		If(RightHand && IsStrippable(RightHand))
 			akActor.UnequipItemEX(RightHand, akActor.EquipSlot_RightHand, false)
-			ret = PapyrusUtil.PushForm(ret, LeftHand)
+			ret = PapyrusUtil.PushForm(ret, RightHand)
 			StorageUtil.SetIntValue(RightHand, "Hand", 1)
 		EndIf
 		Form LeftHand = akActor.GetEquippedObject(0)
 		If(LeftHand && IsStrippable(LeftHand))
 			akActor.UnequipItemEX(LeftHand, akActor.EquipSlot_LeftHand, false)
 			ret = PapyrusUtil.PushForm(ret, LeftHand)
-			StorageUtil.SetIntValue(RightHand, "Hand", 2)
+			StorageUtil.SetIntValue(LeftHand, "Hand", 2)
 		EndIf
 	EndIf
 	If(abAnimate)
@@ -307,14 +311,13 @@ Function BeginOverlay(Actor akTarget, int aiType)
 	Else
 		Log(akTarget + ": Selecting cum fx set; Using " + aiType + " set " + set + " for " + akTarget.GetBaseObject().GetName())
 	EndIf
-	int layer = StorageUtil.GetIntValue(akTarget, ACTIVE_LAYER_PREFIX + aiType, 0) + 1
+	int previousLayer = StorageUtil.GetIntValue(akTarget, ACTIVE_LAYER_PREFIX + aiType, 0)
 	int maxLayer = GetFxSetCount(aiType, set)
-	If (layer > maxLayer)
-		layer = maxLayer
-	EndIf
-	If (StorageUtil.SetIntValue(akTarget, ACTIVE_LAYER_PREFIX + aiType, layer) == maxLayer)
+	If (maxLayer <= 0 || previousLayer >= maxLayer)
 		return
 	EndIf
+	int layer = previousLayer + 1
+	StorageUtil.SetIntValue(akTarget, ACTIVE_LAYER_PREFIX + aiType, layer)
 	String texturePath = "SexLab/CumFx/" + TypeToString(aiType) + "/" + set + "/" + layer + ".dds"
     ; String akTargetRaceStr = MiscUtil.GetActorRaceEditorID(akTarget)
     ; If (StringUtil.Find(akTargetRaceStr, "UBE") != -1)
@@ -700,8 +703,11 @@ function TreatAsFemale(Actor ActorRef)
 endFunction
 
 int function GetTrans(Actor ActorRef)
-	int configSex = SexLabRegistry.GetSex(ActorRef, true)
-	If (configSex != 2 && configSex == SexLabRegistry.GetSex(ActorRef, false))
+	If (!ActorRef)
+		return -1
+	EndIf
+	int configSex = SexLabRegistry.GetSex(ActorRef, false)
+	If (configSex != 2 && configSex == SexLabRegistry.GetSex(ActorRef, true))
 		; configSex == vanillaSex => No overwrite <=> no "trans"
 		return -1
 	ElseIf (configSex >= 2)
@@ -750,7 +756,9 @@ int[] function GenderCount(Actor[] Positions)
 	while i > 0
 		i -= 1
 		int g = GetGender(Positions[i])
-		Genders[g] = Genders[g] + 1
+		if g >= 0 && g < Genders.Length
+			Genders[g] = Genders[g] + 1
+		endIf
 	endWhile
 	return Genders
 endFunction

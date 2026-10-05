@@ -131,6 +131,15 @@ namespace Thread::NiNode
         }
     }
 
+    void NiUpdate::Revert()
+    {
+        decltype(_instances) released;
+        {
+            const std::scoped_lock lock{ _m };
+            released.swap(_instances);
+        }
+    }
+
     void NiUpdate::Unregister(RE::FormID a_id) noexcept
     {
         std::scoped_lock lk{ _m };

@@ -1,0 +1,846 @@
+{
+  "src/API/IPluginInterface.h": {
+    "sha256": "9ba9717c8eeb59b2af90d5c101371da35698d15fe8399cf409fcb1fa55a4c01a",
+    "diagnostics": [
+      {
+        "line": 26,
+        "kind": "type_identifier"
+      },
+      {
+        "line": 184,
+        "kind": "type_identifier"
+      },
+      {
+        "line": 190,
+        "kind": "type_identifier"
+      }
+    ],
+    "expected_definition_entries": 18,
+    "omitted_definitions": [],
+    "conclusion": "匿名枚举底层类型的恢复诊断；三处枚举不含函数本体。IPlugin ctor/dtor、Legacy FixedString、OverrideVariant/Identifier辅助方法和接口查询定义均已枚举。纯virtual声明另作为ABI调用契约阅读，不计实现分母。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 9,
+        "end": 9,
+        "name": "IPluginInterface()",
+        "sha256": "caae2a36773a9498c6e6e211013cb2e9b798332a47cb1d4ba7eb61800749512f"
+      },
+      {
+        "start": 10,
+        "end": 10,
+        "name": "~IPluginInterface()",
+        "sha256": "debedfb0c118241e07bd71743e8c19eb73efe2eac223aa35d10c31c3349dd1c4"
+      },
+      {
+        "start": 165,
+        "end": 175,
+        "name": "FixedString(const char* a_string)",
+        "sha256": "7007d8cec00dbe145c2ee7a85fcad749bcc9ff556d19420a7d19502ef71d14eb"
+      },
+      {
+        "start": 196,
+        "end": 203,
+        "name": "SetInt(uint16_t a_key, int32_t a_value)",
+        "sha256": "a6a1cb81b24a3bd7e2d5cd457e761fb59c45bc901379a5359e4582df0bfddd6d"
+      },
+      {
+        "start": 205,
+        "end": 212,
+        "name": "SetFloat(uint16_t a_key, float a_value)",
+        "sha256": "3dca6af4ccd215d27409606adb980e4e2c623ec4884108811c37a736624de7a6"
+      },
+      {
+        "start": 289,
+        "end": 293,
+        "name": "SetRankID(uint32_t _rank)",
+        "sha256": "520d0b31f9f74a5e71e186ef7dc60907351a58686da6aad8be7b6d982acbe6c1"
+      },
+      {
+        "start": 294,
+        "end": 299,
+        "name": "SetSlotMask(uint32_t _slotMask, uint32_t _weaponSlot = 0)",
+        "sha256": "275071dada33f1113ba2acc6c746903494dd920445fa45c8474a7930c398df5b"
+      },
+      {
+        "start": 300,
+        "end": 305,
+        "name": "SetUniqueID(uint16_t _uid, uint32_t _ownerForm)",
+        "sha256": "590f67526ebc4aae7f02da491ddaf3b717b43e2dae0d5adb69398d6ac98c074b"
+      },
+      {
+        "start": 306,
+        "end": 311,
+        "name": "SetDirect(RE::TESForm* _baseForm, RE::BaseExtraList* _extraData)",
+        "sha256": "4dd301c32c3073372214178ff94840dc0b4152ecd418aa25868968f6a182b3cc"
+      },
+      {
+        "start": 313,
+        "end": 316,
+        "name": "IsDirect()",
+        "sha256": "20280869e09fa41d3217248dd8f4c7a6c3ed10fd2f39f2818e103f1466f1dbd8"
+      },
+      {
+        "start": 318,
+        "end": 321,
+        "name": "IsSelf()",
+        "sha256": "143fab6c76d9ff640f652716aa33a372f459367620643120e66d2ca6546fc4c7"
+      },
+      {
+        "start": 323,
+        "end": 326,
+        "name": "SetSelf()",
+        "sha256": "6dbe144ccdbc5f44192d5f099b83bff6e16e9fa5cc3c68a6ea6359dea1be317f"
+      },
+      {
+        "start": 400,
+        "end": 409,
+        "name": "* GetInterfaceMap()",
+        "sha256": "4b54b2b3e476941173d02e3280fe06e1194e8114cda76c2bec10c22a455673ad"
+      },
+      {
+        "start": 422,
+        "end": 426,
+        "name": "* GetBodyMorphInterface(IInterfaceMap* a_map)",
+        "sha256": "d522a00d97b5f2819a0e32369b1f4609160abde673989d75cffa1b1262783de6"
+      },
+      {
+        "start": 428,
+        "end": 432,
+        "name": "* GetNiTransformInterface(IInterfaceMap* a_map)",
+        "sha256": "518320db2c09dd552ff7687829f53f00ad5c98592a62119859826986f6cde1d7"
+      },
+      {
+        "start": 434,
+        "end": 438,
+        "name": "* GetOverlayInterface(IInterfaceMap* a_map)",
+        "sha256": "b438aafedb47b8c9f8f920a58121c49afbe42becfa6f1544ac12aeb0fba80a6c"
+      },
+      {
+        "start": 440,
+        "end": 444,
+        "name": "* GetAttachmentInterface(IInterfaceMap* a_map)",
+        "sha256": "fb54c218c7521a53657fde1865fd3d6396e3e13a7b30a0343f8cade54111571a"
+      },
+      {
+        "start": 446,
+        "end": 450,
+        "name": "* GetActorUpdateManager(IInterfaceMap* a_map)",
+        "sha256": "392ba18953d059c8205d3f006d91ab3bf2f9856a67d0aac2f2aa57a3ef92baaa"
+      }
+    ]
+  },
+  "src/Registry/Library_SaveLoad.cpp": {
+    "sha256": "cec0ee92c8a212252f56e060e666d6545f8ff4924da6cd64599a0285d0c2f03f",
+    "diagnostics": [
+      {
+        "line": 25,
+        "kind": "ERROR"
+      },
+      {
+        "line": 30,
+        "kind": "ERROR"
+      },
+      {
+        "line": 36,
+        "kind": "ERROR"
+      }
+    ],
+    "expected_definition_entries": 23,
+    "omitted_definitions": [],
+    "conclusion": "MSVC成员函数指针调用 (this->*initialize) 三处；Initialize与启动worker lambda已完整提取，其他加载/保存定义未漏。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 12,
+        "end": 50,
+        "name": "Library::Initialize() noexcept",
+        "sha256": "93ade3625b46fa562aa4e80048275195e88cd01043a9d1e9ac30353698cd9f68"
+      },
+      {
+        "start": 25,
+        "end": 25,
+        "name": "<anonymous>",
+        "sha256": "6e822a90034b5e98ed8fa554edfaff26d4a1ed826c3458620d3dd925bb6ef9d8"
+      },
+      {
+        "start": 47,
+        "end": 47,
+        "name": "(auto acc, auto&& it)",
+        "sha256": "2f8484ad17a9bdc9f58164abb451056ab7d7e3eb7b135f83e5df2f5c9efe8198"
+      },
+      {
+        "start": 52,
+        "end": 72,
+        "name": "Library::FolderExists(const char* path, bool notifyUser) const noexcept",
+        "sha256": "378efc618e09cb2a3bd6235ebf9ce7b0b019b9b8b820e58270ac581d51c86b9f"
+      },
+      {
+        "start": 74,
+        "end": 166,
+        "name": "Library::InitializeScenes() noexcept",
+        "sha256": "76ee7191bfec0580bcb1562bea8e022a1ca2265ad3525382f0ffd805bd257c59"
+      },
+      {
+        "start": 88,
+        "end": 128,
+        "name": "(const fs::directory_entry& file)",
+        "sha256": "53c01b085907ddfa751696258df8166e56ed4a725025c778798b79ac1a5a4506"
+      },
+      {
+        "start": 131,
+        "end": 138,
+        "name": "()",
+        "sha256": "c29547c767ffd69e4bdcf4cf445e2d2f788b94f769e42f284fa5a9bdad605dac"
+      },
+      {
+        "start": 168,
+        "end": 194,
+        "name": "Library::InitializeSceneSettings() noexcept",
+        "sha256": "0e3cb70d354fdc21becd1cd65f33bdd0f110a7569cd98257872dfd0a87b2cebd"
+      },
+      {
+        "start": 196,
+        "end": 222,
+        "name": "Library::InitializeFurnitures() noexcept",
+        "sha256": "46ffe504d998deecdb90d3f193ea517bca57454228ff646d51f7a3869905b2f4"
+      },
+      {
+        "start": 224,
+        "end": 240,
+        "name": "Library::InitializeExpressions() noexcept",
+        "sha256": "385be7e42bc1b920db4d961a77de54fcaf25d02d483db79f111a2eed687726e4"
+      },
+      {
+        "start": 242,
+        "end": 267,
+        "name": "Library::InitializeExpressionsImpl() noexcept",
+        "sha256": "76ed144d26755ee3bfbb66b4af4171030da5edfb3a9426059e40850bef9caf40"
+      },
+      {
+        "start": 269,
+        "end": 293,
+        "name": "Library::InitializeExpressionsLegacy() noexcept",
+        "sha256": "7d90ab09e5db1bfd5906b8e05e43cc7f168e80e239b23582f729a4973bdeca85"
+      },
+      {
+        "start": 295,
+        "end": 302,
+        "name": "Library::InitializeVoice() noexcept",
+        "sha256": "cc609caee5c64de576bbcfa1ad35d80d0ff74edf98b1ccb7be352b4028eeb19b"
+      },
+      {
+        "start": 304,
+        "end": 328,
+        "name": "Library::InitializeVoiceImpl() noexcept",
+        "sha256": "f17d76906dc8914375ccca760822f6599ba75fecd941835d86d0c077cd8f2435"
+      },
+      {
+        "start": 330,
+        "end": 369,
+        "name": "Library::InitializeVoicePitches() noexcept",
+        "sha256": "cee65d591384c1f0be1b85245882dc724c034fcd2330cc38d87703fa95aeaa88"
+      },
+      {
+        "start": 371,
+        "end": 390,
+        "name": "Library::InitializeVoiceSettings() noexcept",
+        "sha256": "ce9cd2fd0c0d818322f0a2d2c9a32b7c35f8f5df6754e84c0ac8482e7d207242"
+      },
+      {
+        "start": 392,
+        "end": 415,
+        "name": "Library::InitializeVoiceCache() noexcept",
+        "sha256": "d8ffb7761d07b3a8c9b138b68908ed6aad78f381f08e0b4525a185dc25bd401b"
+      },
+      {
+        "start": 417,
+        "end": 448,
+        "name": "Library::InitializeCumFx() noexcept",
+        "sha256": "cc27ca137cb0616dccc264a1a40a9267b76c835518627ce780ad097b9447cfd1"
+      },
+      {
+        "start": 450,
+        "end": 503,
+        "name": "Library::InitializeCumFxType(const fs::directory_entry& a_typePath) const noexcept",
+        "sha256": "665c9505cb6a35705124b849258e1bbdac52bc0ae1cc49fec303b7e760c23939"
+      },
+      {
+        "start": 505,
+        "end": 515,
+        "name": "Library::Save() const noexcept",
+        "sha256": "21855da6e3dbedb308d41ad34d0247036381a2ad8b69821c74a33c8771b2c951"
+      },
+      {
+        "start": 517,
+        "end": 538,
+        "name": "Library::SaveScenes() const noexcept",
+        "sha256": "946941948e0a01446af2b20661d99a8421961239f7e0a5d463ffecb21a268225"
+      },
+      {
+        "start": 540,
+        "end": 557,
+        "name": "Library::SaveExpressions() const noexcept",
+        "sha256": "5c4e827719a6963f872939b57ecd2d826d829dd88ce820f3e2c55d48be04b38f"
+      },
+      {
+        "start": 559,
+        "end": 587,
+        "name": "Library::SaveVoices() const",
+        "sha256": "98a09bccac05f036f4e879d7cdfa887aff81dee1455872ded250cf754adc515b"
+      }
+    ]
+  },
+  "src/Registry/Util/RayCast.h": {
+    "sha256": "19ea2c8ae2a57eac727bed3c84ed7b13479634d74d46a3b09273fc9a48328aa2",
+    "diagnostics": [
+      {
+        "line": 20,
+        "kind": "ERROR"
+      },
+      {
+        "line": 20,
+        "kind": ";"
+      }
+    ],
+    "expected_definition_entries": 1,
+    "omitted_definitions": [],
+    "conclusion": "__declspec(align(16)) typedef struct；内部bhkRayResult构造函数已提取，其余是结构字段/前置声明，无遗漏函数本体。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 52,
+        "end": 53,
+        "name": "bhkRayResult() noexcept",
+        "sha256": "a423dce3e3f181f9945d8afdb45f0e5795919b8fd9fd74e9a78faefd2b903023"
+      }
+    ]
+  },
+  "src/Registry/Util/RayCast/Offsets.h": {
+    "sha256": "aef30ef4c1d77f19f288f994f7341cd0b4cff776c7c1813783498de310690ba1",
+    "diagnostics": [
+      {
+        "line": 22,
+        "kind": "ERROR"
+      },
+      {
+        "line": 22,
+        "kind": "ERROR"
+      }
+    ],
+    "expected_definition_entries": 0,
+    "omitted_definitions": [],
+    "conclusion": "成员函数指针typedef含__int64/__fastcall，无函数实现，只有常量及别名；保留引擎ABI。",
+    "reviewed_date": "2026-10-05",
+    "definitions": []
+  },
+  "src/Registry/Util/RayCast/RayCast.cpp": {
+    "sha256": "23f92fbb2b30540462fdb450b344177840b8ba0d5fbdfef1274ed0806b25821b",
+    "diagnostics": [
+      {
+        "line": 100,
+        "kind": "ERROR"
+      },
+      {
+        "line": 100,
+        "kind": "ERROR"
+      },
+      {
+        "line": 102,
+        "kind": "ERROR"
+      }
+    ],
+    "expected_definition_entries": 6,
+    "omitted_definitions": [],
+    "conclusion": "bhkWorld成员指针typedef/reinterpret调用的恢复；三种hkpCastRay、两条件编译CastRay和collector定义都已完整提取。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 6,
+        "end": 10,
+        "name": "* getCastCollector() noexcept",
+        "sha256": "366960a09a4eefe19afd8b9ad8287a165533f53f8871a767323a5d0b190f02be"
+      },
+      {
+        "start": 13,
+        "end": 17,
+        "name": "Raycast::CastRay(glm::vec4, glm::vec4, float) noexcept",
+        "sha256": "3b84a39feed09701e4fa5ed411fe106ed9ea80580dd943bcfc0f76fd6a23a32e"
+      },
+      {
+        "start": 19,
+        "end": 51,
+        "name": "Raycast::CastRay(glm::vec4 start, glm::vec4 end, float traceHullSize) noexcept",
+        "sha256": "235598d9f6e9fdf1f14f9ece8dbbc87d3e67ff69a78373e8367c219c66db4019"
+      },
+      {
+        "start": 55,
+        "end": 58,
+        "name": "Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end) noexcept",
+        "sha256": "dcd1e7b2487946bdca54730e8c0288de73ea03eade6ac20e2500bdfcdc1d65ca"
+      },
+      {
+        "start": 60,
+        "end": 73,
+        "name": "Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end, std::initializer_list<const RE::TESObjectREFR*> a_filter) noexcept",
+        "sha256": "d5ac2ca739348371edc019322e2007ee69d19cd84f868516f81f2720cca71edc"
+      },
+      {
+        "start": 75,
+        "end": 139,
+        "name": "Raycast::hkpCastRay(const glm::vec4& start, const glm::vec4& end, const std::vector<RE::NiAVObject*>& a_filter) noexcept",
+        "sha256": "9f3bc337ac4ec3e23fd5ef3807fa5f7c7def9e6d54e0d19593007f359037746e"
+      }
+    ]
+  },
+  "src/Registry/Util/RayCast/bhkLinearCastCollector.h": {
+    "sha256": "2ffe390767ba4c264e7e2c7f3eb79006c1d90be59ac6e618ce491208f502bffc",
+    "diagnostics": [
+      {
+        "line": 125,
+        "kind": "ERROR"
+      },
+      {
+        "line": 125,
+        "kind": ";"
+      },
+      {
+        "line": 152,
+        "kind": "ERROR"
+      },
+      {
+        "line": 159,
+        "kind": "ERROR"
+      }
+    ],
+    "expected_definition_entries": 5,
+    "omitted_definitions": [],
+    "conclusion": "__declspec对齐及offsetof嵌套member.w诊断，非函数。IsRaycastLayerAccepted及四collector方法已完整提取；布局仍需WindowsABI验证。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 41,
+        "end": 46,
+        "name": "IsRaycastLayerAccepted(uint32_t flags)",
+        "sha256": "92f3205061cfcfe9d2f458ba1a4d6482242724d7487cd773e7e1eba417f71b4a"
+      },
+      {
+        "start": 51,
+        "end": 54,
+        "name": "bhkLinearCastCollector() noexcept",
+        "sha256": "15728daa57378c3c86832aababf876c366fbbde82e7d08f4a213fed037a8f552"
+      },
+      {
+        "start": 56,
+        "end": 62,
+        "name": "reset() noexcept",
+        "sha256": "ef771d57d1e894d8da7ccf6fcad672550ffca75011399f4372968564c080a231"
+      },
+      {
+        "start": 64,
+        "end": 67,
+        "name": "addFilter(const RE::NiAVObject* obj) noexcept",
+        "sha256": "84c9c62d28174fca2c4d70f3fd62cd569055f26ac32d982e06ae3be60a1f199c"
+      },
+      {
+        "start": 69,
+        "end": 96,
+        "name": "addRayHit(bhkShapeList* list, const bhkAllCdPointTempResult* hitInfo)",
+        "sha256": "2d7c5ff68be3feaa045c0f50a969bfa69977ac44d0fe08d105b78331eab0b24f"
+      }
+    ]
+  },
+  "src/Serialization.h": {
+    "sha256": "1f33a7a6826adcbef1bd6ddb5c9f832693c610e7c52e94bad03485d58110d7d5",
+    "diagnostics": [
+      {
+        "line": 26,
+        "kind": "ERROR"
+      },
+      {
+        "line": 44,
+        "kind": ";"
+      },
+      {
+        "line": 45,
+        "kind": ";"
+      }
+    ],
+    "expected_definition_entries": 5,
+    "omitted_definitions": [],
+    "conclusion": "匿名enum及SAVE宏调用无分号诊断，SAVE展开为现有SaveCallback内部语句，无额外函数定义。四callback及GetTypeName已提取。 本次仅新增Thread include及Revert调用；五定义仍全部提取，三宏/enum诊断平移。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 10,
+        "end": 20,
+        "name": "GetTypeName(uint32_t a_type)",
+        "sha256": "a20acab4eb053dcd3f19d0aca34b3b7c6233c6c2cb267459072a76a0c2d668d9"
+      },
+      {
+        "start": 35,
+        "end": 48,
+        "name": "SaveCallback(SKSE::SerializationInterface* a_intfc)",
+        "sha256": "f46d0fdf96edfe8e49df8efca1839fce2d080aac2312e88165db349edcb1f887"
+      },
+      {
+        "start": 50,
+        "end": 73,
+        "name": "LoadCallback(SKSE::SerializationInterface* a_intfc)",
+        "sha256": "c870a61b648cd77bdded8b76215a2c9542ab9db9127a96fd9e3a9a89dfa61616"
+      },
+      {
+        "start": 75,
+        "end": 81,
+        "name": "RevertCallback(SKSE::SerializationInterface* a_intfc)",
+        "sha256": "97209e6c7435e2abf0787fd0828a11733fd50743eaa733c189c5b824805d68d0"
+      },
+      {
+        "start": 83,
+        "end": 85,
+        "name": "FormDeleteCallback(RE::VMHandle)",
+        "sha256": "9c50386386adf9bcc2dee44d39298046b805cce844319a43c00a1aa2593de8ba"
+      }
+    ]
+  },
+  "src/Thread/NiNode/NiDescriptor.h": {
+    "sha256": "c52b00b98739c4df0037e11c88176146cf67a02cee4a30932c72910156927128",
+    "diagnostics": [
+      {
+        "line": 23,
+        "kind": "ERROR"
+      }
+    ],
+    "expected_definition_entries": 13,
+    "omitted_definitions": [],
+    "conclusion": "NI_TYPE/def include在enum中生成条目，函数内宏生成语句而非新函数。cluster helper、接口析构、CSV、模板方法和Initialize均已提取。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 31,
+        "end": 40,
+        "name": "GetClusterForType(Type type)",
+        "sha256": "60f79678fee151f689fe06f949666e57479df69ad8ac9425244d533c964b5597"
+      },
+      {
+        "start": 42,
+        "end": 52,
+        "name": "GetTypesForCluster(Cluster a_cluster)",
+        "sha256": "28a0b377788d5982e039935c92e36416108ef8e55b8870e50d0182626eed7cdf"
+      },
+      {
+        "start": 93,
+        "end": 93,
+        "name": "~INiDescriptor()",
+        "sha256": "e3618bdc9c5e0c0a9134a517e3c46dc2e63c28499878c749b428b2910e6c1677"
+      },
+      {
+        "start": 102,
+        "end": 115,
+        "name": "CreateCsvHeader(NiType::Cluster cluster)",
+        "sha256": "7072213d85d816c932c0f26c4270cadd6d623f674a820de17cf2450808173fcf"
+      },
+      {
+        "start": 117,
+        "end": 133,
+        "name": "CreateCsvRow(const std::vector<INiDescriptor*>& descriptors, NiType::Cluster cluster)",
+        "sha256": "ab81eb35a6511e53f5f9d2c51698afe848de69a1f46c5cecff8a66eebfca9cac"
+      },
+      {
+        "start": 123,
+        "end": 123,
+        "name": "(auto* descriptor)",
+        "sha256": "791618140f756256666ace32ce7027d4a173e499cfa16cc4b818d5bbf37a5dcd"
+      },
+      {
+        "start": 141,
+        "end": 144,
+        "name": "AddValue(Feature feature, float value)",
+        "sha256": "cef32240ba5a431438cb879c0819d83caf6eaa7a7d735b9c66447ce0dc87f06c"
+      },
+      {
+        "start": 146,
+        "end": 149,
+        "name": "Predict() const override",
+        "sha256": "2e384228be6c0b01dce33ed1d25fd9e97d130403a0b278867bd84032bd2cc08c"
+      },
+      {
+        "start": 151,
+        "end": 154,
+        "name": "GetFeature(Feature feature) const override",
+        "sha256": "9aecad0bfcedae7c6d9b84bd1f2c8776b19f17be2a3377f5d079c7201fcce4f4"
+      },
+      {
+        "start": 156,
+        "end": 167,
+        "name": "PredictCluster(const std::vector<const INiDescriptor*>& descriptors) const override",
+        "sha256": "d2fa5cd2e3a8eb8337a386278d3b7388be4e816a650868b54398ffa9c34f0c47"
+      },
+      {
+        "start": 169,
+        "end": 179,
+        "name": "CsvRow() const override",
+        "sha256": "0916bdf48c6eb04dfefa04b7e63ea63746c0c0951ac7b93dd8451d9875070cb8"
+      },
+      {
+        "start": 181,
+        "end": 184,
+        "name": "GetType() const override",
+        "sha256": "99c4dbd58bb30c69e1b742fe24c1bbf18f610c0ed05b0a7b69b93975491675ab"
+      },
+      {
+        "start": 187,
+        "end": 222,
+        "name": "Initialize(CSimpleIniA& inifile)",
+        "sha256": "cf607a0e28a1c2a0b805185ef5a7f91093ac14e8cba483baa3c85c1ef64c96bd"
+      }
+    ]
+  },
+  "src/Thread/NiNode/NiInteraction.cpp": {
+    "sha256": "9dcb8f186482e794dbcad2e1e47301647edb792fca9241978c98f1da11608875",
+    "diagnostics": [
+      {
+        "line": 203,
+        "kind": ";"
+      },
+      {
+        "line": 204,
+        "kind": ";"
+      },
+      {
+        "line": 205,
+        "kind": ";"
+      },
+      {
+        "line": 290,
+        "kind": ";"
+      },
+      {
+        "line": 291,
+        "kind": ";"
+      },
+      {
+        "line": 292,
+        "kind": ";"
+      },
+      {
+        "line": 293,
+        "kind": ";"
+      },
+      {
+        "line": 294,
+        "kind": ";"
+      }
+    ],
+    "expected_definition_entries": 11,
+    "omitted_definitions": [],
+    "conclusion": "ADD_DATA宏调用无分号恢复；展开只向descriptor写字段，不创建函数。三个Basic helper、各cluster函数及两个lambda均已提取。 本轮anchor存在性守卫修改后重读；8个诊断仍为同一ADD_DATA宏位置，11个定义/事件lambda未遗漏。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 8,
+        "end": 13,
+        "name": "NiInteractionCluster::IncludesType(NiType::Type type) const",
+        "sha256": "b0345a587750bc6d650cd2a7e5153fb67e8c45af52e423ea51e6e99ebb3f76a4"
+      },
+      {
+        "start": 10,
+        "end": 12,
+        "name": "(const NiInteraction& interaction)",
+        "sha256": "a8c9afa1545e7a4e5f2718485b2c910c0cf51efe7926ea57b193dfbe677a38d8"
+      },
+      {
+        "start": 15,
+        "end": 21,
+        "name": "NiInteractionCluster::GetClusterType() const",
+        "sha256": "2a7a309b6f7874306ef5b89b5c6a873f113c3839ff18ab99e581354411ea4fd5"
+      },
+      {
+        "start": 23,
+        "end": 76,
+        "name": "* NiInteractionCluster::ApplySoftmax()",
+        "sha256": "7eca9f13a1c654f71271bed64eb85d3f446a618a9e8fd1a5b84a6d2b715c0b73"
+      },
+      {
+        "start": 81,
+        "end": 95,
+        "name": "AddBasicPairedScores01(NiDescriptorType* descriptor, const MotionDescriptor& motionA, const MotionDescriptor& motionB)",
+        "sha256": "2e16e7203b82521223477dd4de0ee03f017d063ee8b1d4cf3f34260a114fe9e3"
+      },
+      {
+        "start": 98,
+        "end": 112,
+        "name": "AddBasicPairedScores02(NiDescriptorType* descriptor, const MotionDescriptor& motionA, const MotionDescriptor& motionB)",
+        "sha256": "cfba87bf2125f7e856750ca279c2ab59f8401cfbbbb38a440835cb0376bfc543"
+      },
+      {
+        "start": 115,
+        "end": 129,
+        "name": "AddBasicPairedScores03(NiDescriptorType* descriptor, const MotionDescriptor& motionA, const MotionDescriptor& motionB)",
+        "sha256": "0c85f48d92da8cd62c90c8e82494661ad3a0c333dd38c8f5992b22d9e74419cf"
+      },
+      {
+        "start": 132,
+        "end": 218,
+        "name": "EvaluateCrotchInteractions(const NiMotion& a_motionA, const NiMotion& a_motionB)",
+        "sha256": "1b14e16e67168824f53f2cbcad0cef57fe61090351dc022b0d56ec521a0deced"
+      },
+      {
+        "start": 153,
+        "end": 176,
+        "name": "(NiMotion::Anchor motionAnchor, NiMotion::Anchor motionAnchorEnd) -> std::optional<std::tuple<const MotionDescriptor, RE::NiPoint3, float, float, float>>",
+        "sha256": "14cf3812e91576bf22eeac26fef29c20f17d8d785d933917ad396cd892bc9533"
+      },
+      {
+        "start": 220,
+        "end": 299,
+        "name": "EvaluateHeadInteractions(const NiMotion& a_motionA, const NiMotion& a_motionB)",
+        "sha256": "ca1811b9cd0e0665bd0b50238be830672e8f226ae36657c26cd633d59e1f6d5b"
+      },
+      {
+        "start": 301,
+        "end": 340,
+        "name": "EvaluateKissingCluster(const NiMotion& a_motionA, const NiMotion& a_motionB)",
+        "sha256": "d1db4b7304db006e26ef2b0bb3656a7f58e625fe54359878a35fd470ba14a7a3"
+      }
+    ]
+  },
+  "src/Util/SaveQueue.h": {
+    "sha256": "3257e287c67def4caafe7822649fa6b60b75a7449b9522ef5ff56306f60b232d",
+    "diagnostics": [
+      {
+        "line": 126,
+        "kind": "type_identifier"
+      }
+    ],
+    "expected_definition_entries": 15,
+    "omitted_definitions": [],
+    "conclusion": "Submit默认shared_ptr参数={}恢复；方法体已完整提取。构造函数内worker lambda与Flush/Run等待lambda亦已单独计入。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 25,
+        "end": 61,
+        "name": "AtomicWrite(const std::filesystem::path& path, const std::string& bytes)",
+        "sha256": "34d197b7aaff2726e988438026f12e1a6b33caee8aa4459fedb28160951a4e3a"
+      },
+      {
+        "start": 65,
+        "end": 114,
+        "name": "ArchiveWrite(const std::filesystem::path& directory, const std::vector<std::string>& rows)",
+        "sha256": "5d85b877c40584fda4733d82d20acc54865b1f9c0e35d7685df63bb32c0783bd"
+      },
+      {
+        "start": 121,
+        "end": 125,
+        "name": "& Get()",
+        "sha256": "aade48774c4889b16512b955001ec6eaaa7702ace200c94316820e06e1b82da0"
+      },
+      {
+        "start": 126,
+        "end": 131,
+        "name": "Submit(std::filesystem::path path, std::string bytes, std::shared_ptr<std::atomic_bool> receipt = {})",
+        "sha256": "377ed0b963e1e06622ff5280219944d16b42177eff503fe452a231f4ba1adc35"
+      },
+      {
+        "start": 132,
+        "end": 138,
+        "name": "SubmitArchive(std::filesystem::path directory, std::vector<std::string> rows)",
+        "sha256": "0aa3f4d310567b9423b73bdb75447e3d113b047126fd8526a30b0595d8b003a2"
+      },
+      {
+        "start": 141,
+        "end": 146,
+        "name": "RetryArchives()",
+        "sha256": "0f7420a49ef5e3a58dadbc3d7284990b6e002838e8dba8548e4410a1fb4fd4a6"
+      },
+      {
+        "start": 147,
+        "end": 151,
+        "name": "FailedArchiveCount()",
+        "sha256": "4e4b77ece2e41535e9fc4a30a12c6a2ab5bb187b40297479701fb839085319f1"
+      },
+      {
+        "start": 152,
+        "end": 156,
+        "name": "Flush()",
+        "sha256": "8d62b9120a8a47edf795aadd3ac0663d270c21ef6df1d16580055e9f97625136"
+      },
+      {
+        "start": 155,
+        "end": 155,
+        "name": "<anonymous>",
+        "sha256": "82130fb5b1a43f6003b7640a8fbb927192beeb9a88054ff27d9aa021a6919336"
+      },
+      {
+        "start": 157,
+        "end": 166,
+        "name": "~SaveQueue()",
+        "sha256": "dde8ee8f284f20890dca080a2637de2c3854c2a81649f157611690e1ae1745d0"
+      },
+      {
+        "start": 179,
+        "end": 185,
+        "name": "RetryArchivesLocked()",
+        "sha256": "cd0b6d236ee3b0c29e0bb33babcc777572b6c7060b7a00feece35056e6c43355"
+      },
+      {
+        "start": 186,
+        "end": 186,
+        "name": "<anonymous>",
+        "sha256": "5c07136de72e99d3552b4c45a045c8267f8f1ed073491ce850080e435c8ada8a"
+      },
+      {
+        "start": 186,
+        "end": 186,
+        "name": "SaveQueue()",
+        "sha256": "d6410e463612c4f4e8a5becbee7f4f71dcb5c02028757b88c9c13feb723a8fad"
+      },
+      {
+        "start": 187,
+        "end": 228,
+        "name": "Run()",
+        "sha256": "e424befa4c9c95cef90df447b9a08f86487150802bb1a4672155ae210863fe36"
+      },
+      {
+        "start": 191,
+        "end": 191,
+        "name": "<anonymous>",
+        "sha256": "81f40bfd9c029d5d1bf1abd2faa493ae41738b2cf24c244056aefabc904e9d0d"
+      }
+    ]
+  },
+  "src/Util/SharedSnapshot.h": {
+    "sha256": "8f5772174505ad6e2a32da35e05d32c51f97bd86266462f518947c145579dee7",
+    "diagnostics": [
+      {
+        "line": 14,
+        "kind": "type_identifier"
+      }
+    ],
+    "expected_definition_entries": 3,
+    "omitted_definitions": [],
+    "conclusion": "模板ctor默认shared_ptr参数={}恢复；ctor/load/store已提取，无遗漏函数本体。",
+    "reviewed_date": "2026-10-05",
+    "definitions": [
+      {
+        "start": 14,
+        "end": 14,
+        "name": "SharedSnapshot(std::shared_ptr<T> value = {})",
+        "sha256": "f8f1cb4f40aa0dcee3d924cfe80c44c039f5eacbb7368ce8f508df47800c7c0e"
+      },
+      {
+        "start": 15,
+        "end": 19,
+        "name": "load() const",
+        "sha256": "324bcfa63390063bb57fe5bc35438f973dbd3234387440902cd78c368356405a"
+      },
+      {
+        "start": 20,
+        "end": 24,
+        "name": "store(std::shared_ptr<T> next)",
+        "sha256": "482fcc090556bd98747f50cfd36f45d48989ca517cffb7358652d05a86551370"
+      }
+    ]
+  }
+}

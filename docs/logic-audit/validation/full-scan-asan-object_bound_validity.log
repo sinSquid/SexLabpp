@@ -1,0 +1,1 @@
+PASS: actual ObjectBound validity rejects non-finite local/world/rotation data and preserves rotated world corners

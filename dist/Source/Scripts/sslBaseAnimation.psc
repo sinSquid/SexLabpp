@@ -66,15 +66,15 @@ Function _SetTags(String[] asSet)
 EndFunction
 bool function AddTag(string Tag)
 	string[] Tags = _GetTags()
-	if (Tag != "" && !Tags.Length || Tags.Find(Tag) == -1)
+	if (Tag != "" && Tags.Find(Tag) == -1)
 		SexLabRegistry.AddSceneAnnotation(Registry, Tag)
 		return true
 	endIf
 	return false
 endFunction
 bool function RemoveTag(string Tag)
-	string[] Tags = _GetTags()
-	if (Tag != "" && !Tags.Length || Tags.Find(Tag) != -1)
+	string[] Tags = SexLabRegistry.GetSceneAnnotations(Registry)
+	if (Tag != "" && Tags.Find(Tag) != -1)
 		SexLabRegistry.RemoveSceneAnnotation(Registry, Tag)
 		return true
 	endIf
@@ -88,10 +88,16 @@ EndFunction
 ; Get the stage represented by some depth, or the max depth stage if aiDepth is greater than max depth
 String Function GetStageBounded(int aiDepth)
 	String[] maxpath = SexLabRegistry.GetPathMax(Registry, "")
-	If (maxpath.Length >= aiDepth)
+	If (!maxpath.Length)
+		return ""
+	EndIf
+	; Legacy stage numbers start at one; zero also denotes the first stage.
+	If (aiDepth <= 1)
+		return maxpath[0]
+	ElseIf (aiDepth >= maxpath.Length)
 		return maxpath[maxpath.Length - 1]
 	EndIf
-	return maxpath[aiDepth]
+	return maxpath[aiDepth - 1]
 EndFunction
 
 ; *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* ;
@@ -172,7 +178,7 @@ string[] function FetchStage(int Stage)
 		Log("Unknown Stage, '"+Stage+"' given", "FetchStage")
 		return none
 	endif
-	return SexlabRegistry.GetAnimationEventA(Registry, Stage)
+	return SexlabRegistry.GetAnimationEventA(Registry, GetStageBounded(Stage))
 endFunction
 
 function GetAnimEvents(string[] AnimEvents, int Stage)
@@ -181,7 +187,7 @@ function GetAnimEvents(string[] AnimEvents, int Stage)
 		Log("Invalid Call(" + AnimEvents + ", " + Stage + "/" + depth + ")", "GetAnimEvents")
 		return
 	endif
-	String[] anims = SexlabRegistry.GetAnimationEventA(Registry, Stage)
+	String[] anims = SexlabRegistry.GetAnimationEventA(Registry, GetStageBounded(Stage))
 	int i = 0
 	while i < anims.Length
 		AnimEvents[i] = anims[i]
@@ -190,8 +196,8 @@ function GetAnimEvents(string[] AnimEvents, int Stage)
 endFunction
 
 string function FetchPositionStage(int Position, int Stage)
-	String GetStageBounded = GetStageBounded(Stage)
-	return SexLabRegistry.GetAnimationEvent(Registry, Stage, Position)
+	String stage_ = GetStageBounded(Stage)
+	return SexLabRegistry.GetAnimationEvent(Registry, stage_, Position)
 endFunction
 
 function SetPositionStage(int Position, int Stage, string AnimationEvent)
@@ -218,13 +224,13 @@ float function GetTimersRunTime(float[] StageTimers)
 		return -1.0
 	endIf
 	float seconds = 0.0
-	String stage = SexLabRegistry.GetStartAnimation(Registry)
-	int depth = GetMaxDepth()
+	String[] stages = SexLabRegistry.GetPathMax(Registry, "")
+	int depth = stages.Length
 	int i = 0
 	While(i < depth)
-		float time = SexLabRegistry.GetFixedLength(Registry, stage)
+		float time = SexLabRegistry.GetFixedLength(Registry, stages[i])
 		If (time)
-			seconds += time
+			seconds += time / 1000.0
 		ElseIf (i > StageTimers.Length - 1)
 			seconds += StageTimers[StageTimers.Length - 1]
 		Else
@@ -297,12 +303,12 @@ EndFunction
 float[] function GetAllAdjustments(string AdjustKey)
 	String[] path = SexLabRegistry.GetPathMax(Registry, "")
 	int count = SexLabRegistry.GetActorCount(Registry)
-	float[] ret = Utility.CreateFloatArray(path.Length * count * 4)
+	float[] ret = Utility.CreateFloatArray(PapyrusUtil.ClampInt(path.Length * count * 4, 0, 128))
 	int i = 0
-	While (i < path.Length)
-		int base = i * count
+	While (i < path.Length && i * count * 4 < ret.Length)
 		int n = 0
-		While (n < count)
+		While (n < count && (i * count + n) * 4 + 3 < ret.Length)
+			int base = (i * count + n) * 4
 			float[] offsets = SexLabRegistry.GetStageOffset(Registry, path[i], n)
 			ret[base + 0] = offsets[0]
 			ret[base + 1] = offsets[1]
@@ -379,7 +385,11 @@ float function _GetAdjustment(string Registrar, string AdjustKey, int Stage, int
   LogRedundant()
 EndFunction
 float function GetAdjustment(string AdjustKey, int Position, int Stage, int Slot)
-	return SexLabRegistry.GetStageOffset(Registry, GetStageBounded(Stage), Position)[Slot]
+	float[] offsets = SexLabRegistry.GetStageOffset(Registry, GetStageBounded(Stage), Position)
+	if Slot < 0 || Slot >= offsets.Length
+		return 0.0
+	endIf
+	return offsets[Slot]
 endFunction
 
 float function _UpdateAdjustment(string Registrar, string AdjustKey, int Stage, int nth, float by) global
@@ -393,7 +403,7 @@ function UpdateAdjustmentAll(string AdjustKey, int Position, int Slot, float Adj
 	int d = GetMaxDepth()
 	int i = 0
 	While (i < d)
-		UpdateAdjustment(AdjustKey, Position, i, Slot, AdjustBy)
+		UpdateAdjustment(AdjustKey, Position, i + 1, Slot, AdjustBy)
 		i += 1
 	EndWhile
 endFunction
@@ -445,7 +455,7 @@ string function InitAdjustments(string AdjustKey, int Position)
 endFunction
 
 float[] function GetEmptyAdjustments(int Position)
-	return Utility.CreateFloatArray(GetMaxDepth() * 4)
+	return Utility.CreateFloatArray(PapyrusUtil.ClampInt(GetMaxDepth(), 0, 32) * 4)
 endFunction
 
 string[] function _GetAdjustKeys(string Registrar) global
@@ -624,7 +634,7 @@ int function CountValidRaceKey(string[] RaceKeys)
 	int ret = 0
 	int i = 0
 	While(i < RaceKeys.Length)
-		If (RaceKeys[i] && racekeys_.Find(RaceKeys[i]))
+		If (RaceKeys[i] && racekeys_.Find(RaceKeys[i]) != -1)
 			ret += 1
 		EndIf
 		i += 1

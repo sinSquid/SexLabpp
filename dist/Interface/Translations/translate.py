@@ -1,3 +1,5 @@
+import os
+import tempfile
 import shutil
 from pathlib import Path
 import sys
@@ -25,55 +27,76 @@ translated_languages = [
   "SPANISH"
 ]
 
-script_dir = Path(__file__).parent.resolve()
-if script_dir.name == "Translations":
-  translations_dir = script_dir
-else:
-  translations_dir = script_dir / "Interface" / "Translations"
-
-if not translations_dir.exists():
-  print(f"Error: Could not find Translations directory at {translations_dir}")
-  sys.exit(1)
-
-f_english = list(translations_dir.glob("*ENGLISH.txt"))
-if not f_english:
-  print(f"Missing ENGLISH.txt in {translations_dir}")
-  sys.exit(1)
-
-en_path = f_english[0]
-f_raw = en_path.name.replace("ENGLISH.txt", "")
-
 def parse_file(file_path):
-  with open(file_path, 'r', encoding='utf-16le') as file:
-    lines = file.readlines()
-  todo_keys = {lines[i+1].split(maxsplit=1)[0] for i, line in enumerate(lines) if line.startswith("# TODO:") and i+1 < len(lines)}
-  keys = {line.split(maxsplit=1)[0]: line for line in lines if line.startswith('$') and line.split(maxsplit=1)[0] not in todo_keys}
+  lines = Path(file_path).read_text(encoding='utf-16le').splitlines(keepends=True)
+  # A BOM is metadata, not part of the first translation key.
+  if lines:
+    lines[0] = lines[0].removeprefix("\ufeff")
+  todo_keys = set()
+  pending_todo = False
+  for line in lines:
+    if line.startswith("# TODO:"):
+      marker = line[len("# TODO:"):].strip().split(maxsplit=1)
+      if marker and marker[0].startswith('$'):
+        todo_keys.add(marker[0])
+        pending_todo = False
+      else:
+        pending_todo = True
+    elif line.startswith('$'):
+      if pending_todo:
+        todo_keys.add(line.split(maxsplit=1)[0])
+      pending_todo = False
+  keys = {line.split(maxsplit=1)[0]: line for line in lines
+          if line.startswith('$') and line.split(maxsplit=1)[0] not in todo_keys}
   return keys, lines
 
-if len(translated_languages) > 0:
-  en_keys, en_lines = parse_file(en_path)
 
-def copy_new_keys(file_path):
-  l_keys, _ = parse_file(file_path)
-  with open(file_path, 'w', encoding='utf-16le') as l_file:
-    for line in en_lines:
-      if line.startswith('$'):
-        key = line.split(maxsplit=1)[0]
-        if key in l_keys:
-          l_file.write(l_keys[key])
-        else:
-          l_file.write("# TODO: " + key + "\n")
-          l_file.write(en_keys[key])
+def copy_new_keys(file_path, en_lines):
+  file_path = Path(file_path)
+  l_keys, _ = parse_file(file_path) if file_path.exists() else ({}, [])
+  result = []
+  for line in en_lines:
+    if line.startswith('$'):
+      key = line.split(maxsplit=1)[0]
+      if key in l_keys:
+        result.append(l_keys[key])
       else:
-        l_file.write(line)
+        result.extend(("# TODO: " + key + "\n", line))
+    else:
+      result.append(line)
+  # Finish rendering before touching the destination; replace on the same volume.
+  temporary = None
+  try:
+    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-16le',
+                                    dir=file_path.parent, suffix='.tmp', delete=False) as output:
+      temporary = Path(output.name)
+      output.write('\ufeff' + ''.join(result))
+    os.replace(temporary, file_path)
+  finally:
+    if temporary is not None:
+      temporary.unlink(missing_ok=True)
 
-for l in languages:
-  new_path = translations_dir / (f_raw + l + ".txt")
-  print(f"Processing {new_path}")
-  if l in translated_languages:
-    print(f"Copying new keys to {l}")
-    copy_new_keys(new_path)
-    continue
-  shutil.copyfile(en_path, new_path)
 
-print("Done")
+def main():
+  script_dir = Path(__file__).parent.resolve()
+  translations_dir = script_dir if script_dir.name == "Translations" else script_dir / "Interface" / "Translations"
+  english_files = sorted(translations_dir.glob("*ENGLISH.txt"))
+  if len(english_files) != 1:
+    print(f"Expected one ENGLISH.txt in {translations_dir}, found {len(english_files)}")
+    return 1
+  en_path = english_files[0]
+  prefix = en_path.name.removesuffix("ENGLISH.txt")
+  _, en_lines = parse_file(en_path)
+  for language in languages:
+    destination = translations_dir / (prefix + language + ".txt")
+    print(f"Processing {destination}")
+    if language in translated_languages:
+      copy_new_keys(destination, en_lines)
+    else:
+      shutil.copyfile(en_path, destination)
+  print("Done")
+  return 0
+
+
+if __name__ == '__main__':
+  sys.exit(main())

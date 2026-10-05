@@ -1,0 +1,1 @@
+PASS: actual controller helpers preserve all 16 original flag combinations, shared/replacement ownership, unrelated bits and Revert without stale writes

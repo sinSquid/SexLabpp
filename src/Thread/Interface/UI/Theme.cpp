@@ -32,6 +32,7 @@ namespace Thread::Interface::UI::Theme
                 if (const auto error = glz::read_file_json(candidate, THEME_PATH, buffer); error) {
                     logger::error("Unable to load UI theme: {}", glz::format_error(error, buffer));
                 } else {
+                    Validate(candidate);
                     loadedTheme = candidate;
                     logger::info("Loaded UI theme from {}", THEME_PATH);
                 }
@@ -58,6 +59,7 @@ namespace Thread::Interface::UI::Theme
         }
 
         auto snapshot = data;
+        Validate(snapshot);
         Util::AsyncIO::Submit([snapshot = std::move(snapshot)]() {
             const fs::path path{ THEME_PATH };
             std::error_code directoryError;

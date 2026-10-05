@@ -155,7 +155,7 @@ namespace Thread
         std::promise<void> promise;
         auto future = promise.get_future();
         const auto selectionMethod = GetSelectionMethod(furniturePreference);
-        SKSE::GetTaskInterface()->AddTask([&]() mutable {
+        const auto initialize = [&]() {
             // Serialize alias writes with cancellation; never hold this lock while waiting on the task.
             std::shared_lock lock{ _mInstances };
             if (creationCancelled->load()) {
@@ -191,8 +191,12 @@ namespace Thread
                 return;
             }
             promise.set_value();
-        });
-        // The worker only waits for the result; all alias writes stay in the game task.
+        };
+        if (((bool (*)(void))Offsets::NotOnGameThread.address())())
+            SKSE::GetTaskInterface()->AddTask(initialize);
+        else
+            initialize();
+        // Calls already on the game thread must not wait for another queued game task.
         future.get();
         if (creationCancelled->load())
             throw std::runtime_error("Thread creation was cancelled.");
@@ -315,7 +319,7 @@ namespace Thread
             const auto isReachable = std::ranges::any_of(raycastStart, [&](auto&& it) {
                 auto [startRef, startPoint] = it;
                 std::vector<RE::NiAVObject*> filterList{ a_ref->Get3D(), startRef->Get3D() };
-                do {
+                for (size_t attempt = 0; attempt < 64; ++attempt) {
                     auto res = Raycast::hkpCastRay(startPoint, endPoint, filterList);
                     if (!res.hit) {
                         return true;
@@ -328,9 +332,11 @@ namespace Thread
                     if (base->Is(RE::FormType::Door) && hitRef->IsLocked()) {
                         break;
                     }
+                    if (std::ranges::contains(filterList, res.hitObject))
+                        break;
                     filterList.push_back(res.hitObject);
                     startPoint = res.hitPos;
-                } while (true);
+                }
                 return false;
             });
             if (isReachable) {

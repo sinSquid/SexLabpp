@@ -466,10 +466,10 @@ function DraugrGangbang5P(int id)
 	Base.AddPositionStage(a4, "Draugr_Gangbang_A4_S4", 32.0, rotate=180.0)
 
 	int a5 = Base.AddCreaturePosition("Draugrs", CreatureMale)
-	Base.AddPositionStage(a4, "Draugr_Gangbang_A5_S1", 33.0, rotate=180.0)
-	Base.AddPositionStage(a4, "Draugr_Gangbang_A5_S2", 33.0, rotate=180.0)
-	Base.AddPositionStage(a4, "Draugr_Gangbang_A5_S3", 33.0, rotate=180.0)
-	Base.AddPositionStage(a4, "Draugr_Gangbang_A5_S4", 33.0, rotate=180.0)
+	Base.AddPositionStage(a5, "Draugr_Gangbang_A5_S1", 33.0, rotate=180.0)
+	Base.AddPositionStage(a5, "Draugr_Gangbang_A5_S2", 33.0, rotate=180.0)
+	Base.AddPositionStage(a5, "Draugr_Gangbang_A5_S3", 33.0, rotate=180.0)
+	Base.AddPositionStage(a5, "Draugr_Gangbang_A5_S4", 33.0, rotate=180.0)
 
 	Base.SetTags("Gone,Creature,Bestiality,Dirty,Gangbang,Draugr,Vaginal,Oral,Anal")
 
@@ -652,10 +652,10 @@ function FalmerGangbang5P(int id)
 	Base.AddPositionStage(a4, "Falmer_Gangbang_A4_S4", 32.0, rotate=180.0)
 
 	int a5 = Base.AddCreaturePosition("Falmers", CreatureMale)
-	Base.AddPositionStage(a4, "Falmer_Gangbang_A5_S1", 33.0, rotate=180.0)
-	Base.AddPositionStage(a4, "Falmer_Gangbang_A5_S2", 33.0, rotate=180.0)
-	Base.AddPositionStage(a4, "Falmer_Gangbang_A5_S3", 33.0, rotate=180.0)
-	Base.AddPositionStage(a4, "Falmer_Gangbang_A5_S4", 33.0, rotate=180.0)
+	Base.AddPositionStage(a5, "Falmer_Gangbang_A5_S1", 33.0, rotate=180.0)
+	Base.AddPositionStage(a5, "Falmer_Gangbang_A5_S2", 33.0, rotate=180.0)
+	Base.AddPositionStage(a5, "Falmer_Gangbang_A5_S3", 33.0, rotate=180.0)
+	Base.AddPositionStage(a5, "Falmer_Gangbang_A5_S4", 33.0, rotate=180.0)
 
 	Base.SetTags("Gone,Creature,Bestiality,Dirty,Gangbang,Falmer,Anal,Oral,Vaginal")
 

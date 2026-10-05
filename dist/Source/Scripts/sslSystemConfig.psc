@@ -73,15 +73,17 @@ EndProperty
 Function AddRemoveMatchmakerSpells()
   bool shouldhavespells = GetSettingBool("bMatchMakerActive")
   Actor player = Game.GetPlayer()
-  If (player.HasSpell(MatchMakerSpells[0]) == shouldhavespells)
+  If (!player)
     return
   EndIf
   int i = 0
   While (i < MatchMakerSpells.Length)
-    If (shouldhavespells)
-      player.AddSpell(MatchMakerSpells[i], true)
-    Else
-      player.RemoveSpell(MatchMakerSpells[i])
+    If (MatchMakerSpells[i] && player.HasSpell(MatchMakerSpells[i]) != shouldhavespells)
+      If (shouldhavespells)
+        player.AddSpell(MatchMakerSpells[i], true)
+      Else
+        player.RemoveSpell(MatchMakerSpells[i])
+      EndIf
     EndIf
     i += 1
   EndWhile
@@ -807,7 +809,7 @@ int Property HOOKID_STAGEEND    = 2 AutoReadOnly
 int Property HOOKID_END         = 3 AutoReadOnly
 
 bool Function AddHook(SexLabThreadHook akHook)
-  If (!akHook || _Hooks.Find(akHook) > -1)
+  If (!akHook || _Hooks.Find(akHook) > -1 || _Hooks.Length >= 128)
     return false
   EndIf
   Log("Adding new hook " + akHook)

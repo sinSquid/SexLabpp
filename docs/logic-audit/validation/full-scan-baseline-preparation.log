@@ -1,0 +1,12 @@
+Assertion failed: (actor.variable==42&&actor.npc==1&&!actor.foot&&actorPreparations.empty()), function main, file actor_preparation_restore.cpp, line 158.
+Traceback (most recent call last):
+  File "/Users/sin/code/mine/SexLabpp/tests/actor_preparation_restore.py", line 73, in <module>
+    run('actor_preparation_restore',code)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sin/code/mine/SexLabpp/tests/source_regressions.py", line 28, in run
+    subprocess.run([str(binary)], check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/sexlab-test-zg80ycts/actor_preparation_restore']' died with <Signals.SIGABRT: 6>.

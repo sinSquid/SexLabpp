@@ -5,6 +5,7 @@ compile Papyrus or exercise its VM, scheduling, MFG plugin or game object ABI.
 REVIEW_BASE=HEAD runs the same cases against the committed production sources.
 """
 import os
+import ast
 from pathlib import Path
 import re
 import subprocess
@@ -29,9 +30,9 @@ def body(script, name):
 
 
 class Array(list):
-    def Find(self, value):
+    def Find(self, value, start=0):
         try:
-            return self.index(value)
+            return self.index(value, start)
         except ValueError:
             return -1
 
@@ -45,9 +46,15 @@ def expression(text):
     text = re.sub(r'\b([A-Za-z_]\w*)\.Length\b', r'_length(\1)', text, flags=re.I)
     text = re.sub(r'\((SavedP \* 100)\) as int', r'int(\1)', text, flags=re.I)
     text = re.sub(r'\((str_dest \* modifier)\) as Int', r'int(\1)', text, flags=re.I)
+    text = re.sub(r'\b([A-Za-z_]\w*\[[^][\n]+\])\s+as\s+(int|float)\b',
+                  lambda m: f'{m[2].lower()}({m[1]})', text, flags=re.I)
     text = re.sub(r'\(\((.*?)\) as int\)', r'int(\1)', text, flags=re.I)
     text = re.sub(r'\((.*?)\) as int', r'int(\1)', text, flags=re.I)
-    text = re.sub(r'\bnew\s+\w+\[(\d+)\]', r'Array([None] * \1)', text, flags=re.I)
+    text = re.sub(r'\bnew\s+(\w+)\[(\d+)\]',
+                  lambda m: f'Array([{dict(int="0", float="0.0", bool="False", string="\"\"").get(m[1].lower(), "None")}] * {m[2]})',
+                  text, flags=re.I)
+    text = re.sub(r'\s+as\s+(?:sslBaseExpression|sslBaseAnimation|sslBaseVoice)\b', '', text, flags=re.I)
+    text = re.sub(r'\b([A-Za-z_]\w*)\s+as\s+(int|float)\b', lambda m:f'{m[2].lower()}({m[1]})', text, flags=re.I)
     text = text.replace('&&', ' and ').replace('||', ' or ')
     text = re.sub(r'!(?!=)', 'not ', text)
     for token, replacement in (('true', 'True'), ('false', 'False'), ('none', 'None')):
@@ -55,12 +62,28 @@ def expression(text):
     return text
 
 
-def helper(script, name, arguments, environment):
+def strip_comment(line):
+    quoted = escaped = False
+    for index, char in enumerate(line):
+        if escaped:
+            escaped = False
+        elif char == "\\" and quoted:
+            escaped = True
+        elif char == '"':
+            quoted = not quoted
+        elif char == ';' and not quoted:
+            return line[:index]
+    return line
+
+
+def helper(script, name, arguments, environment, state_names=()):
     """Translate only the statement subset present in the selected helpers."""
     lines = [f'def selected({arguments}):']
+    if state_names:
+        lines.append('    global ' + ', '.join(state_names))
     indent = 1
     for original in body(script, name).splitlines():
-        line = original.split(';', 1)[0].strip()
+        line = strip_comment(original).strip()
         if not line:
             continue
         if re.fullmatch(r'end(if|while)', line, flags=re.I):
@@ -78,13 +101,23 @@ def helper(script, name, arguments, environment):
             lines.append('    ' * indent + start[1].lower() + ' ' + expression(start[2]).strip() + ':')
             indent += 1
             continue
-        declaration = re.match(r'^(?:int|float|bool|string|Actor|sslBaseAnimation)(\[\])?\s+(\w+)(.*)$', line, flags=re.I)
+        declaration = re.match(r'^(?:int|float|bool|string|Actor|ObjectReference|Form|sslBaseAnimation|sslBaseExpression|sslBaseVoice|sslActorAlias|sslThreadModel|Alias)(\[\])?\s+(\w+)(.*)$', line, flags=re.I)
         if declaration:
             line = declaration[2] + (declaration[3] or (' = Array()' if declaration[1] else ' = 0'))
         lines.append('    ' * indent + expression(line))
     assert indent == 1, name
     namespace = dict(environment, Array=Array, _length=len)
-    exec(compile('\n'.join(lines), f'<{script}.{name} translated>', 'exec'), namespace)
+    # Papyrus concatenates strings with scalar values implicitly.
+    class StringAddition(ast.NodeTransformer):
+        def visit_BinOp(self, node):
+            self.generic_visit(node)
+            if isinstance(node.op, ast.Add):
+                return ast.copy_location(ast.Call(func=ast.Name(id='_papyrus_add', ctx=ast.Load()),
+                    args=[node.left, node.right], keywords=[]), node)
+            return node
+    namespace['_papyrus_add'] = lambda a,b: str(a)+str(b) if isinstance(a,str) or isinstance(b,str) else a+b
+    tree = ast.fix_missing_locations(StringAddition().visit(ast.parse('\n'.join(lines))))
+    exec(compile(tree, f'<{script}.{name} translated>', 'exec'), namespace)
     return namespace['selected']
 
 

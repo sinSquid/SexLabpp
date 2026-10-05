@@ -75,7 +75,11 @@ rule("spriggit")
             "-o", path(objectfile),
         })
 
-        batchcmds:add_depfiles(os.files(path.join(sourcefile, "**")))
+        local depfiles = os.files(path.join(sourcefile, "**"))
+        table.sort(depfiles)
+        batchcmds:add_depfiles(depfiles)
+        batchcmds:add_depfiles(spriggit_cli.program)
+        batchcmds:add_depvalues(table.concat(depfiles, ";"), spriggit_cli.program)
         batchcmds:set_depmtime(os.mtime(objectfile))
         batchcmds:set_depcache(target:dependfile(objectfile))
         target:add("installfiles", objectfile)

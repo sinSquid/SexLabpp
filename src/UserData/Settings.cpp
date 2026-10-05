@@ -1,4 +1,5 @@
 #include "Settings.h"
+#include "SettingsValidation.h"
 #include "Util/SaveQueue.h"
 
 #include <SimpleIni.h>
@@ -37,6 +38,10 @@ void Settings::InitializeYAML()
                     return;
                 }
             }
+            if (!SettingsValidation::IsValid(a_key, val)) {
+                logger::warn("Invalid setting {}; keeping current value", a_key);
+                return;
+            }
             a_out = val;
         };
 #define MCM_SETTING(STR, DEFAULT) ReadMCM(#STR, STR);
@@ -68,7 +73,15 @@ void Settings::InitializeINI()
         if constexpr (std::is_integral_v<T>) {
             a_out = static_cast<T>(inifile.GetLongValue(a_section, a_option));
         } else if constexpr (std::is_floating_point_v<T>) {
-            a_out = static_cast<T>(inifile.GetDoubleValue(a_section, a_option));
+            const auto value = static_cast<T>(inifile.GetDoubleValue(a_section, a_option));
+            // Percentage normalization below already handles invalid values
+            // and uses double precision for arbitrarily large finite totals.
+            if (std::string_view(a_option) == "fPercentageHetero" ||
+                std::string_view(a_option) == "fPercentageHomo" ||
+                SettingsValidation::IsValid(a_option, value))
+                a_out = value;
+            else
+                logger::warn("Invalid setting {}; keeping current value", a_option);
         } else {
             logger::error("Unknown Type for option {} in section {}", a_option, a_section);
         }

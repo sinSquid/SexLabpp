@@ -56,6 +56,16 @@ int main()
         Decode::Read(input, output);
         assert(output == "abc" && Decode::Remaining(input) == 0);
     }
+    write(3, std::string("a\0b", 3));
+    {
+        std::ifstream file(path, std::ios::binary);
+        Decode::Reader input(file);
+        std::string output = "unchanged";
+        bool rejected = false;
+        try { Decode::Read(input, output); }
+        catch (const std::runtime_error&) { rejected = true; }
+        assert(rejected && output == "unchanged");
+    }
     write(0, "");
     {
         std::ifstream file(path, std::ios::binary);
@@ -121,6 +131,18 @@ int main()
             rejected = true;
         }
         assert(rejected && value == 42);
+    }
+    // Booleans consume one canonical byte without loading invalid bool representations.
+    for (unsigned byte = 0; byte < 256; ++byte) {
+        { std::ofstream out(path, std::ios::binary); out.put(static_cast<char>(byte)); }
+        std::ifstream file(path, std::ios::binary);
+        Decode::Reader input(file);
+        bool value = false, rejected = false;
+        try { Decode::Read(input, value); }
+        catch (const std::runtime_error&) { rejected = true; }
+        assert(rejected == (byte > 1));
+        assert(value == (byte == 1));
+        assert(input.Remaining() == 0);
     }
     // Raw fixed-size fields and typed reads must share the same remaining count.
     write(3, "abcXY");

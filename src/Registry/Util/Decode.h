@@ -73,6 +73,15 @@ namespace Decode
         out = std::bit_cast<I>(value);
     }
 
+    inline void Read(Reader& stream, bool& out)
+    {
+        uint8_t value;
+        Read(stream, value);
+        if (value > 1)
+            throw std::runtime_error("Invalid SLR boolean");
+        out = value != 0;
+    }
+
     template <typename F, std::enable_if_t<std::is_floating_point_v<F>, bool> = true>
     void Read(Reader& stream, F& out)
     {
@@ -91,6 +100,8 @@ namespace Decode
         stream.read(value.data(), static_cast<std::streamsize>(size));
         if (!stream)
             throw std::runtime_error("Truncated SLR string");
+        if (value.find('\0') != std::string::npos)
+            throw std::runtime_error("Embedded NUL in SLR string");
         out = value;
     }
 

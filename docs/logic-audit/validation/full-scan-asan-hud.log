@@ -1,0 +1,2 @@
+PASS: actual native HUD query rejects missing instances and other owners
+PASS: actual HUD paths honor ownership/failure; aggression setter maps to inverse consent and position reads are bounded

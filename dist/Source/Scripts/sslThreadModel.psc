@@ -58,6 +58,9 @@ int Function GetPositionIdx(Actor akActor)
 	return _Positions.Find(akActor)
 EndFunction
 Actor Function GetNthPosition(int n)
+	If (n < 0 || n >= _Positions.Length)
+		return none
+	EndIf
 	return _Positions[n]
 EndFunction
 
@@ -254,10 +257,11 @@ Actor[] Function CanBeImpregnated(Actor akActor,  bool abAllowFutaImpregnation, 
 			int[] orgP = SexLabRegistry.GetClimaxingActors(GetActiveScene(), orgasmStages[i])
 			int n = 0
 			While (n < orgP.Length)
-				If (_Positions[n] != akActor && ActorAlias[n].IsOrgasmAllowed())
-					int orgSex = ActorAlias[n].GetSex()
+				int position = orgP[n]
+				If (_Positions[position] != akActor && ActorAlias[position].IsOrgasmAllowed())
+					int orgSex = ActorAlias[position].GetSex()
 					If (orgSex == 0 || (abFutaCanPregnate && orgSex == 2) || (abCreatureCanPregnate && orgSex == 3))
-						ret[n] = _Positions[n]
+						ret[position] = _Positions[position]
 					EndIf
 				EndIf
 				n += 1
@@ -1265,14 +1269,17 @@ State Animating
 		_sceneResetSyncPending = true
 		UnregisterForUpdate()
 		String currentScene = GetActiveScene()
-		AddExperience(_Positions, currentScene, _StageHistory)
 		If (asNewScene != currentScene)
 			If (!SetActiveScene(asNewScene))
 				Log("Unable to reset scene. New scene is invalid for this thread")
 				_animationSyncPending = false
 				_sceneResetSyncPending = false
+				RegisterForSingleUpdate(ANIMATING_UPDATE_INTERVAL)
 				return false
 			EndIf
+		EndIf
+		AddExperience(_Positions, currentScene, _StageHistory)
+		If (asNewScene != currentScene)
 			SortAliasesToPositions()
 		EndIf
 		String activeScene = GetActiveScene()
@@ -1370,7 +1377,7 @@ State Animating
 				ActorAlias[i].TryLockAndUnpause()
 				i += 1
 			EndWhile
-			StartStage(Utility.ResizeStringArray(_StageHistory, ToStage - 2), _StageHistory[ToStage - 1])
+			StartStage(Utility.ResizeStringArray(_StageHistory, ToStage - 1), _StageHistory[ToStage - 1])
 		EndIf
 	EndFunction
 	Function BranchTo(int aiNextBranch)
@@ -1435,14 +1442,21 @@ State Animating
 	EndFunction
 
 	float Function GetStageTimer(int maxstage)
+		If (Timers.Length == 1)
+			return Timers[0]
+		EndIf
 		int[] c = SexLabRegistry.GetClimaxingActors(GetActiveScene(), GetActiveStage())
 		bool isClimaxStage = c.Length > 0
 		If (isClimaxStage)
 			return Timers[Timers.Length - 1]
 		EndIf
 		int lastTimerIdx = Timers.Length - 2
-		If (_StageHistory.Length < lastTimerIdx)
-			return Timers[_StageHistory.Length]
+		int stageIdx = _StageHistory.Length - 1
+		If (stageIdx < 0)
+			stageIdx = 0
+		EndIf
+		If (stageIdx < lastTimerIdx)
+			return Timers[stageIdx]
 		EndIf
 		return Timers[lastTimerIdx]
 	Endfunction
@@ -1452,10 +1466,14 @@ State Animating
 			GoToStage(_StageHistory.Length + 1)
 		Else
 			string[] NewSceneStage = FindSimilarSceneStage()
-			ResetScene(NewSceneStage[0])
-			int NewStageNum = SexlabRegistry.GetAllStages(NewSceneStage[0]).Find(NewSceneStage[1])
-			GoToStage(NewStageNum)
-			Log("Skipped scene to " + SexlabRegistry.GetSceneName(NewSceneStage[0]) + " (Stage: " + NewStageNum + ")")
+			If (NewSceneStage[0] && NewSceneStage[1])
+				If (ResetScene(NewSceneStage[0]) && GetActiveScene() == NewSceneStage[0])
+					SkipTo(NewSceneStage[1])
+					Log("Skipped scene to " + SexlabRegistry.GetSceneName(NewSceneStage[0]) + " (Stage: " + NewSceneStage[1] + ")")
+					return
+				EndIf
+			EndIf
+			ReStartTimer()
 		EndIf
 	EndFunction
 
@@ -1667,6 +1685,7 @@ State Animating
 			ResetScene(queuedScene)
 			return
 		EndIf
+		RefreshAliasesToPositions()
 		OnStageChangedUpdateHUD()
 		ConfigureStageTimer(false)
 		If (!_animationStarted)
@@ -1824,12 +1843,23 @@ State Ending
 			SetObjectiveDisplayed(0, False)
 		EndIf
 		UpdateAllEncounters()
+		int request = StartupRequest
+		int polls = 0
 		int i = 0
 		While (i < ActorAlias.Length)
-			If (ActorAlias[i].GetState() == ActorAlias[i].STATE_IDLE)
+			If (!ActorAlias[i] || ActorAlias[i].GetState() == ActorAlias[i].STATE_IDLE)
 				i += 1
 			Else
+				If (polls >= 200)
+					Log("Actor cleanup timed out; scheduling thread recovery", "Ending()")
+					RegisterForSingleUpdateGameTime(0.1)
+					return
+				EndIf
+				polls += 1
 				Utility.Wait(0.05)
+				If (StartupRequest != request || GetState() != STATE_END)
+					return
+				EndIf
 			EndIf
 		EndWhile
 		SendThreadEvent("AnimationEnding")
@@ -1889,6 +1919,7 @@ State Ending
 		string activeScene = GetActiveScene()
 		Log("Thread validated, playing animation: " + activeScene + ", " + SexLabRegistry.GetSceneName(activeScene), "StartThread()")
 		(self as sslThreadController).ToggleVisibilitySceneHUD(1)
+		RefreshAliasesToPositions(true)
 		StartStage(Utility.CreateStringArray(0), "")
 		_QuickResetScenes = false
 		return true
@@ -2026,6 +2057,29 @@ sslActorAlias Function PositionAlias(int Position)
 	return ActorAlias[Position]
 EndFunction
 
+Function RefreshAliasesToPositions(bool abForce = false)
+	Actor[] current = GetPositions()
+	bool changed = abForce || current.Length != _Positions.Length
+	int i = 0
+	While (i < current.Length && !changed)
+		changed = current[i] != _Positions[i]
+		i += 1
+	EndWhile
+	If (!changed)
+		return
+	EndIf
+	SortAliasesToPositions()
+	String scene = GetActiveScene()
+	int[] strips = SexLabRegistry.GetStripDataA(scene, GetActiveStage())
+	int[] genders = SexLabRegistry.GetPositionSexA(scene)
+	i = 0
+	While (i < _Positions.Length)
+		ActorAlias[i].TryLockAndUnpause()
+		ActorAlias[i].ResetPosition(strips[i], genders[i])
+		i += 1
+	EndWhile
+EndFunction
+
 Function SortAliasesToPositions()
 	_Positions = GetPositions()
 	int i = 0
@@ -2033,9 +2087,11 @@ Function SortAliasesToPositions()
 		Actor position = ActorAlias[i].GetReference() as Actor
 		If (position)
 			int inActorArray = _Positions.Find(position)
-			sslActorAlias tmp = ActorAlias[inActorArray]
-			ActorAlias[inActorArray] = ActorAlias[i]
-			ActorAlias[i] = tmp
+			If (inActorArray >= 0 && inActorArray < ActorAlias.Length)
+				sslActorAlias tmp = ActorAlias[inActorArray]
+				ActorAlias[inActorArray] = ActorAlias[i]
+				ActorAlias[i] = tmp
+			EndIf
 		EndIf
 		i += 1
 	EndWhile
@@ -2186,13 +2242,19 @@ Function TryInitSceneHUD()
 		return
 	EndIf
 	RefreshPropertiesSceneHUD("Get")
+	InitSceneHUDImpl()
+	If (!IsSceneHUDActiveImpl())
+		return
+	EndIf
 	If (!ElementUI_GameHUD)
 		SexLabUtil.HideElementsGameHUD(true)
 	EndIf
-	InitSceneHUDImpl()
 EndFunction
 
 Function TryCloseSceneHUD()
+	If (!IsSceneHUDActiveImpl())
+		return
+	EndIf
 	DestroySceneHUDImpl()
 	RefreshPropertiesSceneHUD("Set")
 	If (!ElementUI_GameHUD)
@@ -2229,6 +2291,7 @@ Function RefreshPropertiesSceneHUD(string asMode)
 EndFunction
 
 Function InitSceneHUDImpl() native
+bool Function IsSceneHUDActiveImpl() native
 Function DestroySceneHUDImpl() native
 Function SetFocusSceneHUDImpl(bool abFocused) native
 
@@ -2640,11 +2703,17 @@ string[] Function FindSimilarSceneStage()
 		If AvailableScene != PlayingScene
 			string[] AvailableStages = SexLabRegistry.GetAllStages(AvailableScene)
 			int CountStages = AvailableStages.Length
-			int n = 3 ;skip first two stages
+			int n = 2 ;skip first two stages
 			While (n < CountStages)
 				string AvailableStage = AvailableStages[n]
 				bool[] AvailableStageType = CheckSpecificStageTags(AvailableScene, AvailableStage)
-				If (AvailableStageType == PlayingStageType)
+				bool same = AvailableStageType.Length == PlayingStageType.Length
+				int tag = 0
+				While (tag < PlayingStageType.Length && same)
+					same = AvailableStageType[tag] == PlayingStageType[tag]
+					tag += 1
+				EndWhile
+				If (same)
 					ret[0] = AvailableScene
 					ret[1] = AvailableStage
 					return ret
@@ -2870,7 +2939,7 @@ int Property ActorCount Hidden
 EndProperty
 Actor[] property Victims Hidden
 	Actor[] Function Get()
-		GetAllVictims()
+		return GetAllVictims()
 	EndFunction
 EndProperty
 
@@ -2963,7 +3032,7 @@ bool Property IsAggressive hidden
 		return !IsConsent()
 	endfunction
 	Function set(bool value)
-		SetConsent(value)
+		SetConsent(!value)
 	EndFunction
 EndProperty
 bool Property IsVaginal hidden
@@ -3007,6 +3076,7 @@ int[] Property BedStatus Hidden
 		int[] ret = new int[2]
 		ret[0] = _furniStatus - 1
 		ret[1] = BedTypeID
+		return ret
 	EndFunction
 	Function Set(int[] aSet)
 	EndFunction
@@ -3195,10 +3265,12 @@ bool Function CheckTags(String[] CheckTags, bool RequireAll = true, bool Suppres
 			If (!RequireAll || Suppress)
 				return !Suppress
 			EndIf
+		ElseIf (RequireAll && !Suppress)
+			return false
 		EndIf
 		i += 1
 	EndWhile
-	return !Suppress
+	return Suppress || RequireAll
 EndFunction
 String[] Function AddString(string[] ArrayValues, string ToAdd, bool RemoveDupes = true)
 	if ToAdd != ""
@@ -3261,6 +3333,9 @@ sslBaseAnimation[] Function GetLeadAnimations()
 EndFunction
 
 int Function GetHighestPresentRelationshipRank(Actor ActorRef)
+	if !ActorRef || _Positions.Length == 0
+		return 0
+	endIf
 	if _Positions.Length <= 1
 		If(ActorRef == _Positions[0])
 			return 0
@@ -3283,6 +3358,9 @@ int Function GetHighestPresentRelationshipRank(Actor ActorRef)
 EndFunction
 
 int Function GetLowestPresentRelationshipRank(Actor ActorRef)
+	if !ActorRef || _Positions.Length == 0
+		return 0
+	endIf
 	if _Positions.Length <= 1
 		If(ActorRef == _Positions[0])
 			return 0

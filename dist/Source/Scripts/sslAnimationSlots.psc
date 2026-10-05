@@ -292,43 +292,41 @@ endFunction
 ; ------------------------------------------------------- ;
 
 sslBaseAnimation[] function GetList(bool[] Valid)
-  sslBaseAnimation[] Output
-  if Valid && Valid.Length > 0 && Valid.Find(true) != -1
-    int n = Valid.Find(true)
-    int i = PapyrusUtil.CountBool(Valid, true)
-    ; Trim over 100 to random selection
-    if i > 125
-      int end = Valid.RFind(true) - 1
-      while i > 125
-        int rand = Valid.Find(true, Utility.RandomInt(n, end))
-        if rand != -1 && Valid[rand]
-          Valid[rand] = false
-          i -= 1
-        endIf
-        if i == 126 ; To be sure only 125 stay
-          i = PapyrusUtil.CountBool(Valid, true)
-          n = Valid.Find(true)
-          end = Valid.RFind(true) - 1
-        endIf
-      endWhile
-    endIf
-    ; Get list
-    int allocated = Slotted
-    Output = sslUtility.AnimationArray(i)
-    while n != -1 && i > 0
-      i -= 1
-      sslBaseAnimation tmp = GetBySlot(n)
-      If (tmp)
-        Output[i] = tmp
-        n += 1
-        if n < allocated
-          n = Valid.Find(true, n)
-        else
-          n = -1
-        endIf
+  EnsureBackEnd()
+  int limit = Valid.Length
+  If (limit > Slotted)
+    limit = Slotted
+  EndIf
+  int[] candidates = Utility.CreateIntArray(limit)
+  int count = 0
+  int i = 0
+  While (i < limit)
+    If (Valid[i] && GetBySlot(i))
+      candidates[count] = i
+      count += 1
+    EndIf
+    i += 1
+  EndWhile
+  ; Pick from actual candidates; each iteration removes one, including sparse aliases.
+  While (count > 125)
+    int selected = Utility.RandomInt(0, count - 1)
+    Valid[candidates[selected]] = false
+    count -= 1
+    candidates[selected] = candidates[count]
+  EndWhile
+  sslBaseAnimation[] Output = sslUtility.AnimationArray(count)
+  int outputIdx = 0
+  i = limit
+  While (i > 0 && outputIdx < Output.Length)
+    i -= 1
+    If (Valid[i])
+      sslBaseAnimation item = GetBySlot(i)
+      If (item)
+        Output[outputIdx] = item
+        outputIdx += 1
       EndIf
-    endWhile
-  endIf
+    EndIf
+  EndWhile
   return Output
 endFunction
 
@@ -474,10 +472,13 @@ endFunction
 ; ------------------------------------------------------- ;
 
 int function PageCount(int perpage = 125)
-  return ((Slotted as float / perpage as float) as int) + 1
+  EnsureBackEnd()
+  perpage = PapyrusUtil.ClampInt(perpage, 1, 128)
+  return Math.Ceiling(Slotted as float / perpage as float)
 endFunction
 
 int function FindPage(string Registrar, int perpage = 125)
+  perpage = PapyrusUtil.ClampInt(perpage, 1, 128)
   int i = FindByRegistrar(Registrar)
   if i != -1
     return ((i as float / perpage as float) as int) + 1
@@ -490,6 +491,7 @@ string[] function GetSlotNames(int page = 1, int perpage = 125)
 endfunction
 
 sslBaseAnimation[] function GetSlots(int page = 1, int perpage = 125)
+  EnsureBackEnd()
   perpage = PapyrusUtil.ClampInt(perpage, 1, 128)
   if page > PageCount(perpage) || page < 1
     return sslUtility.AnimationArray(0)

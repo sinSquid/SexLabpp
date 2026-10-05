@@ -84,7 +84,7 @@ namespace Registry
             return ((a_values == value) || ...);
         }
         _NODISCARD constexpr bool Is(Value a_value) const { return value == a_value; }
-        _NODISCARD constexpr bool IsValid() const { return value != Value::None; }
+        _NODISCARD constexpr bool IsValid() const { return value <= Value::Wolf; }
 
       public:
         _NODISCARD static std::vector<RE::BSFixedString> GetAllRaceKeys(bool a_ignoreAmbiguous);

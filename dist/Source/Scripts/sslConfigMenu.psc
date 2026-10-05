@@ -672,14 +672,19 @@ int _phaseidx
 
 Function ExpressionEditor()
 	SetCursorFillMode(TOP_TO_BOTTOM)
-	If (_expressionIdx >= _expression.Length)
+	If (!_expression.Length)
+		AddHeaderOption("$SSL_ExpressionEditor")
+		return
+	EndIf
+	_high = Utility.CreateFloatArray(0)
+	If (_expressionIdx >= _expression.Length || _expressionIdx < 0)
 		_expressionIdx = 0
 	EndIf
 	int v = sslBaseExpression.GetVersion(_expression[_expressionIdx])
 	If (v == 0)
 		_maxphases = sslBaseExpression.GetLevelCounts(_expression[_expressionIdx])
 		int maxphase = _maxphases[_editFemale as int]
-		If (_phaseIdx >= maxphase)
+		If (_phaseIdx >= maxphase || _phaseIdx < 0)
 			_phaseIdx = 0
 		EndIf
 		_low = sslBaseExpression.GetNthValues(_expression[_expressionIdx], _editFemale, _phaseidx)
@@ -724,6 +729,9 @@ Function ExpressionEditor()
 				flag = OPTION_FLAG_DISABLED
 			EndIf
 			values = _high
+			If (!values.Length)
+				values = new float[32]
+			EndIf
 		EndIf
 		AddHeaderOption("$SSL_EditExpressions_" + i)
 		AddMenuOptionST("expredit_" + 30 + "_" + i, "$SSL_MoodType", _moods[values[30] as int], flag)
@@ -736,7 +744,7 @@ Function ExpressionEditor()
 		int MODIFIER_COUNT = 14
 		int n = 0
 		While (n < MODIFIER_COUNT)
-			AddSliderOptionST("expredit_" + n + "_" + i, "$SSL_Modifier_" + n, values[n], "{2}", flag)
+			AddSliderOptionST("expredit_" + (16 + n) + "_" + i, "$SSL_Modifier_" + n, values[16 + n], "{2}", flag)
 			n += 1
 		EndWhile
 		If (i == 0)
@@ -747,7 +755,7 @@ Function ExpressionEditor()
 		int PHONEME_COUNT = 16
 		int k = 0
 		While (k < PHONEME_COUNT)
-			AddSliderOptionST("expredit_" + (n + k) + "_" + i, "$SSL_Phoneme_" + k, values[n + k], "{2}", flag)
+			AddSliderOptionST("expredit_" + k + "_" + i, "$SSL_Phoneme_" + k, values[k], "{2}", flag)
 			k += 1
 		EndWhile
 		If (v == 0)
@@ -915,12 +923,19 @@ Function InstallMenu()
 
 	SetCursorPosition(1)
 	AddHeaderOption("$SSL_Installation")
+	If (!Config.CheckSystem())
+		return
+	EndIf
 	AddTextOption("$SSL_CurrentlyInstalling", "!")
 
-	While (!SystemAlias.IsInstalled)
+	int attempts = 0
+	While (!SystemAlias.IsInstalled && attempts < 120)
 		Utility.WaitMenuMode(0.5)
+		attempts += 1
 	EndWhile
-	ForcePageReset()
+	If (SystemAlias.IsInstalled)
+		ForcePageReset()
+	EndIf
 EndFunction
 
 Function SystemCheckOptions()
@@ -1006,14 +1021,14 @@ EndFunction
 
 Function AddStateOptionKey(String asOption, String asOptionText, bool abMandatory = false, bool abSkipConflictResolution = false, bool needsRegister = false, bool abDisable = false)
     String asState = asOption
+    If (needsRegister)
+        asState = "R_" + asState
+    EndIf
     If (abSkipConflictResolution)
         asState = "S_" + asState
     EndIf
     If (abMandatory)
         asState = "M_" + asState
-    EndIf
-    If (needsRegister)
-        asState = "R_" + asState
     EndIf
 	AddKeyMapOptionST(asState, asOptionText, sslSystemConfig.GetSettingInt(asOption), DoDisable(abDisable))
 EndFunction

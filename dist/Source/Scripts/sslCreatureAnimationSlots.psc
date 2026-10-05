@@ -46,7 +46,7 @@ bool function HasRaceID(string RaceKey, string RaceID) global
   return SexLabRegistry.MapRaceKeyToID(RaceKey) > 0
 EndFunction
 bool function HasRaceKey(string RaceKey) global
-  return GetAllRaceKeys().Find(RaceKey) > 0
+  return GetAllRaceKeys().Find(RaceKey) >= 0
 EndFunction
 bool function ClearRaceKey(string RaceKey) global
   return true
@@ -132,7 +132,7 @@ sslBaseAnimation[] Function FilterCreatureGenders(sslBaseAnimation[] Anims, int 
       n += 1
     EndWhile
     If (count[0] <= MaleCreatures && count[0] + count[2] >= MaleCreatures)
-      count[2] = count[2] - MaleCreatures - count[0];
+      count[2] = count[2] - (MaleCreatures - count[0])
       If (count[1] + count[2] == FemaleCreatures)
         pickup[i] = i
       EndIf
@@ -153,6 +153,9 @@ bool function RaceHasAnimation(Race RaceRef, int ActorCount = -1, int Gender = -
   return RaceKeyHasAnimation(SexLabRegistry.GetRaceKeyByRace(RaceRef), ActorCount, Gender)
 endFunction
 bool Function RaceKeyHasAnimation(string RaceKey, int ActorCount = -1, int Gender = -1)
+  If (Gender < -1 || Gender > 3)
+    return false
+  EndIf
   sslBaseAnimation[] anims = GetByRaceKey(ActorCount, RaceKey)
   If (!anims.Length)
     return false
@@ -161,7 +164,7 @@ bool Function RaceKeyHasAnimation(string RaceKey, int ActorCount = -1, int Gende
   EndIf
   int i = 0
   While (i < anims.Length)
-    If (anims[i].Genders[Gender] > 0)
+    If (anims[i] && anims[i].Genders[Gender] > 0)
       return true
     EndIf
     i += 1

@@ -1,0 +1,1 @@
+PASS: editor validates bad edits before publishing and preserves valid edits

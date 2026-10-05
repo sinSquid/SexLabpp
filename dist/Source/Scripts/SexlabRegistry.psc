@@ -14,7 +14,9 @@ ScriptName SexlabRegistry Hidden
 ; Obtain an integer 0-52 representing this actors race
 ; The non array version returns the most strict id available. That is, the ID will avoid to represent
 ; some ambiguous race (such as Canine) and instead return the more precise one instead (here: wolf or dog)
-; -1 - Invalid query | 0 - Human | 1+ - Creature
+; Legacy scalar API: 0 - Human OR invalid query (invalid queries also trace an error).
+; Array APIs: [0] - Human | empty - invalid query | 1+ - Creature and optional meta race.
+; Use array APIs when valid Human must be distinguished from an error.
 int Function GetRaceID(Actor akActor) native global
 int Function MapRaceKeyToID(String asRaceKey) native global
 int[] Function GetRaceIDA(Actor akActor) native global
@@ -173,13 +175,13 @@ bool Function GetIsFutaPositon(String asID, int n) global
   return Math.LogicalAnd(GetPositionSex(asID, n), 0x4)
 EndFunction
 bool Function GetIsCreaturePositon(String asID, int n) global
-  return Math.LogicalAnd(GetPositionSex(asID, n), 0x24)
+  return Math.LogicalAnd(GetPositionSex(asID, n), 0x18)
 EndFunction
 bool Function GetIsMaleCreaturePositon(String asID, int n) global
   return Math.LogicalAnd(GetPositionSex(asID, n), 0x8)
 EndFunction
 bool Function GetIsFemaleCreaturePositon(String asID, int n) global
-  return Math.LogicalAnd(GetPositionSex(asID, n), 0x16)
+  return Math.LogicalAnd(GetPositionSex(asID, n), 0x10)
 EndFunction
 ; Get the racekey ID of this scenes n'th position
 ; The racekey ID for humans is 0, and some positive value for creature

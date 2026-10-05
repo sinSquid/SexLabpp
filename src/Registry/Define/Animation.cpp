@@ -163,10 +163,15 @@ namespace Registry
                 throw std::runtime_error("Duplicate animation graph vertex");
         }
         // --- Misc
-        Decode::Read(a_stream, *reinterpret_cast<uint32_t*>(&furnitureTypes));
-        a_stream.read(reinterpret_cast<char*>(&allowBed), 1);
+        uint32_t furniture;
+        Decode::Read(a_stream, furniture);
+        // All is a published sentinel; bits 27..31 otherwise have no meaning.
+        if (furniture != uint32_t(FurnitureType::All) && (furniture & ~((uint32_t(FurnitureType::Pillory) << 1) - 1)))
+            throw std::runtime_error("Invalid SLR furniture mask");
+        furnitureTypes = REX::EnumSet<FurnitureType::Value>{ FurnitureType::Value(furniture) };
+        Decode::Read(a_stream, allowBed);
         furnitureOffset = Coordinate(a_stream);
-        a_stream.read(reinterpret_cast<char*>(&isPrivate), 1);
+        Decode::Read(a_stream, isPrivate);
         if (!a_stream)
             throw std::runtime_error("Truncated animation scene");
     }
@@ -183,10 +188,17 @@ namespace Registry
         RaceKey race;
         REX::EnumSet<Sex> sex;
         REX::EnumSet<Extra> extra;
-        a_stream.read(reinterpret_cast<char*>(&race), 1);
-        a_stream.read(reinterpret_cast<char*>(&sex), 1);
+        const auto raceByte = Decode::Read<uint8_t>(a_stream);
+        const auto sexByte = Decode::Read<uint8_t>(a_stream);
         Decode::Read(a_stream, scale);
-        a_stream.read(reinterpret_cast<char*>(&extra), 1);
+        const auto extraByte = Decode::Read<uint8_t>(a_stream);
+        race = RaceKey{ RaceKey::Value(raceByte) };
+        if (!race.IsValid() || sexByte == 0 || (sexByte & ~uint8_t(7)) ||
+            (!race.Is(RaceKey::Human) && (sexByte & uint8_t(Sex::Futa))) ||
+            (extraByte & ~uint8_t(7)) || scale <= 0.0f)
+            throw std::runtime_error("Invalid SLR position race, sex, extra flags or scale");
+        sex = REX::EnumSet<Sex>{ Sex(sexByte) };
+        extra = REX::EnumSet<Extra>{ Extra(extraByte) };
 
         data = ActorFragment(sex, race, scale, extra.all(Extra::Vampire), extra.all(Extra::Submissive), extra.all(Extra::Unconscious));
 
@@ -220,6 +232,8 @@ namespace Registry
             positions.emplace_back(a_stream, a_version);
         }
         Decode::Read(a_stream, fixedlength);
+        if (fixedlength < 0.0f)
+            throw std::runtime_error("Invalid negative SLR stage duration");
         Decode::Read(a_stream, navtext);
         tags = TagData{ a_stream };
     }
@@ -323,8 +337,14 @@ namespace Registry
 
     bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
     {
-        auto fragment = ActorFragment(a_actor, false);
-        return CanFillPosition(fragment);
+        if (!a_actor)
+            return false;
+        try {
+            return CanFillPosition(ActorFragment(a_actor, false));
+        } catch (const std::runtime_error& error) {
+            logger::warn("Invalid position candidate: {}", error.what());
+            return false;
+        }
     }
 
     bool PositionInfo::CanFillPosition(const ActorFragment& a_fragment) const
@@ -489,6 +509,9 @@ namespace Registry
 
     bool Scene::Legacy_IsCompatibleSexCountCrt(int32_t a_males, int32_t a_females) const
     {
+        if (a_males < 0 || a_females < 0 || a_males > ActorFragment::MAX_ACTOR_COUNT ||
+            a_females > ActorFragment::MAX_ACTOR_COUNT - a_males)
+            return false;
         enum
         {
             Male = 0,
@@ -570,14 +593,14 @@ namespace Registry
         struct ScoredAssignment
         {
             Assignment assignment{};
-            int32_t score{ 0 };
+            int64_t score{ 0 };
 
             bool operator<(const ScoredAssignment& other) const { return score > other.score; }
         };
         std::vector<ScoredAssignment> assignments{};
         std::vector<bool> used(N, false);
         Assignment current;
-        const std::function<void(size_t, int32_t)> helper = [&](size_t fragmentIdx, int32_t accScore) {
+        const std::function<void(size_t, int64_t)> helper = [&](size_t fragmentIdx, int64_t accScore) {
             if (fragmentIdx == N) {
                 assignments.emplace_back(current, accScore);
                 return;

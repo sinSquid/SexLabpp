@@ -144,6 +144,10 @@ namespace Registry
                 }
                 Coordinate coords{ vec };
                 coords.rotation = glm::radians(coords.rotation);
+                if (!coords.IsFinite()) {
+                    logger::error("Non-finite furniture offset {}", node.Mark());
+                    return;
+                }
                 data.emplace_back(furniture, coords);
             };
             if (offsetnode[0].IsSequence()) {

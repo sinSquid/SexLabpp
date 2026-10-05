@@ -79,7 +79,7 @@ namespace Thread::Interface
             if (b.formId != actorID)
                 continue;
             // Enjoyment stays between -100 and 100. This also keeps stale script values from showing as overflow.
-            b.enjoyment = std::clamp(a_enjoyment, -100.0f, 100.0f);
+            b.enjoyment = std::isfinite(a_enjoyment) ? std::clamp(a_enjoyment, -100.0f, 100.0f) : 0.0f;
             std::snprintf(b.interactions, sizeof(b.interactions), "%s", intrBuf);
             if (b.isGameDpt && a_enjoyment < kGameEnjThresh)
                 b.isGameDpt = false;
@@ -168,7 +168,7 @@ namespace Thread::Interface
 
         Layout layout;
         auto& L = layout;
-        L.zoneW = std::clamp(a_scale.Px(260.0f), dw * 0.15f, a_scale.Px(360.0f));
+        L.zoneW = std::min(std::max(a_scale.Px(260.0f), dw * 0.15f), a_scale.Px(360.0f));
         L.barGap = a_scale.Px(4.5f);
         L.innerGp = a_scale.Px(2.0f);
         L.frameH = a_scale.Px(UI::Theme::FontSize.body);

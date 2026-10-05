@@ -1,0 +1,1 @@
+PASS: actual setters reject non-finite values; actual YAML loader preserves the prior offset on conversion/non-finite failure

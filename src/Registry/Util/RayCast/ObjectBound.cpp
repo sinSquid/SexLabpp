@@ -1,4 +1,6 @@
 #include "ObjectBound.h"
+
+#include <cmath>
 #include "Math.h"
 #include "bhkRigidBodyT.h"
 
@@ -132,7 +134,7 @@ std::optional<ObjectBound> ObjectBound::MakeBoundingBox(RE::NiNode* a_niobj)
     bound.worldBoundMin = glmBodyPosition + boundMinRotated_origin;
     bound.worldBoundMax = glmBodyPosition + boundMaxRotated_origin;
 
-    return bound;
+    return bound.IsValid() ? std::optional{ bound } : std::nullopt;
 }
 
 glm::vec3 ObjectBound::GetCenterWorld() const
@@ -163,7 +165,11 @@ bool ObjectBound::IsPointInside(const RE::NiPoint3& a_point) const
 
 bool ObjectBound::IsValid() const
 {
-    return (boundMin.x < boundMax.x &&
+    const auto finite = [](const glm::vec3& point) {
+        return std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z);
+    };
+    return finite(boundMin) && finite(boundMax) && finite(worldBoundMin) && finite(worldBoundMax) && finite(rotation) &&
+           (boundMin.x < boundMax.x &&
             boundMin.y < boundMax.y &&
             boundMin.z < boundMax.z);
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <bitset>
+
 #include "NiMath.h"
 #include "Node.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
@@ -66,7 +68,7 @@ namespace Thread::NiNode
         ~NiMotion() = default;
 
         void Push(const Node::NodeData& nodes, float timeStamp);
-        bool HasMomentData(Anchor c) const { return _size > 0 && GetLatestMoment(c) != RE::NiPoint3::Zero(); }
+        bool HasMomentData(Anchor c) const { return _size > 0 && _present[AbsoluteToRelativeIndex(_size - 1)].test(static_cast<size_t>(c)); }
         bool HasSufficientData() const { return _size >= _minMoments; }
 
         size_t Size() const { return _size; }
@@ -88,7 +90,7 @@ namespace Thread::NiNode
         const ObjectBound& GetFirstHeadBound() const { return GetNthHeadBound(0); }
         float GetFirstTimestamp() const { return GetNthTimestamp(0); }
 
-        /// @brief Iterate through all stored moments for the given anchor, in chronological order
+        /// @brief Iterate through the latest uninterrupted valid samples for the anchor, in chronological order
         /// @param c Anchor to iterate
         /// @param func Function (anchorPoint, timestamp) to call for each moment. If it returns true, iteration stops.
         void ForEachMoment(Anchor c, const std::function<bool(const RE::NiPoint3&, float)>& func) const;
@@ -105,6 +107,7 @@ namespace Thread::NiNode
         MotionDescriptor ComputeDescriptor(Anchor c) const;
         mutable std::array<std::optional<MotionDescriptor>, NUM_ANCHORS> descriptorCache{};
         size_t AbsoluteToRelativeIndex(size_t n) const;
+        size_t ValidStart(Anchor c) const;
 
       private:
         const size_t _capacity;
@@ -115,6 +118,7 @@ namespace Thread::NiNode
         std::array<std::vector<RE::NiPoint3>, NUM_ANCHORS> _moments;
         std::vector<ObjectBound> _headBounds;
         std::vector<float> _timestamps;
+        std::vector<std::bitset<NUM_ANCHORS>> _present;
     };
 
 }  // namespace Thread::NiNode

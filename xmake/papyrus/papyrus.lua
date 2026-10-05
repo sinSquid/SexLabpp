@@ -129,7 +129,16 @@ function on_build_file(target, sourcefile, opt)
 
     table.insert(target:objectfiles(), objectfile)
 
+    local depfiles = {sourcefile, compiler.program}
+    for _, dir in ipairs(target:get("includedirs") or {}) do
+        table.join2(depfiles, os.files(path.join(dir, "*.psc")))
+        table.join2(depfiles, os.files(path.join(dir, "*.flg")))
+    end
+    depfiles = table.unique(depfiles)
+    table.sort(depfiles)
+
     depend.on_changed(function()
+        os.mkdir(outdir)
         local args = {
             sourcefile,
             "-f=" .. papyrus.flags,
@@ -151,11 +160,15 @@ function on_build_file(target, sourcefile, opt)
         end
     end, {
         dependfile = target:dependfile(objectfile),
-        files = sourcefile,
+        files = depfiles,
         values = {
-            papyrus.optimize and "optimize" or nil,
-            papyrus.anonymize and "anonymize" or nil
+            papyrus.optimize and "optimize" or "no-optimize",
+            papyrus.anonymize and "anonymize" or "no-anonymize",
+            papyrus.flags,
+            compiler.program,
+            table.concat(target:get("includedirs") or {}, ";"),
+            table.concat(depfiles, ";")
         },
-        changed = target:is_rebuilt(),
+        changed = target:is_rebuilt() or not os.isfile(objectfile),
     })
 end

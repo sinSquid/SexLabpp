@@ -47,9 +47,7 @@ string[] Property Registry Hidden
 		int ii = 0
 		While (i < aliases.Length)
 			sslBaseVoice it = aliases[i] as sslBaseVoice
-			If (!it)
-				i = aliases.Length
-			ElseIf (it.Registered)
+			If (it && it.Registered)
 				ret[ii] = it.Name
 				ii += 1
 			EndIf
@@ -74,12 +72,16 @@ Function SyncBackend()
 	String[] arr = GetAllVoices("")
 	int i = 0
 	int ii = 0
-	While (i < aliases.Length && ii < arr.Length)
+	While (i < aliases.Length)
 		sslBaseVoice v = aliases[i] as sslBaseVoice
 		If (v)
 			v.Registry = v.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
-			v.Registry = arr[ii]
-			ii += 1
+			If (ii < arr.Length)
+				v.Registry = arr[ii]
+				ii += 1
+			Else
+				v.Registry = ""
+			EndIf
 		EndIf
 		i += 1
 	EndWhile
@@ -137,13 +139,14 @@ sslBaseVoice[] function FilterTaggedVoices(sslBaseVoice[] VoiceList, string[] Ta
 endFunction
 
 sslBaseVoice[] function GetAllGender(int Gender)
-	bool[] Valid = Utility.CreateBoolArray(Slotted)
-	int i = Slotted
-	while i
-		i -= 1
-		sslBaseVoice Slot = GetBySlot(i)
-		Valid[i] = Slot.Registered && Slot.Enabled && !Slot.Creature && (Gender == Slot.Gender || Slot.Gender == -1)
-	endwhile
+	sslBaseVoice[] all = GetSlots(1, 128)
+	bool[] Valid = Utility.CreateBoolArray(all.Length)
+	int i = 0
+	While (i < all.Length)
+		sslBaseVoice Slot = all[i]
+		Valid[i] = Slot.Enabled && !Slot.Creature && (Gender == Slot.Gender || Slot.Gender == -1)
+		i += 1
+	EndWhile
 	return GetList(Valid)
 endFunction
 
@@ -250,7 +253,7 @@ sslBaseVoice function PickByRaceKey(string RaceKey)
 endFunction
 
 int function FindSaved(Actor ActorRef)
-	return FindByRegistrar(GetSaved(ActorRef))
+	return FindByRegistrar(GetSavedVoice(ActorRef))
 endFunction
 
 sslBaseVoice function GetSaved(Actor ActorRef)
@@ -289,39 +292,37 @@ endFunction
 ; ------------------------------------------------------- ;
 
 sslBaseVoice[] function GetList(bool[] Valid)
-	sslBaseVoice[] Output
-	if Valid.Length > 0 && Valid.Find(true) != -1
-		int n = Valid.Find(true)
-		int i = PapyrusUtil.CountBool(Valid, true)
-		; Trim over 100 to random selection
-		if i > 100
-			int end = Valid.RFind(true) - 1
-			while i > 100
-				int rand = Valid.Find(true, Utility.RandomInt(n, end))
-				if rand != -1 && Valid[rand]
-					Valid[rand] = false
-					i -= 1
-				endIf
-				if i == 101 ; To be sure only 100 stay
-					i = PapyrusUtil.CountBool(Valid, true)
-					n = Valid.Find(true)
-					end = Valid.RFind(true) - 1
-				endIf
-			endWhile
-		endIf
-		; Get list
-		Output = sslUtility.VoiceArray(i)
-		while n != -1 && i > 0
-			i -= 1
-			Output[i] = GetNthAlias(n) as sslBaseVoice
+	sslBaseVoice[] Output = sslUtility.VoiceArray(PapyrusUtil.ClampInt(PapyrusUtil.CountBool(Valid, true), 0, 128))
+	Alias[] aliases = GetAliases()
+	int i = 0
+	int input = 0
+	int outputIdx = 0
+	While (i < aliases.Length && input < Valid.Length && outputIdx < Output.Length)
+		sslBaseVoice it = aliases[i] as sslBaseVoice
+		If (it && it.Registered)
+			If (Valid[input])
+				Output[outputIdx] = it
+				outputIdx += 1
+			EndIf
+			input += 1
+		EndIf
+		i += 1
+	EndWhile
+	If (outputIdx < Output.Length || outputIdx > 100)
+		sslBaseVoice[] trimmed = sslUtility.VoiceArray(PapyrusUtil.ClampInt(outputIdx, 0, 100))
+		int n = 0
+		While (n < trimmed.Length)
+			If (outputIdx > 100)
+				int random = Utility.RandomInt(n, outputIdx - 1)
+				sslBaseVoice swap = Output[n]
+				Output[n] = Output[random]
+				Output[random] = swap
+			EndIf
+			trimmed[n] = Output[n]
 			n += 1
-			if n < Slotted
-				n = Valid.Find(true, n)
-			else
-				n = -1
-			endIf
-		endWhile
-	endIf
+		EndWhile
+		return trimmed
+	EndIf
 	return Output
 endFunction
 
@@ -356,9 +357,18 @@ bool function IsRegistered(string Registrar)
 endFunction
 
 int function FindByRegistrar(string Registrar)
-	if Registrar != ""
-		return Registry.Find(Registrar)
-	endIf
+	If (Registrar == "")
+		return -1
+	EndIf
+	Alias[] aliases = GetAliases()
+	int i = 0
+	While (i < aliases.Length)
+		sslBaseVoice it = aliases[i] as sslBaseVoice
+		If (it && it.Registry == Registrar)
+			return i
+		EndIf
+		i += 1
+	EndWhile
 	return -1
 endFunction
 
@@ -379,10 +389,12 @@ endFunction
 ; ------------------------------------------------------- ;
 
 int function PageCount(int perpage = 125)
-	return ((Slotted as float / perpage as float) as int) + 1
+	perpage = PapyrusUtil.ClampInt(perpage, 1, 128)
+	return Math.Ceiling(Slotted as float / perpage as float)
 endFunction
 
 int function FindPage(string Registrar, int perpage = 125)
+	perpage = PapyrusUtil.ClampInt(perpage, 1, 128)
 	int i = Registry.Find(Registrar)
 	if i != -1
 		return (i / perpage) + 1
@@ -395,56 +407,68 @@ string[] function GetSlotNames(int page = 1, int perpage = 125)
 endfunction
 
 sslBaseVoice[] function GetSlots(int page = 1, int perpage = 125)
+	SyncBackend()
 	perpage = PapyrusUtil.ClampInt(perpage, 1, 128)
 	if page > PageCount(perpage) || page < 1
 		return sslUtility.VoiceArray(0)
 	endIf
-	int n
 	sslBaseVoice[] PageSlots
+	int skippages = (page - 1) * perpage
 	if page == PageCount(perpage)
-		n = Slotted
-		PageSlots = sslUtility.VoiceArray((Slotted - ((page - 1) * perpage)))
+		PageSlots = sslUtility.VoiceArray(Slotted - skippages)
 	else
-		n = page * perpage
 		PageSlots = sslUtility.VoiceArray(perpage)
 	endIf
-	int i = PageSlots.Length
-	while i
-		i -= 1
-		n -= 1
-		PageSlots[i] = GetNthAlias(n) as sslBaseVoice
-	endWhile
+	Alias[] aliases = GetAliases()
+	int i = 0
+	int ii = 0
+	While (i < aliases.Length && ii < PageSlots.Length)
+		sslBaseVoice it = aliases[i] as sslBaseVoice
+		If (it && it.Registered)
+			If (skippages == 0)
+				PageSlots[ii] = it
+				ii += 1
+			Else
+				skippages -= 1
+			EndIf
+		EndIf
+		i += 1
+	EndWhile
 	return PageSlots
 endFunction
 
 string[] function GetNormalSlotNames(bool WithRandom = false)
-	string[] Output = Utility.CreateStringArray(GetCount(1) + (WithRandom as int))
-	int n = Output.Length
-	int i = Slotted
-	while i
-		i -= 1
-		sslBaseVoice Voice = GetBySlot(i)
-		if Voice && !Voice.Creature
-			n -= 1
-			Output[n] = Voice.Name
-		endIf
-	endWhile
-	if WithRandom
+	sslBaseVoice[] all = GetSlots(1, 128)
+	string[] Output = Utility.CreateStringArray(PapyrusUtil.ClampInt(GetCount(1) + (WithRandom as int), 0, 128))
+	int n = 0
+	If (WithRandom)
 		Output[0] = "$SSL_Random"
-	endIf
+		n = 1
+	EndIf
+	int i = 0
+	While (i < all.Length && n < Output.Length)
+		If (!all[i].Creature)
+			Output[n] = all[i].Name
+			n += 1
+		EndIf
+		i += 1
+	EndWhile
 	return Output
 endFunction
 
-int function GetCount(int flag = 0) ; 0 = all, 1 = normal, -1 = creatures
+int function GetCount(int flag = 0)
 	if flag == 0
 		return Slotted
 	endIf
-	int count
-	int i = Slotted
-	while i
-		i -= 1
-		count += (GetBySlot(i).Creature == (flag == -1)) as int
-	endWhile
+	sslBaseVoice[] all = GetSlots(1, 128)
+	int count = 0
+	int i = 0
+	While (i < all.Length)
+		If (all[i].Creature == (flag == -1))
+			count += 1
+		EndIf
+		i += 1
+	EndWhile
 	return count
 endFunction
 
@@ -453,27 +477,39 @@ endFunction
 ; ------------------------------------------------------- ;
 
 int Function FindEmpty()
-	int n = Slotted
-	If (GetNthAlias(n + 1))
-		return n + 1
-	EndIf
+	Alias[] aliases = GetAliases()
+	int i = 0
+	While (i < aliases.Length)
+		sslBaseVoice it = aliases[i] as sslBaseVoice
+		If (it && !it.Registered)
+			return i
+		EndIf
+		i += 1
+	EndWhile
 	return -1
 EndFunction
 
 bool RegisterLock = false
 int function Register(string Registrar)
-	if Registrar == "" || Registry.Find(Registrar) != -1
+	if Registrar == ""
 		return -1
 	endIf
 	while RegisterLock
 		Utility.WaitMenuMode(0.5)
 	endWhile
 	RegisterLock = true
-	int ret = FindEmpty()
-	If (ret > -1 && !sslBaseVoice.InitializeVoiceObject(Registrar))
+	SyncBackend()
+	If (FindByRegistrar(Registrar) != -1 || FindEmpty() == -1)
 		RegisterLock = false
 		return -1
 	EndIf
+	If (!sslBaseVoice.InitializeVoiceObject(Registrar))
+		RegisterLock = false
+		return -1
+	EndIf
+	; Native IDs can reorder the aliases, so return the actual bound slot.
+	SyncBackend()
+	int ret = FindByRegistrar(Registrar)
 	RegisterLock = false
 	return ret
 endFunction

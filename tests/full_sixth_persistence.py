@@ -69,7 +69,8 @@ namespace Registry {
             std::vector<RE::Actor*> tracked;
             struct Encounter { unsigned id{}; Sex sex{}; RaceKey race; };
             static StatisticsData* GetSingleton() { static StatisticsData instance; return &instance; }
-            ActorStats GetStatisticsSnapshot(RE::Actor*) const { return stats; }
+            mutable int snapshots=0;
+            ActorStats GetStatisticsSnapshot(RE::Actor*) const { ++snapshots;return stats; }
             ActorStats* GetStatistics(RE::Actor*) { return &stats; }
             std::vector<RE::Actor*> GetTrackedActors() const { return tracked; }
             template<class T> int GetNumberEncounters(RE::Actor*, T predicate) { Encounter value; return predicate(value); }
@@ -79,7 +80,9 @@ namespace Registry {
 namespace Papyrus::ActorStats {
 inline constexpr auto Purity="Purity", Lewdness="Lewdness", Foreplay="Foreplay";
 ''' + legacy_enum + ';\n'
-for signature in ('float GetLegacyStatistic(', 'void SetLegacyStatistic(',
+if 'float GetLegacyStatisticFromSnapshot(' in production:
+    code += function(production, 'float GetLegacyStatisticFromSnapshot(') + '\n'
+for signature in ('std::vector<float> GetAllLegycSkills(', 'float GetLegacyStatistic(', 'void SetLegacyStatistic(',
                   'std::vector<RE::Actor*> GetAllTrackedUniqueActorsSorted('):
     code += function(production, signature) + '\n'
 code += '}\n'
@@ -91,6 +94,12 @@ int main() {
     auto* data=Registry::Statistics::StatisticsData::GetSingleton();
     auto* actor=RE::PlayerCharacter::GetSingleton();
     VM vm;
+    auto all=GetAllLegycSkills(&vm,0,nullptr,actor);
+    assert(data->snapshots==1 && all.size()==static_cast<size_t>(LegacyStatistics::Total));
+    for(size_t i=0;i<all.size();++i) assert(all[i]==GetLegacyStatistic(&vm,0,nullptr,actor,static_cast<int>(i)));
+    const auto snapshots=data->snapshots;
+    all=GetAllLegycSkills(&vm,0,nullptr,nullptr);assert(data->snapshots==snapshots);
+    assert(std::all_of(all.begin(),all.end(),[](float value){return value==0;}));
     const auto get=[&] { return GetLegacyStatistic(&vm,0,nullptr,actor,int(LegacyStatistics::Sexuality)); };
     const auto set=[&](float value) { SetLegacyStatistic(&vm,0,nullptr,actor,int(LegacyStatistics::Sexuality),value); };
     data->stats.SetStatistic(Stats::Sexuality,30);

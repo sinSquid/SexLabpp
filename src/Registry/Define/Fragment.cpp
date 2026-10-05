@@ -1,5 +1,7 @@
 #include "Fragment.h"
 
+#include <limits>
+
 #include "Registry/Define/Sex.h"
 #include "Registry/Util/Scale.h"
 
@@ -91,19 +93,22 @@ namespace Registry
         ret.set(Sex::s);
         SET_SEX(Male);
         SET_SEX(Female);
-        SET_SEX(Futa);
+        // This bit encodes part of the race key for creatures.
+        if (IsHuman()) {
+            SET_SEX(Futa);
+        }
 #undef SET_SEX
         return ret;
     }
 
     int32_t ActorFragment::GetCompatibilityScore(const ActorFragment& a_fragment) const
     {
-        int32_t score = 0;
+        int64_t score = 0;
         const auto raceKey = GetRace();
         const auto raceKeyIn = a_fragment.GetRace();
         switch (raceKey) {
         case RaceKey::Canine:
-            if (!raceKeyIn.IsAnyOf(raceKey.value, RaceKey::Dog, RaceKey::Wolf, RaceKey::Fox))
+            if (!raceKeyIn.IsAnyOf(raceKey.value, RaceKey::Dog, RaceKey::Wolf))
                 return 0;
             break;
         case RaceKey::BoarAny:
@@ -131,7 +136,8 @@ namespace Registry
         score += IsUnconscious() == a_fragment.IsUnconscious() ? Settings::iWeightUnconscious : 0;
         score += IsSubmissive() == a_fragment.IsSubmissive() ? Settings::iWeightSubmissive : 0;
         score += std::abs(scale - a_fragment.scale) <= Settings::fScaleTolerance ? Settings::iWeightScale : 0;
-        return score < Settings::iScoreAcceptThreshold ? 0 : score;
+        return score < Settings::iScoreAcceptThreshold ? 0 : static_cast<int32_t>(std::clamp(
+            score, int64_t(std::numeric_limits<int32_t>::min()), int64_t(std::numeric_limits<int32_t>::max())));
     }
 
     std::vector<ActorFragment> ActorFragment::Split() const
@@ -219,10 +225,21 @@ namespace Registry
 
     std::vector<ActorFragment> ActorFragment::MakeFragmentList(std::vector<RE::Actor*> a_actors, std::vector<RE::Actor*> a_submissives)
     {
+        if (a_actors.empty() || a_actors.size() > MAX_ACTOR_COUNT)
+            return {};
+        for (size_t i = 0; i < a_actors.size(); ++i) {
+            if (!a_actors[i] || std::find(a_actors.begin(), a_actors.begin() + i, a_actors[i]) != a_actors.begin() + i)
+                return {};
+        }
         std::vector<ActorFragment> fragments;
         fragments.reserve(a_actors.size());
-        for (auto&& actor : a_actors) {
-            fragments.emplace_back(actor, std::ranges::contains(a_submissives, actor));
+        try {
+            for (auto&& actor : a_actors) {
+                fragments.emplace_back(actor, std::ranges::contains(a_submissives, actor));
+            }
+        } catch (const std::runtime_error& error) {
+            logger::warn("Invalid actor query: {}", error.what());
+            return {};
         }
         return fragments;
     }

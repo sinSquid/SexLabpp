@@ -170,7 +170,13 @@ namespace Thread::NiNode
         for (auto&& cluster : a_state.interactionClusters) {
             if (cluster.IsBinary()) {
                 auto& it = cluster.interactions.front();
-                const auto sig = NiMath::Sigmoid(it.descriptor->Predict());
+                const auto prediction = it.descriptor ? it.descriptor->Predict() : std::numeric_limits<float>::quiet_NaN();
+                if (!std::isfinite(prediction)) {
+                    it.active = false;
+                    it.timeActive = 0.0f;
+                    continue;
+                }
+                const auto sig = NiMath::Sigmoid(prediction);
                 if (sig > Settings::fEnterThreshold) {
                     it.active = true;
                     it.timeActive += delta;

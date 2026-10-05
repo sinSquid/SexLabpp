@@ -92,6 +92,7 @@ namespace Papyrus::ThreadModel
 
     // SCENE HUD
     void InitSceneHUDImpl(QUESTARGS);
+    bool IsSceneHUDActiveImpl(QUESTARGS);
     void DestroySceneHUDImpl(QUESTARGS);
     void SetFocusSceneHUDImpl(QUESTARGS, bool a_focused);
 
@@ -151,6 +152,7 @@ namespace Papyrus::ThreadModel
         REGISTERFUNC(UpdateStatistics, "sslThreadModel", true);
 
         REGISTERFUNC(InitSceneHUDImpl, "sslThreadModel", false);
+        REGISTERFUNC(IsSceneHUDActiveImpl, "sslThreadModel", false);
         REGISTERFUNC(DestroySceneHUDImpl, "sslThreadModel", false);
         REGISTERFUNC(SetFocusSceneHUDImpl, "sslThreadModel", false);
 

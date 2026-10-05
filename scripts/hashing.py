@@ -41,11 +41,12 @@ def print_flags_from_binary(value):
     print(f"Creature: {crt_key} ({crt_key:b})")
 
 def read_hash_file(hash_key):
-  if len(hash_key) == 55:
-    part_length = len(hash_key) // 5
-    parts = [hash_key[i*part_length:(i+1)*part_length] for i in range(5)]
-  else:
-    parts = [hash_key]
+  # Decimal conversion and manually entered binary values may omit leading zeros.
+  # Restore the fixed-width layout before decoding its five 11-bit fragments.
+  if not hash_key or len(hash_key) > 55 or any(bit not in "01" for bit in hash_key):
+    raise ValueError("Hash must contain 1 to 55 binary digits")
+  hash_key = hash_key.zfill(55)
+  parts = [hash_key[i:i+11] for i in range(0, 55, 11)]
   for part in parts:
     value = int(part, 2)
     if value == 0:
@@ -54,8 +55,13 @@ def read_hash_file(hash_key):
     print_flags_from_binary(value)
     print("")
 
-binary_arg = args.binary
-if args.decimal != 0:
-  binary_arg = bin(int(args.decimal))[2:]
-
-read_hash_file(binary_arg)
+try:
+  binary_arg = args.binary
+  if args.decimal != 0:
+    value = int(args.decimal)
+    if not 0 <= value < (1 << 55):
+      raise ValueError("Decimal hash must be in [0, 2^55)")
+    binary_arg = format(value, "b")
+  read_hash_file(binary_arg)
+except ValueError as error:
+  argparser.error(str(error))

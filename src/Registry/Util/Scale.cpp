@@ -1,5 +1,7 @@
 #include "Scale.h"
 
+#include <cmath>
+
 namespace Registry
 {
     float Scale::GetScale(RE::TESObjectREFR* a_reference)
@@ -15,12 +17,16 @@ namespace Registry
 
     void Scale::SetScale(RE::Actor* a_actor, float a_absolutescale)
     {
-        SetScale(a_actor, { a_actor }, a_absolutescale);
+        if (a_actor)
+            SetScale(a_actor, { a_actor }, a_absolutescale);
     }
 
     void Scale::SetScale(RE::Actor* a_actor, RaceKey a_racekey, float a_absolutescale)
     {
-        assert(a_actor && a_absolutescale > 0.0f);
+        if (!a_actor || !std::isfinite(a_absolutescale) || a_absolutescale <= 0.0f) {
+            logger::warn("Invalid actor or target scale; transform ignored");
+            return;
+        }
         if (Settings::bDisableScale) {
             return;
         } else if (!transformInterface) {
@@ -86,7 +92,15 @@ namespace Registry
                 basescale = GetScale(a_actor);
             }
             // base * x = absolute <=> x = absolute / base
+            if (!std::isfinite(basescale) || basescale <= 0.0f) {
+                logger::warn("Invalid base scale {}; transform ignored", basescale);
+                return;
+            }
             const float scale = a_absolutescale / basescale;
+            if (!std::isfinite(scale) || scale <= 0.0f) {
+                logger::warn("Invalid transform scale {}; transform ignored", scale);
+                return;
+            }
             logger::debug("Applying Node Transform to Actor = {:X}, Scale = {} -> {}, x = {}", a_actor->GetFormID(), basescale, a_absolutescale, scale);
             SKEE::Legacy::OverrideVariant scaleOverride;
             scaleOverride.SetFloat(SKEE::Legacy::OverrideVariant::Scale, scale);
@@ -100,7 +114,15 @@ namespace Registry
                 basescale = GetScale(a_actor);
             }
 
+            if (!std::isfinite(basescale) || basescale <= 0.0f) {
+                logger::warn("Invalid base scale {}; transform ignored", basescale);
+                return;
+            }
             const float scale = a_absolutescale / basescale;
+            if (!std::isfinite(scale) || scale <= 0.0f) {
+                logger::warn("Invalid transform scale {}; transform ignored", scale);
+                return;
+            }
             logger::debug("Applying Node Transform to Actor = {:X}, Scale = {} -> {}, x = {}", a_actor->GetFormID(), basescale, a_absolutescale, scale);
             modernInterface->AddNodeTransformScale(a_actor, false, female, basenode, namekey, scale);
             modernInterface->UpdateNodeTransforms(a_actor, false, female, basenode);

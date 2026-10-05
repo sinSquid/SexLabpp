@@ -124,6 +124,7 @@ code = r'''
 #include <map>
 #include <string>
 #include <type_traits>
+#include "UserData/SettingsValidation.h"
 #include <utility>
 #include <vector>
 namespace logger {

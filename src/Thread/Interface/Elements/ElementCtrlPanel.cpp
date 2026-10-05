@@ -288,7 +288,12 @@ namespace Thread::Interface
 
         SetWindowFontSize(fontSize);
         ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Text, UI::Theme::ToVec4(UI::Theme::Color.textSecondary));
-        DrawThemeFields(UI::Theme::data);
+        // Edits must pass the same domain checks as loaded themes before any
+        // overlay consumes them (including integer rounding in the next frame).
+        auto candidate = UI::Theme::data;
+        DrawThemeFields(candidate);
+        UI::Theme::Validate(candidate);
+        UI::Theme::data = std::move(candidate);
         ImGuiMCP::PopStyleColor();
         ImGuiMCP::SetWindowFontScale(1.0f);
         ImGuiMCP::End();

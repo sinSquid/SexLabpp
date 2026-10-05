@@ -20,6 +20,7 @@ namespace Thread::Interface
         static StageSelectMenu& GetSingleton();
 
         bool Register();
+        void Revert();
 
         bool OpenStageSelectMenu(RE::TESQuest* a_quest);                   // called by sslThreadModel.GoToStage()
         void SetVisibilitySceneGraph(RE::TESQuest* a_quest, bool a_open);  // called by hotkey iToggleSceneGraph

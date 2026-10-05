@@ -360,7 +360,7 @@ namespace Thread::LegacyNiNode
             const auto d = pLimb.GetDistance(nClitoris->world.translate);
             if (d > maxDist)
                 return false;
-            interactions.emplace_back(position.actor, type, d);
+            interactions.emplace_back(a_partner.position.actor, type, d);
             return true;
         };
         const auto lHand = position.nodes.hand_left;
@@ -375,9 +375,8 @@ namespace Thread::LegacyNiNode
 
     bool NiPosition::Snapshot::GetHeadAnimObjInteractions(const Snapshot& a_partner)
     {
-        bool bAnimObjectLoaded;
-        a_partner.position.actor->GetGraphVariableBool("bAnimObjectLoaded", bAnimObjectLoaded);
-        if (!bAnimObjectLoaded)
+        bool bAnimObjectLoaded = false;
+        if (!a_partner.position.actor->GetGraphVariableBool("bAnimObjectLoaded", bAnimObjectLoaded) || !bAnimObjectLoaded)
             return false;
         const auto pMouth = GetMouthStartPoint();
         if (!pMouth)

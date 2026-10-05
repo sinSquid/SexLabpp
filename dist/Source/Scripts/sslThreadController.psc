@@ -163,13 +163,13 @@ Function ToggleVisibilitySceneHUD(int aiForceState = 0)
 		_bOpenedSceneHUD = false
 	ElseIf (aiForceState == 1 || (aiForceState == 0 && !_bOpenedSceneHUD))
 		TryInitSceneHUD()
-		_bOpenedSceneHUD = true
+		_bOpenedSceneHUD = IsSceneHUDActiveImpl()
 	EndIf
 EndFunction
 
 Function ToggleFocusSceneHUD(int aiForceState = 0)
 	;[-1:ForceUnfocus, 0:Toggle, 1:ForceFocus]
-	If (!_bOpenedSceneHUD)
+	If (!_bOpenedSceneHUD || !IsSceneHUDActiveImpl())
 		return
 	EndIf
 	If (_bOpenedSceneGraph)
@@ -222,7 +222,6 @@ Function PickRandomScene(String asNewScene)
 		Log("PickRandomScene: No other scenes to pick from")
 		return
 	EndIf
-	UnregisterForUpdate()
 	If (asNewScene == "")
 		int i = sceneSet.Find(GetActiveScene())
 		int r = Utility.RandomInt(0, sceneSet.Length - 1)
@@ -237,11 +236,14 @@ Function PickRandomScene(String asNewScene)
 EndFunction
 
 Function MoveScene()
+	If (GetStatus() != STATUS_INSCENE)
+		return
+	EndIf
+	int request = StartupRequest
 	If (!SexLabRegistry.IsCompatibleCenter(GetActiveScene(), Game.GetPlayer()))
 		Debug.Notification("This scene does not support repositioning")
 		return
 	EndIf
-	UnregisterForUpdate()
 	bool abClosedSceneHUD = false
 	If (_bOpenedSceneHUD)
 		ToggleVisibilitySceneHUD(-1)
@@ -251,6 +253,9 @@ Function MoveScene()
 	If (StorageUtil.GetIntValue(none, "SEXLAB_REPOSITIONMSG_INFO", 0) == 0)
 		; "You have 30 secs to position yourself to a new center location.\nHold down the 'Move Scene' hotkey to relocate the center instantly to your current position"
 		int choice = RepositionInfoMsg.Show()
+		If (StartupRequest != request || GetStatus() != STATUS_INSCENE)
+			return
+		EndIf
 		If (choice == 1)
 			If (abClosedSceneHUD)
 				ToggleVisibilitySceneHUD(1)
@@ -261,6 +266,7 @@ Function MoveScene()
 			StorageUtil.SetIntValue(none, "SEXLAB_REPOSITIONMSG_INFO", 1)
 		EndIf
 	EndIf
+	UnregisterForUpdate()
 	int n = 0
 	While(n < Positions.Length)
 		ActorAlias[n].GoToState(ActorAlias[n].STATE_PAUSED)
@@ -271,21 +277,35 @@ Function MoveScene()
 	EndWhile
 	SexLabUtil.SetActorMovement(PlayerRef, 1) ;MOVEMENT_UNLOCK
 	Utility.Wait(1)
+	If (StartupRequest != request || GetStatus() != STATUS_INSCENE)
+		return
+	EndIf
 	int t = 0
 	While(t < 60 && !Input.IsKeyPressed(Config.MoveScene))
 		Utility.Wait(0.5)
+		If (StartupRequest != request || GetStatus() != STATUS_INSCENE)
+			return
+		EndIf
 		t += 1
 	EndWhile
 	SexLabUtil.SetActorMovement(PlayerRef, 2)	; MOVEMENT_LOCK... make sure player isnt moving before resync
 	float x = PlayerRef.X
 	float y = PlayerRef.Y
 	float z = PlayerRef.Z
-	Utility.Wait(0.5)							; wait for momentum to stop
-	While(x != PlayerRef.X || y != PlayerRef.Y || z != PlayerRef.Z)
+	Utility.Wait(0.5)
+	If (StartupRequest != request || GetStatus() != STATUS_INSCENE)
+		return
+	EndIf ; wait for momentum to stop
+	t = 0
+	While(t < 20 && (x != PlayerRef.X || y != PlayerRef.Y || z != PlayerRef.Z))
+		t += 1
 		x = PlayerRef.X
 		y = PlayerRef.Y
 		z = PlayerRef.Z
 		Utility.Wait(0.5)
+		If (StartupRequest != request || GetStatus() != STATUS_INSCENE)
+			return
+		EndIf
 	EndWhile
 	int j = 0
 	While(j < Positions.Length)
@@ -293,6 +313,9 @@ Function MoveScene()
 		j += 1
 	EndWhile
 	CenterOnObject(PlayerRef)
+	If (StartupRequest != request || GetStatus() != STATUS_INSCENE)
+		return
+	EndIf
 	_bFocusedSceneHUD = false ; allows hotkeys/gestures
 	If (!HasPlayer)
 		MoveActorsAwayFromPlayer(true)
@@ -403,8 +426,15 @@ EndFunction
 Function SetSceneOffset(float afOffsetValue, String asOffsetType, bool abIncrement = false)
 	String activeScene = GetActiveScene()
 	int idx = GetOffsetIdx(asOffsetType)
+	If (idx < 0)
+		return
+	EndIf
 	If (abIncrement)
-		afOffsetValue += SexLabRegistry.GetSceneOffset(activeScene)[idx]
+		float edited = SexLabRegistry.GetSceneOffset(activeScene)[idx]
+		If (idx == 3)
+			edited = Math.RadiansToDegrees(edited)
+		EndIf
+		afOffsetValue += edited
 	EndIf
 	SexLabRegistry.SetSceneOffset(activeScene, afOffsetValue, idx)
 	ResetStage()
@@ -413,6 +443,9 @@ EndFunction
 Function SetStageOffset(Actor akAffectedActor, float afOffsetValue, String asOffsetType, bool abIncrement = false)
 	int idx = GetOffsetIdx(asOffsetType)
 	int n = GetPositions().Find(akAffectedActor)
+	If (idx < 0 || n < 0)
+		return
+	EndIf
 	String activeScene = GetActiveScene()
 	String activeStage = ""
 	If (Config.AdjustStage)

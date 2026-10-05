@@ -39,6 +39,7 @@ struct Instance {
  static inline std::shared_mutex _mInstances;
  static inline std::map<RE::TESQuest*,std::shared_ptr<std::atomic_bool>> creatingInstances;
  static inline std::vector<std::shared_ptr<Instance>> instances,pendingInstances;
+ static uint64_t GetWorldGeneration(){return 0;}
  static void DestroyInstance(RE::TESQuest*,bool);
 };
 '''+function(source,'void Instance::DestroyInstance')+r'''
