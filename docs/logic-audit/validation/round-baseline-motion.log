@@ -1,0 +1,12 @@
+Assertion failed: (!motion.HasMomentData(NiMotion::pThroat)&&!motion.HasMomentData(NiMotion::pMouth)), function main, file motion_presence.cpp, line 572.
+Traceback (most recent call last):
+  File "/Users/sin/code/mine/SexLabpp/tests/motion_presence.py", line 74, in <module>
+    run('motion_presence',code)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sin/code/mine/SexLabpp/tests/source_regressions.py", line 28, in run
+    subprocess.run([str(binary)], check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/var/folders/gx/9gv4lghn4v31zxzlhfpy6c0r0000gn/T/sexlab-test-1vjil512/motion_presence']' died with <Signals.SIGABRT: 6>.

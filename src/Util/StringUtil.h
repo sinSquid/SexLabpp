@@ -1,7 +1,20 @@
 #pragma once
 
+#include <string_view>
+
 namespace Util
 {
+    constexpr bool IsSafeFileStem(std::string_view a_stem)
+    {
+        if (a_stem.empty() || a_stem == "." || a_stem == "..")
+            return false;
+        for (const unsigned char c : a_stem) {
+            if (c < 32 || std::string_view{ "<>:\"/\\|?*" }.find(c) != std::string_view::npos)
+                return false;
+        }
+        return true;
+    }
+
 #pragma warning(push)
 #pragma warning(disable : 4244)
 #define STR_TRANSFORM(f) std::transform(str.cbegin(), str.cend(), str.begin(), [](unsigned char c) { return static_cast<char>(f(c)); });

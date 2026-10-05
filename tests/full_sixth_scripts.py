@@ -48,6 +48,8 @@ def expression(text):
     text = re.sub(r'\((str_dest \* modifier)\) as Int', r'int(\1)', text, flags=re.I)
     text = re.sub(r'\b([A-Za-z_]\w*\[[^][\n]+\])\s+as\s+(int|float)\b',
                   lambda m: f'{m[2].lower()}({m[1]})', text, flags=re.I)
+    text = re.sub(r'\(([^(),\n]+)\)\s+as\s+(int|float)\b',
+                  lambda m: f'{m[2].lower()}({m[1]})', text, flags=re.I)
     text = re.sub(r'\(\((.*?)\) as int\)', r'int(\1)', text, flags=re.I)
     text = re.sub(r'\((.*?)\) as int', r'int(\1)', text, flags=re.I)
     text = re.sub(r'\bnew\s+(\w+)\[(\d+)\]',

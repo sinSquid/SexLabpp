@@ -164,3 +164,8 @@
 ## 定点闭环补充（2026-10-05）
 
 NEW-30 Foot IK原值/共享owner与cache/graph锁序；NEW-31 Revert清native/准备/UI状态与跨存档排队世代过滤，game-thread中心初始化避免自阻塞；NEW-32 controller四控制位原值及共享/替换owner恢复。实际函数替身及targeted sanitizer通过，具体证据与外部契约见[closure-report.md](closure-report.md)。
+
+
+## 44ae5487之后新增五组
+
+NEW-33家具选择完成的game task/世代过滤；NEW-34表情与Scene导出路径和批量错误隔离；NEW-35表情非finite值；NEW-36mood更新判断/查询次数；NEW-37喉/嘴派生anchor有效性。触发、测试、兼容策略及仍未验证路径见[round-report.md](round-report.md)。

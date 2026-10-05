@@ -11970,10 +11970,10 @@
     "call_chain_closed": false
   },
   "src/Registry/Library_SaveLoad.cpp:517:Library::SaveScenes() const noexcept": {
-    "sha256": "946941948e0a01446af2b20661d99a8421961239f7e0a5d463ffecb21a268225",
+    "sha256": "ab5c673091c54c4dadd79472a56b7045e010f7adf55118a9e68546f1093bbd53",
     "status": "source_reviewed",
-    "checks": "核查并行初始化、异常隔离、保存 snapshot/版本 receipt；Library 保存与编辑锁链已读，真实 YAML/文件加载未执行。",
-    "validation": "not_claimed_for_entire_function",
+    "checks": "SaveScenes先拼name_hash.yaml再检查最终单文件名；非法包名/hash路径分隔符或control拒绝，空显示名和尾句点显示名保持兼容。跳过非法包继续合法邻居，序列化/提交发生在过滤之后。实际函数替身覆盖非法路径及合法空名/尾点，并有HEAD行为失败证据。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
     "call_chain_closed": false
   },
   "src/Registry/Library_SaveLoad.cpp:540:Library::SaveExpressions() const noexcept": {
@@ -50099,13 +50099,11 @@
     "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
   },
   "dist/Source/Scripts/sslBaseExpression.psc:242:ApplyPresetFloatsLegacy": {
-    "sha256": "8df22cbc51b8c1677ce3a99e4365cace8dcadf0dbfc0fb81b1fdd34a8d01e7dc",
+    "sha256": "a6a7492ffe4edd197862a06e4265b891e83cd68093c5b043b085bfaaaec09969",
     "status": "source_reviewed",
-    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
-    "validation": "not_claimed_for_entire_function",
-    "call_chain_closed": false,
-    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:239:ApplyPresetFloatsLegacy",
-    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+    "checks": "核对mood ID/strength更新条件、mouth-open保留、32值/None入口；不同ID同强度现在更新，同ID同强度不重复写；复用已有curr读取减少3-4→2次native查询。有限Papyrus翻译回归及HEAD行为失败证据，不是PEX/VM。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
   },
   "dist/Source/Scripts/sslBaseExpression.psc:304:SetPreset": {
     "sha256": "0a409166cdb9873925bd1c893acce85faaa28b64066fce030d29ddff9ad0a7cf",
@@ -58620,13 +58618,11 @@
     "review_basis": "本轮完整本体重读与此改动逐项核查；不是由file状态自动生成通过结论。"
   },
   "src/Thread/NiNode/NiMotion.cpp:16:NiMotion::Push(const Node::NodeData& nodes, float timeStamp)": {
-    "sha256": "812187e582eff17ff516a469013c723498b81fe0149aef821ca29635349d2bf3",
+    "sha256": "979051f14976b9ea94d8b8715955dbcf4fc2320fcee32458fafedd7c8fc73884",
     "status": "source_reviewed",
-    "checks": "每次写槽先清presence，来源确实存在且timestamp/xyz有限才置位；原点合法，缺失节点仍保留零占位但不当成轨迹数据；缓存失效与ring更新顺序核查。",
-    "validation": "tests/motion_presence.py实际整Push；节点/ObjectBound替身；仅对应实际执行路径，未认证整函数所有分支、真实ABI/VM。",
-    "call_chain_closed": false,
-    "reviewed_date": "2026-10-05",
-    "review_basis": "本轮完整本体重读与此改动逐项核查；不是由file状态自动生成通过结论。"
+    "checks": "核对head→throat→mouth依赖presence，只有head+Z有效才生成throat，只有throat+Y有效才生成mouth；避免无效值槽中的零占位伪造有效坐标。实际NiMotion测试非finite位置和Y/Z矩阵列，HEAD行为失败、当前及sanitizer通过。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
   },
   "src/Thread/NiNode/NiMotion.cpp:22:(Anchor anchor, const RE::NiPoint3& value)": {
     "sha256": "82cfd6bc0cc74bbb7b508563dabe8c39082ef0aa0827c3343286dd7fcb4e12e2",
@@ -60607,13 +60603,11 @@
     "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
   },
   "src/Thread/ThreadCtor.cpp:403:Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, int32_t a_request)": {
-    "sha256": "4e42f3cfe3158441091da018b6dda621f4bb5d334adff8ac29d51fe4b4b4b229",
+    "sha256": "d3cefd9c50f5ffce6ce9e1f22c8a5230de73d01b59e222d5332a893cb2cdb521",
     "status": "source_reviewed",
-    "checks": "检查 alias 收集、场景过滤、任务/worker promise 生命周期、取消和最终发布；家具可达性射线循环及待选引用有效期仍需核查。",
-    "validation": "not_claimed_for_entire_function",
-    "call_chain_closed": false,
-    "reused_from": "src/Thread/ThreadCtor.cpp:397:Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, int32_t a_request)",
-    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+    "checks": "家具选择完成统一排入game task并捕获world generation；lambda在registry锁内先校验世代再取pending，缺失request日志不解引用Quest。实际方法替身验证task affinity、同Quest/request跨世界、成功/构造及排队失败；外部VM加载契约仍开放。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
   },
   "src/Thread/ThreadCtor.cpp:405:()": {
     "sha256": "c4900c9e7c026af3c537ffc7544b73b26d8df787d59c23f827a955a888d656ce",
@@ -60641,5 +60635,1053 @@
     "call_chain_closed": false,
     "reused_from": "src/Thread/ThreadCtor.cpp:442:(const auto& instance)",
     "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:282:SetIndex": {
+    "sha256": "1420be8f2528777c4a5b1b8998093214a1349229165029dd5cc01fe39129a900",
+    "status": "source_reviewed",
+    "checks": "Gender限定0/1、Phase>=1；Mode和id先限定0..31，id<=31-Mode后才相加；访问前还检查实际preset长度，合法值域和原SetPhase保留。",
+    "validation": "tests/legacy_input_boundaries.py：严格数组、int极值、合法末位31；仅对应实际执行路径，未认证整函数所有分支、真实ABI/VM。",
+    "call_chain_closed": false,
+    "reviewed_date": "2026-10-05",
+    "review_basis": "本轮完整本体重读与此改动逐项核查；不是由file状态自动生成通过结论。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:307:SetPreset": {
+    "sha256": "0a409166cdb9873925bd1c893acce85faaa28b64066fce030d29ddff9ad0a7cf",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:295:SetPreset",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:317:SetMood": {
+    "sha256": "43f044b5197d149f2b0e27817cc8e963e364d060d20fc4e3c9221e0d49887c27",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:305:SetMood",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:328:SetModifier": {
+    "sha256": "5602fda3324c12d731d297ac7f3fc4c50aa880d3570505be4307d7b5809f4900",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:316:SetModifier",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:337:SetPhoneme": {
+    "sha256": "5b0c2526644eeb7fb2e7ab1e2f58ad4586304a0964a759bbf564007acf3b401e",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:325:SetPhoneme",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:346:EmptyPhase": {
+    "sha256": "9e96734ea8603ea84e5c9163be6e51d9cb9e3bacb9d34429c4143aba6816661a",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:334:EmptyPhase",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:351:AddPhase": {
+    "sha256": "c09c9a46d194ad8a3e396c181ab4444929d87a52ddf16142a2fd2e736b33761e",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:339:AddPhase",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:366:HasPhase": {
+    "sha256": "1f48451cf713792354040d824130648e353c890959769f8973c016b530ef5f00",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:354:HasPhase",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:374:GetPhonemes": {
+    "sha256": "30e9ce63dc49a922fc788d1ff82881d43b3609fa99201fabb563ec07bd007130",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:362:GetPhonemes",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:385:GetModifiers": {
+    "sha256": "5d9d7af16ba4df705ad5fbd49aad6e9419d5b03eefd4f3ae6dec4dfacddd7e36",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:373:GetModifiers",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:396:GetMoodType": {
+    "sha256": "995645342ee40196c6ea67c36629a9a6b62da188c81aa965ea88e5d384cbb229",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:384:GetMoodType",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:400:GetMoodAmount": {
+    "sha256": "eceef3d824a4923b801c88156660efa0b0a4a27889cb8353a0bfd0285cbe780a",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:388:GetMoodAmount",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:404:GetIndex": {
+    "sha256": "ea046caba20156565e6f911e3fb7f3ca882d16ed3b940005a6f845f1bd09b332",
+    "status": "source_reviewed",
+    "checks": "Gender限定0/1、Phase>=1；Mode和id先限定0..31，id<=31-Mode后才相加；访问前还检查实际preset长度，合法值域和原SetPhase保留。",
+    "validation": "tests/legacy_input_boundaries.py：严格数组、int极值、合法末位31；仅对应实际执行路径，未认证整函数所有分支、真实ABI/VM。",
+    "call_chain_closed": false,
+    "reviewed_date": "2026-10-05",
+    "review_basis": "本轮完整本体重读与此改动逐项核查；不是由file状态自动生成通过结论。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:421:CountPhases": {
+    "sha256": "d0b8c19574375de11ffdd2482be0888f139632147085966c7ce735cb1d3e04c8",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:406:CountPhases",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:424:GenderPhase": {
+    "sha256": "bbc62b7e471a8384a4a8d1eea0744987317419ddd61b0a45dca94ef337b26dad",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:409:GenderPhase",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:426:SetPhase": {
+    "sha256": "ac508186ea906a5ae53d364abf5ed3600a2868e954204cce76bc5f35112ddbca",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:411:SetPhase",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:441:ValidatePreset": {
+    "sha256": "e907c49bd0815ea32b0038b9e75b384d0cd8bf03497a8721ec1fa49de0dda93e",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:426:ValidatePreset",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:455:get": {
+    "sha256": "730361b5b7b885cf29a0bcfcf3dae69e1c25008cc06231a7f926e773d9653194",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:440:get",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:460:ImportJson": {
+    "sha256": "1639dd851faa59ec3c6d83a7e446be26eb43f512684bd0a19821f36437433bf2",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:445:ImportJson",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:463:ExportJson": {
+    "sha256": "edbac3271563c0ca3b4bac2ff56769a6f5f1b5038f2657c8392e10b6d2dd2726",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:448:ExportJson",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:465:Save": {
+    "sha256": "6fdf6c17eddb5e90175c775a3ac5252ae8591ea6077a797d9f23be5b29489b3e",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:450:Save",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:469:ApplyTo": {
+    "sha256": "78fd90b5e437da77e0a9c841ae1a0d832d80b02d5e1008b2cf01c6ef72283b1c",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:454:ApplyTo",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:482:GetPhase": {
+    "sha256": "4456537bc7cbb5037a7400dcd671f94797ca12e0e04209da7477978d8eed8d3b",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:467:GetPhase",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:486:PickPreset": {
+    "sha256": "52ac6b2b0a9a3259dd86cbf4cd8ae933b5727d5a766f5c3ea7a8e7816288f0e1",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:471:PickPreset",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:490:CalcPhase": {
+    "sha256": "4f32a01985df9072da7926b1ce772a500bf749a4610e89baeed8c73d5e7a0519",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:475:CalcPhase",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:492:ApplyPreset": {
+    "sha256": "c99954ec92a8537b080db1f8676453b3317558fb6339326f72c142c34df9a98e",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:477:ApplyPreset",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:498:ToIntArray": {
+    "sha256": "bb8d29be7fd63ba34212af642f2b9b18af34542f195c3ebf5a9cdb8141d9bb84",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:483:ToIntArray",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "dist/Source/Scripts/sslBaseExpression.psc:512:ToFloatArray": {
+    "sha256": "2f9d174075041062b185fb91ce5b711fecd698910eccb218a8bf9b5e6708f48d",
+    "status": "source_reviewed",
+    "checks": "全文核查表达式比例/阶段/注册回调与工厂；随机边界、稀疏过滤、注册重排、转换上限、Mood ID单位和 ApplyPhase 参数已回归，外部 MFG 调用未实机。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "dist/Source/Scripts/sslBaseExpression.psc:497:ToFloatArray",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Define/Expression.cpp:29:Expression::Expression(const YAML::Node& a_src)": {
+    "sha256": "1cf00846fd6374b93daec3a275fd0b87f8bccc2cfa6e829e249195b718abacaa",
+    "status": "source_reviewed",
+    "checks": "检查YAML 32值读取，在append前拒绝NaN/Inf；不改变正常数值/版本scaling行为。导入guard是人工源码核查，未执行真实yaml-cpp/DLL路径。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:46:(float value)": {
+    "sha256": "8d96d016b9f46e2db93d9c4ab98b7779360fb1808cff8b90859f723f8ce9513e",
+    "status": "source_reviewed",
+    "checks": "YAML导入finite predicate使用isfinite，大小检查先行；人工核对全32项遍历，不把UpdateValues测试作为YAML全路径证据。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:54:Expression::FromLegacyFile(const fs::path& a_path)": {
+    "sha256": "08502dcfba5c9d3d5a40da85750ceaf77d58032272134bf61a770c3dadc1f024",
+    "status": "source_reviewed",
+    "checks": "legacy JSON导入每个32值level在append前检查finite，正常1..5级迁移逻辑保留；glaze真实解析未本机编译，源码证据与更新接口运行证据分开。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:69:(RE::SEXES::SEX sex, std::string prefix)": {
+    "sha256": "fbe09fd59da0e81771f7b635eebcf59888e7eab62ea3fc4dbbf7d3f07c809bb2",
+    "status": "source_reviewed",
+    "checks": "legacy fill lambda在大小核对后、data追加前拒绝非finite值；字段顺序和最多5级策略保留；该import路径仅源码核查。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:81:(float value)": {
+    "sha256": "8d96d016b9f46e2db93d9c4ab98b7779360fb1808cff8b90859f723f8ce9513e",
+    "status": "source_reviewed",
+    "checks": "legacy finite predicate检查全values；不会新增脏数据。未声明真实JSON/VM集成验证。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:93:(const char* fieldname) -> bool": {
+    "sha256": "9fafa3871a86f311906376c5e3d6f9606748ec0143e56fc7a15a384d3f2514ec",
+    "status": "source_reviewed",
+    "checks": "检查 YAML/旧 JSON 形状、预置 32 槽、强度有限性、版本与保存 receipt；sex 下标和编辑级别上限依赖上层校验。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:108:Expression::Expression(DefaultExpression a_default)": {
+    "sha256": "745f6277bc95e1c02ccd84e921d6bb118a45ced93b19c0932e2b57aef02e176e",
+    "status": "source_reviewed",
+    "checks": "检查 YAML/旧 JSON 形状、预置 32 槽、强度有限性、版本与保存 receipt；sex 下标和编辑级别上限依赖上层校验。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:206:Expression::GetData(RE::SEXES::SEX a_sex, float a_strength) const": {
+    "sha256": "2755f722915d5793293ebee2e6f97cf483d12db2cc386d4bb52282951ae8a474",
+    "status": "source_reviewed",
+    "checks": "检查 YAML/旧 JSON 形状、预置 32 槽、强度有限性、版本与保存 receipt；sex 下标和编辑级别上限依赖上层校验。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:273:Expression::Save(std::string_view a_fileLocation, bool force) const": {
+    "sha256": "0472414ef6ff5767c6561712318cc733b7a9a04496dc1a46afb91cae22db15ec",
+    "status": "source_reviewed",
+    "checks": "保存前检查空ID和非法单文件stem；path采用filesystem root/leaf组合，避免metadata路径分隔符/冒号；被拒绝前不提交或改dirty。实际Save函数与YAML/queue替身测试覆盖。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:302:Expression::UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values)": {
+    "sha256": "4c1de4c612cf18e653686844ee5bd506b2e65243f43cc83c8f818d44ea042a35",
+    "status": "source_reviewed",
+    "checks": "UpdateValues在既有level/size边界后检查首32值finite，再resize/copy，非法值不改变data或dirty；仍忽略额外值、保留多级legacy兼容。实际函数NaN/±Inf和合法扩容回归通过。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:309:(float value)": {
+    "sha256": "8d96d016b9f46e2db93d9c4ab98b7779360fb1808cff8b90859f723f8ce9513e",
+    "status": "source_reviewed",
+    "checks": "编辑值finite检查lambda；只在size>=Total时遍历begin..begin+32，后续追加不会发生在失败分支。实际UpdateValues覆盖NaN/±Inf。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:321:Expression::UpdateTags(const TagData& a_newtags)": {
+    "sha256": "933df8c4bea0828463ce31b6ff385ffd959facf09986f097f1b633a90535873d",
+    "status": "source_reviewed",
+    "checks": "检查 YAML/旧 JSON 形状、预置 32 槽、强度有限性、版本与保存 receipt；sex 下标和编辑级别上限依赖上层校验。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:327:Expression::SetScaling(Scaling a_scaling)": {
+    "sha256": "bf4226c17c174975518f05e2c2c3e91b4dd4c7c24a4046915b6f68b29a2512fc",
+    "status": "source_reviewed",
+    "checks": "检查 YAML/旧 JSON 形状、预置 32 槽、强度有限性、版本与保存 receipt；sex 下标和编辑级别上限依赖上层校验。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Registry/Define/Expression.cpp:333:Expression::SetEnabled(bool a_enabled)": {
+    "sha256": "f4ca95d3e1a582b8ff23d57128238ba2c57c9183744f15fbb9efe2727a03d59e",
+    "status": "source_reviewed",
+    "checks": "检查 YAML/旧 JSON 形状、预置 32 槽、强度有限性、版本与保存 receipt；sex 下标和编辑级别上限依赖上层校验。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Registry/Library.cpp:8:Library::LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const": {
+    "sha256": "93009c8248d0882468dc68a34f4a5fdb04c099de8d728e055342fb089c3759c2",
+    "status": "source_reviewed",
+    "checks": "统一MakeFragmentList拒绝不支持输入；空片段列表安全失败，不让未知/重复Actor进入兼容性匹配。",
+    "validation": "源码上下游核查；tests/actor_query_boundaries.py共享实际构造入口；仅对应实际执行路径，未认证整函数所有分支、真实ABI/VM。",
+    "call_chain_closed": false,
+    "reviewed_date": "2026-10-05",
+    "review_basis": "本轮完整本体重读与此改动逐项核查；不是由file状态自动生成通过结论。"
+  },
+  "src/Registry/Library.cpp:60:Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const": {
+    "sha256": "d6b1767f4e2a9013bc6b895e61dfc3dfbec847649f6bf15279331e925fcf8e8a",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:67:Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:81:Library::GetLegacyProxyIds(size_t a_limit, uint32_t a_creatureSpecifier) const": {
+    "sha256": "4c5133b2611d57c46de4fa7a4588fffcc741275ce947f23149fcb91ded2c825a",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:88:Library::GetLegacyProxyIds(size_t a_limit, uint32_t a_creatureSpecifier) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:101:(const auto* lhs, const auto* rhs)": {
+    "sha256": "a53281a35d732b6c03aaecad049be819f83cea1ebe60be73fa109ed32061eff9",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:108:(const auto* lhs, const auto* rhs)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:115:* Library::GetPackageFromScene(const Scene* a_scene) const": {
+    "sha256": "3c0c8379c1444068e1edac8ab71ac6191e66ee512d3ca1a9503c5e7c1683172f",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:122:* Library::GetPackageFromScene(const Scene* a_scene) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:122:* Library::GetSceneById(const RE::BSFixedString& a_id) const": {
+    "sha256": "3beef9b835a188432c2ec6f23468e089a46e543968a6a4f49322a29e7c981509",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:129:* Library::GetSceneById(const RE::BSFixedString& a_id) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:129:* Library::GetSceneByName(const RE::BSFixedString& a_name) const": {
+    "sha256": "df1a667ac43bc4e1be31b790f363adfa087747e7be1f9e929546761a4207b1e4",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:136:* Library::GetSceneByName(const RE::BSFixedString& a_name) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:136:Library::GetSceneCount() const": {
+    "sha256": "43540a8d34eae5df5e179cff4daaeb3ad94ea49aa91d05d44875e2a1aa3e0131",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:143:Library::GetSceneCount() const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:142:Library::EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func)": {
+    "sha256": "efa6eb61665cfa538a97a3d80f37d1dcd4a206047210e3dc8e04ba0fb7d2f47d",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:149:Library::EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:153:Library::EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func)": {
+    "sha256": "913777e32c0330c9fe84928ec2dd445a2b654b6abfce9c9fd8cde1d09bca889f",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:160:Library::EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:170:Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const": {
+    "sha256": "0051caf9dc3b6c74700c50ef2924210094d364215dfe8cce7fb34821dc86bbcb",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:177:Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:180:Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const": {
+    "sha256": "02829b9a4033bab9080b0e4ad27329813f610f88bb79628331580a0cd9172537",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:187:Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:190:Library::GetAllVoiceIds(RaceKey a_race) const": {
+    "sha256": "43a0391ea2e151ce8a160b6afb163cfe58903b89835aa8fe09a2ed42283e311b",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:197:Library::GetAllVoiceIds(RaceKey a_race) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:203:Library::ForEachVoice(std::function<bool(const Voice&)> a_visitor) const": {
+    "sha256": "bac2399d3178d1abc136d049cea7c6c12cea9ae8dd39148eaeb79b5a1770e17f",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:210:Library::ForEachVoice(std::function<bool(const Voice&)> a_visitor) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:213:* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)": {
+    "sha256": "6a51af4e8aa99b88a75938ce5c9664fd054de3cafab676eaf281f1d65d83214e",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:220:* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:253:(const auto& v)": {
+    "sha256": "6e48e9319588cc626dd54c7a4637bd382d7486396b1a6a348bd6d287108ed998",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:260:(const auto& v)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:264:* Library::GetVoice(const TagDetails& tags) const": {
+    "sha256": "ef76ac2f31c38bea81c9b68e2b484c89f348a83f0b760916fd0bdfa8c093f38a",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:271:* Library::GetVoice(const TagDetails& tags) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:276:* Library::GetVoice(RaceKey a_race) const": {
+    "sha256": "a6b213c4c3ae2652fa914a166a5f031214ccedaa7f2ed47f2e03008d2f4a91d6",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:283:* Library::GetVoice(RaceKey a_race) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:288:* Library::GetVoiceById(RE::BSFixedString a_voice) const": {
+    "sha256": "37c55aff1d4036ee75b9fd686bfe419c36a762333e7f12cf8538edb38927a04b",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:295:* Library::GetVoiceById(RE::BSFixedString a_voice) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:295:Library::ReadVoice(RE::BSFixedString a_voice, const std::function<void(const Voice&)>& a_reader) const": {
+    "sha256": "9fcf068e30186c1af6cc7d15c8edf5657496706058d7ef6219c8d7ffda4bf1bf",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:302:Library::ReadVoice(RE::BSFixedString a_voice, const std::function<void(const Voice&)>& a_reader) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:305:Library::CreateVoice(RE::BSFixedString a_voice)": {
+    "sha256": "80d4d8c84c1acea92fbaf2c093c5d24f036f0826cbe6a1cc6b371509060c0911",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:312:Library::CreateVoice(RE::BSFixedString a_voice)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:316:Library::WriteVoiceToFile(RE::BSFixedString a_voice) const": {
+    "sha256": "b697488734328701ecb2288cc2342620038aca0b62e884915801423c2379fa1a",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:323:Library::WriteVoiceToFile(RE::BSFixedString a_voice) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:319:(const Voice& voice)": {
+    "sha256": "c40937b00ad2d62e3e53c513b0dcc7894d3d2d661ec95380d83facb89ad6de7f",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:326:(const Voice& voice)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:331:Library::GetSavedActors() const": {
+    "sha256": "bda4b5d543fc967bdc466b79f4525d8ce32f37f76750b3c866f705b9c7f50f6b",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:338:Library::GetSavedActors() const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:344:* Library::GetSavedVoice(RE::FormID a_key) const": {
+    "sha256": "a23ed34d0cd363ca3edec07424c9ee50bf310ec11935cfde13f5020d9ccb964e",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:351:* Library::GetSavedVoice(RE::FormID a_key) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:351:Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)": {
+    "sha256": "d8855541add7cad0bfd58c35a0e7469616c6bbed13dc8575574cc7d61d38bdc2",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:358:Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:362:Library::ClearVoice(RE::FormID a_key)": {
+    "sha256": "918d9deca3902a9f82feb21002cf73138cd374c4507360e88b15860e1091d94c",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:369:Library::ClearVoice(RE::FormID a_key)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:368:* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const": {
+    "sha256": "dc8ff0174e6d6f2ced10220fa6c67e4a93955f52ee78080abb75a4bb36d6749e",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:375:* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:379:* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const": {
+    "sha256": "d6116b6a16b478ab5827df8633e68bb4b5423378563b2b1723fbf423e247bc71",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:386:* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:390:* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const": {
+    "sha256": "0371a11395764f61ebb53abb0ba6f38cdaf614d947bf2ee31dbeb7f66108af09",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:397:* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:401:Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)": {
+    "sha256": "54036bf3296732bbd5cb76bc38022607e6351b7cb83bcbc86e03ce76c86612f6",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:408:Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:412:Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)": {
+    "sha256": "0d28c158cc4cfefcf6d4f2e77c7912e7d37be5b046d5f1b2387437d1bce4476a",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:419:Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:428:(const auto& set)": {
+    "sha256": "c07e03bfae908fd96f68302f5035ba50c3ff1d03b6b12ff0a75c1f855d87515b",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:435:(const auto& set)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:447:Library::SetVoiceTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)": {
+    "sha256": "4a210c2258351c4387cc7eea09561786d8a3bfd71b87f0e1042a4c96fa325511",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:454:Library::SetVoiceTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:458:Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)": {
+    "sha256": "a8e324f6dc94f82662b96c6cd24c402c124a72335d77d01c99bb1c12b664ba9a",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:465:Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:467:(auto& it)": {
+    "sha256": "f8b04b75b56a9ce90a14475e44d051c292b3099da4d5b16d014d6f8b63761d56",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:474:(auto& it)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:475:Library::SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)": {
+    "sha256": "9fdff70e11b39089b26fac8538d449aa82fd8eaf7b4df613454072e9604b89ee",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:482:Library::SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:501:* Library::GetExpressionById(const RE::BSFixedString& a_id) const": {
+    "sha256": "94a426e2530523023e8c1bb58da474553b1cc382915a1c69c72904b02386ed16",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:508:* Library::GetExpressionById(const RE::BSFixedString& a_id) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:508:Library::ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const": {
+    "sha256": "410cc68b03a77b108a884d7244b3f57581d77ff2a55cbbb698593f8eeb5d1874",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:515:Library::ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:518:* Library::GetExpression(const TagDetails& a_details) const": {
+    "sha256": "cb63479aca02c9809b5fd3b08c2e0e7e98933f8c0376efc7be9f95dd3621e014",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:525:* Library::GetExpression(const TagDetails& a_details) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:530:Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const": {
+    "sha256": "0755d88ebd89b4ac8a81cfb95ff6e1cf1ad9bc219fcfe7400b909e54f205d5f0",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:537:Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:541:Library::CreateExpression(const RE::BSFixedString& a_id)": {
+    "sha256": "e1dac964e7598669c432d2f87db4ba23c9c70b2af1506e6b2388b2834f03f6a1",
+    "status": "source_reviewed",
+    "checks": "CreateExpression在插入前拒绝empty/unsafe file stem；empty先短路，避免默认BSFixedString可能为空c_str；重复ID行为保留，合法空profile可保存。实际函数替身回归；不证明BSFixedString ABI。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Library.cpp:556:Library::MarkExpressionForSave(const RE::BSFixedString& a_id)": {
+    "sha256": "f2869a697e39a6498775cb8c557554b1fc1217edf32a1ce240b0d8e8e08ac2da",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:559:Library::MarkExpressionForSave(const RE::BSFixedString& a_id)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:566:Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values)": {
+    "sha256": "626d7b9cd2b9464543734330c3c5c787ded142c06d6d05f2f4a590ed17ece6b4",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:569:Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:577:Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)": {
+    "sha256": "51b01a5971ffee0514c19e30fbe35559365f01f64a2f8fc973b83d19312224d5",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:580:Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:588:Library::SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)": {
+    "sha256": "f507cf2a35d6610d4bda702d8950ce1da444908649b4b99e13b11e1ac1fb870e",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:591:Library::SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:599:Library::SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled)": {
+    "sha256": "0de8ace8c3908584be904c0876bf2f8d95cdbb670b5f3d91d19abb46991a18d2",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:602:Library::SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:611:Library::PickRandomFxSet(FxType a_type) const": {
+    "sha256": "ea82cf512cd002cc1cb1f3252c5c75d025c267f4f659254b332a9fad2ec8731c",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:614:Library::PickRandomFxSet(FxType a_type) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:621:Library::GetFxCount(FxType a_type, RE::BSFixedString a_set) const": {
+    "sha256": "b19b64580ceb4f9fad46dad97d9ab2b65fd7c4a0664f4d509bebc675375917c1",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:624:Library::GetFxCount(FxType a_type, RE::BSFixedString a_set) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:624:(const auto& pair)": {
+    "sha256": "20af2db364a9a9e7638042a89b3d159c5844e0b3e5b9c8308966992413a2bd20",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:627:(const auto& pair)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library.cpp:634:* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const": {
+    "sha256": "e5812b74fc551833bf36d63586189bfc98130600a84b94513a81055d835d385f",
+    "status": "source_reviewed",
+    "checks": "核查查询锁、组合哈希输入边界、proxy 缓存上限、voice fallback；同 ID 重复 package 与 annotation 基础标签语义仍开放。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Registry/Library.cpp:637:* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Registry/Library_SaveLoad.cpp:547:Library::SaveExpressions() const noexcept": {
+    "sha256": "fa87399b85e8e7e9051888b5e3af8f92462ae9b6f91321bbc68865809f8584d6",
+    "status": "source_reviewed",
+    "checks": "SaveExpressions按profile隔离Save异常；unsafe已载入profile保留dirty并记录错误，不阻断其他profile。实际批量函数替身覆盖坏profile在前、好profile在后；底层队列规则保留。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Library_SaveLoad.cpp:571:Library::SaveVoices() const": {
+    "sha256": "98a09bccac05f036f4e879d7cdfa887aff81dee1455872ded250cf754adc515b",
+    "status": "source_reviewed",
+    "checks": "核查并行初始化、异常隔离、保存 snapshot/版本 receipt；Library 保存与编辑锁链已读，真实 YAML/文件加载未执行。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Thread/NiNode/NiMotion.cpp:79:NiMotion::ForEachMoment(Anchor c, const std::function<bool(const RE::NiPoint3&, float)>& func) const": {
+    "sha256": "50a4a730deed04258df93359e36dbf9a7f9005af8fbdad4def2df41bb6734a38",
+    "status": "source_reviewed",
+    "checks": "只迭代最近连续有效anchor窗口，不跨缺失样本拼接瞬时位移；逻辑index转换保留ring顺序。",
+    "validation": "tests/motion_presence.py：断点恢复、wrap、非finite；仅对应实际执行路径，未认证整函数所有分支、真实ABI/VM。",
+    "call_chain_closed": false,
+    "reviewed_date": "2026-10-05",
+    "review_basis": "本轮完整本体重读与此改动逐项核查；不是由file状态自动生成通过结论。"
+  },
+  "src/Thread/NiNode/NiMotion.cpp:88:NiMotion::GetMotion(Anchor c) const": {
+    "sha256": "06db8a72f751e19924f4ca87665bd119c241d4f3fa91e2d4203bb81fb48f681c",
+    "status": "source_reviewed",
+    "checks": "0/1/2有效样本分别退化；全部有效PCA继续使用无复制span，局部窗口按逻辑序收集；计时/方差分母及minMoments按该anchor有效数量而非全局_size。",
+    "validation": "tests/motion_presence.py实际PCA/Descriptor和ring；向量/矩阵类型替身；仅对应实际执行路径，未认证整函数所有分支、真实ABI/VM。",
+    "call_chain_closed": false,
+    "reviewed_date": "2026-10-05",
+    "review_basis": "本轮完整本体重读与此改动逐项核查；不是由file状态自动生成通过结论。"
+  },
+  "src/Thread/NiNode/NiMotion.cpp:107:NiMotion::DescribeMotion(Anchor c) const": {
+    "sha256": "66580eb5b25409bd065e9ab3f9642aecc5d113c84900dc4dff3f6b7c39f4dc44",
+    "status": "source_reviewed",
+    "checks": "核查环绕索引、PCA 无序输入、缓存失效、dt 非正分支和 motion 统计；缺失节点用零点表示会污染窗口，节点有效性边界待闭环。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Thread/NiNode/NiMotion.cpp:89:NiMotion::DescribeMotion(Anchor c) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Thread/NiNode/NiMotion.cpp:115:NiMotion::ComputeDescriptor(Anchor c) const": {
+    "sha256": "dc57f45e4e39c4031bb50d2ecc16e34213710e5d982220b53e68393b02ca6221",
+    "status": "source_reviewed",
+    "checks": "0/1/2有效样本分别退化；全部有效PCA继续使用无复制span，局部窗口按逻辑序收集；计时/方差分母及minMoments按该anchor有效数量而非全局_size。",
+    "validation": "tests/motion_presence.py实际PCA/Descriptor和ring；向量/矩阵类型替身；仅对应实际执行路径，未认证整函数所有分支、真实ABI/VM。",
+    "call_chain_closed": false,
+    "reviewed_date": "2026-10-05",
+    "review_basis": "本轮完整本体重读与此改动逐项核查；不是由file状态自动生成通过结论。"
+  },
+  "src/Thread/NiNode/NiMotion.cpp:146:(const RE::NiPoint3& p, float t)": {
+    "sha256": "0b1d7e01cf1c42e5d7c4377dd1b8624b61c74419c4c900774d5fb27389fcf0ab",
+    "status": "source_reviewed",
+    "checks": "核查环绕索引、PCA 无序输入、缓存失效、dt 非正分支和 motion 统计；缺失节点用零点表示会污染窗口，节点有效性边界待闭环。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Thread/NiNode/NiMotion.cpp:126:(const RE::NiPoint3& p, float t)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Thread/NiNode/NiMotion.cpp:217:NiMotion::ValidStart(Anchor c) const": {
+    "sha256": "052471871157bd94c292556656078e34860f509dd2fdeab56b713cd1a1b4ba08",
+    "status": "source_reviewed",
+    "checks": "只迭代最近连续有效anchor窗口，不跨缺失样本拼接瞬时位移；逻辑index转换保留ring顺序。",
+    "validation": "tests/motion_presence.py：断点恢复、wrap、非finite；仅对应实际执行路径，未认证整函数所有分支、真实ABI/VM。",
+    "call_chain_closed": false,
+    "reviewed_date": "2026-10-05",
+    "review_basis": "本轮完整本体重读与此改动逐项核查；不是由file状态自动生成通过结论。"
+  },
+  "src/Thread/NiNode/NiMotion.cpp:225:NiMotion::AbsoluteToRelativeIndex(size_t n) const": {
+    "sha256": "77002b66c01f529e4dd21d23f79900afafa2abcf064bd4b55692e3771d91b092",
+    "status": "source_reviewed",
+    "checks": "核查环绕索引、PCA 无序输入、缓存失效、dt 非正分支和 motion 统计；缺失节点用零点表示会污染窗口，节点有效性边界待闭环。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Thread/NiNode/NiMotion.cpp:197:NiMotion::AbsoluteToRelativeIndex(size_t n) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Thread/NiNode/NiMotion.cpp:233:& NiMotion::GetNthMoment(Anchor c, size_t n) const": {
+    "sha256": "b908d5ecab8bd4751af37a76b006c1863324d49dae27da157af61294232e4c3e",
+    "status": "source_reviewed",
+    "checks": "核查环绕索引、PCA 无序输入、缓存失效、dt 非正分支和 motion 统计；缺失节点用零点表示会污染窗口，节点有效性边界待闭环。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Thread/NiNode/NiMotion.cpp:205:& NiMotion::GetNthMoment(Anchor c, size_t n) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Thread/NiNode/NiMotion.cpp:240:& NiMotion::GetNthHeadBound(size_t n) const": {
+    "sha256": "2a83f28ac76cfec6e85ad8aefbf2ec55431a51c42dc4fd416d8f5932b9f93207",
+    "status": "source_reviewed",
+    "checks": "核查环绕索引、PCA 无序输入、缓存失效、dt 非正分支和 motion 统计；缺失节点用零点表示会污染窗口，节点有效性边界待闭环。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Thread/NiNode/NiMotion.cpp:212:& NiMotion::GetNthHeadBound(size_t n) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Thread/NiNode/NiMotion.cpp:246:NiMotion::GetNthTimestamp(size_t n) const": {
+    "sha256": "51767fbf91119df11a64ce3185d8fa9ad78df1fbf33b3fd8282c927aeb8b7892",
+    "status": "source_reviewed",
+    "checks": "核查环绕索引、PCA 无序输入、缓存失效、dt 非正分支和 motion 统计；缺失节点用零点表示会污染窗口，节点有效性边界待闭环。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Thread/NiNode/NiMotion.cpp:218:NiMotion::GetNthTimestamp(size_t n) const",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Thread/ThreadCtor.cpp:406:()": {
+    "sha256": "9f8cf5d9bd401c78675dcdae5c907e04660c402684c8507108b1c0edac341347",
+    "status": "source_reviewed",
+    "checks": "finalize lambda首先比较world generation后触碰pending；保留creation token发布检查和失败清理，FinalizeInstanceMake由game task执行；实际方法替身覆盖，不证明真实引擎函数行为。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Thread/ThreadCtor.cpp:412:(const auto& i)": {
+    "sha256": "e4a51bdefb72dd21cf748593ecb5a2be1ef961306f3a646b5f39de74ea736c75",
+    "status": "source_reviewed",
+    "checks": "检查 alias 收集、场景过滤、任务/worker promise 生命周期、取消和最终发布；家具可达性射线循环及待选引用有效期仍需核查。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Thread/ThreadCtor.cpp:403:(const auto& i)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Thread/ThreadCtor.cpp:451:(const auto& instance)": {
+    "sha256": "00597dc36173a6cc0d22911759769611f2ff3efdc3d81d2c56ed84fd78aac54b",
+    "status": "source_reviewed",
+    "checks": "检查 alias 收集、场景过滤、任务/worker promise 生命周期、取消和最终发布；家具可达性射线循环及待选引用有效期仍需核查。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false,
+    "reused_from": "src/Thread/ThreadCtor.cpp:442:(const auto& instance)",
+    "reuse_basis": "同文件、同函数名及同本体SHA；仅保留旧阅读记录，不据此声称本轮调用方/被调用方行为均验证。"
+  },
+  "src/Util/StringUtil.h:7:IsSafeFileStem(std::string_view a_stem)": {
+    "sha256": "4d46e4f70dd12fb490a708bd7538b8131f9bb7bd5abd99d1d5da908426128438",
+    "status": "source_reviewed",
+    "checks": "IsSafeFileStem检查empty/dot-only、control和路径/非法符号；保留尾dot/space的合法ID，它们后面会追加.yaml。实际函数覆盖中文/空格/点/尾标点与非法路径；不是设备名或文件长度认证。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:23:ToLower(T& str)": {
+    "sha256": "1db1ac0a0f8aaae21ca2c9dcc3ef8f3c412e31482618b6edb5749b81ef9c1e06",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:28:ToUpper(T& str)": {
+    "sha256": "c6489287194adb414f4cb5382a3b7fedca456adefdc527089574fa9f94a7199a",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:32:CastLower(std::string str)": {
+    "sha256": "f19106e1889de906595b91bbdd3aacf9a7667e3edbe1a383d9dd08b0af6345ea",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:37:CastUpper(std::string str)": {
+    "sha256": "cda226d196097c9ab7537744e080b16363914f0922ce4abdb5d5a7253ba82889",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:46:StringSplit(const std::string_view& a_view, const std::string_view& a_delim)": {
+    "sha256": "6b8332d8164c73c4bb6274fa3f389a9c10c8d65f5826f0c1ad087f0bb2ac397a",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:49:(auto&& subrange)": {
+    "sha256": "f1f825b5d18bf4778743c02bd4da1da261c82f702e8259b0a4589acdcb30f4af",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:58:(auto&& word)": {
+    "sha256": "c77deb648d6c7e343a26bfea79395ca7043826ca1da14bc4ccf0736b28f71068",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:62:StringSplitToOwned(const std::string_view& a_view, const std::string_view& a_delim)": {
+    "sha256": "14381b1c331c1ecb5ddcaa39c82345ba51d2f61264bd358742f168f519e021b8",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:69:StringJoin(const std::vector<T>& a_vec, std::string_view a_delimiter)": {
+    "sha256": "bb5f59288bff3307549de9f19327742bc8bc9320956c73fd14f37b16aa891550",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:83:IsNumericString(const std::string& a_str)": {
+    "sha256": "7ea48aa707138c5caa867375ef7923ef2b24868eef6ab22797f7dd87faa155e1",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:89:FilterByPrefix(std::vector<std::string> a_strs, const std::string& a_prefix)": {
+    "sha256": "f6a56a391f07d9ef958ebc50104cc70058043cf3c86600290b6753b35fabf848",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:91:(std::string& a_str)": {
+    "sha256": "8c047381563760a8cb4a4e2e968d1ac0f764f6a0b3d215d8a27bdbe4b90b50bc",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Util/StringUtil.h:95:Replace(std::string str, const std::string& substr1, const std::string& substr2)": {
+    "sha256": "37d26f53f771ddea08dfb452e96000079d7f472dfbda60f579109434c9360e8e",
+    "status": "source_reviewed",
+    "checks": "检查空输入、字符串视图生命周期、字符大小写 unsigned 转换、替换推进；借用视图要求源存活。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
+  },
+  "src/Registry/Library_SaveLoad.cpp:548:Library::SaveExpressions() const noexcept": {
+    "sha256": "fa87399b85e8e7e9051888b5e3af8f92462ae9b6f91321bbc68865809f8584d6",
+    "status": "source_reviewed",
+    "checks": "SaveExpressions按profile隔离Save异常；unsafe已载入profile保留dirty并记录错误，不阻断其他profile。实际批量函数替身覆盖坏profile在前、好profile在后；底层队列规则保留。",
+    "validation": "see round-report.md; targeted stand-ins/source review only",
+    "call_chain_closed": false
+  },
+  "src/Registry/Library_SaveLoad.cpp:572:Library::SaveVoices() const": {
+    "sha256": "98a09bccac05f036f4e879d7cdfa887aff81dee1455872ded250cf754adc515b",
+    "status": "source_reviewed",
+    "checks": "核查并行初始化、异常隔离、保存 snapshot/版本 receipt；Library 保存与编辑锁链已读，真实 YAML/文件加载未执行。",
+    "validation": "not_claimed_for_entire_function",
+    "call_chain_closed": false
   }
 }

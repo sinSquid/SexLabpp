@@ -131,7 +131,7 @@
     ]
   },
   "src/Registry/Library_SaveLoad.cpp": {
-    "sha256": "cec0ee92c8a212252f56e060e666d6545f8ff4924da6cd64599a0285d0c2f03f",
+    "sha256": "999de8bb1d8276e00d6e25b897ac459382e1c804b395b46b3ecbfe2e93bfdf6a",
     "diagnostics": [
       {
         "line": 25,
@@ -148,7 +148,7 @@
     ],
     "expected_definition_entries": 23,
     "omitted_definitions": [],
-    "conclusion": "MSVC成员函数指针调用 (this->*initialize) 三处；Initialize与启动worker lambda已完整提取，其他加载/保存定义未漏。",
+    "conclusion": "MSVC成员函数指针调用 (this->*initialize) 三处；Initialize与启动worker lambda已完整提取，其他加载/保存定义未漏。 新轮修改SaveScenes/SaveExpressions内部控制流，23定义仍全提取，三MSVC成员函数指针诊断位置/内容未变。",
     "reviewed_date": "2026-10-05",
     "definitions": [
       {
@@ -273,19 +273,19 @@
       },
       {
         "start": 517,
-        "end": 538,
+        "end": 546,
         "name": "Library::SaveScenes() const noexcept",
-        "sha256": "946941948e0a01446af2b20661d99a8421961239f7e0a5d463ffecb21a268225"
+        "sha256": "ab5c673091c54c4dadd79472a56b7045e010f7adf55118a9e68546f1093bbd53"
       },
       {
-        "start": 540,
-        "end": 557,
+        "start": 548,
+        "end": 570,
         "name": "Library::SaveExpressions() const noexcept",
-        "sha256": "5c4e827719a6963f872939b57ecd2d826d829dd88ce820f3e2c55d48be04b38f"
+        "sha256": "fa87399b85e8e7e9051888b5e3af8f92462ae9b6f91321bbc68865809f8584d6"
       },
       {
-        "start": 559,
-        "end": 587,
+        "start": 572,
+        "end": 600,
         "name": "Library::SaveVoices() const",
         "sha256": "98a09bccac05f036f4e879d7cdfa887aff81dee1455872ded250cf754adc515b"
       }

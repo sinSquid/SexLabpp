@@ -40,3 +40,8 @@ wrapper：`clang++ -fsanitize=address,undefined -fno-omit-frame-pointer`，其�
 ## 定点处理补充
 
 `closure-portable.log`：完整tests/run.py退出0。随后native入口世代获取位置调整另运行world_revert.py退出0，见`closure-world.log`。`closure-asan-controller.log`、`closure-asan-foot-ik.log`、`closure-asan-world.log`为实际函数/分派片段加引擎替身的ASan+UBSan回归，无检测错误；不表示真实ABI、VM、游戏或完整DLL认证。
+
+
+## 44ae5487之后的新轮
+
+`round-portable.log`为当前完整便携回归；`round-targeted.log`为最新测试辅助调整后的新增用例；`round-asan.log`和`round-asan-motion.log`为针对性ASan+UBSan。`round-baseline-{finalize,profile,scene,script,motion}.log`是相同实际源码测试对基线执行的预期行为失败。基线复现在修复后补跑，不是编辑前全部先复现。完整DLL/PEX、真实ABI/VM/游戏未验证；导入finite guard仅人工源码证据。

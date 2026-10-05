@@ -12,7 +12,8 @@ support=next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.As
 support=support[:support.index('struct NodeData {')]
 support=support.replace('SEGMENT_DEFINITION',function(production('src/Thread/NiNode/NiMath.h'),'struct Segment :')+';')
 support=support.replace('Vec operator-(Vec b)const', 'Vec operator/(float s)const{return *this*(1/s);}\n Vec operator-(Vec b)const')
-support=support.replace('Vec GetVectorY()const', 'Vec GetVectorX()const{return {1,0,0};}\n Vec GetVectorZ()const{return {0,0,1};}\n Vec GetVectorY()const')
+support=support.replace('Vec GetVectorY()const', 'Vec GetVectorX()const{return (*this)[0];}\n Vec GetVectorZ()const{return (*this)[2];}\n Vec GetVectorY()const')
+support=support.replace('Vec GetVectorY()const{return {0,1,0};}', 'Vec GetVectorY()const{return (*this)[1];}')
 support+='''
 #include <bitset>
 #include <functional>
@@ -57,8 +58,12 @@ int main(){
  d=motion.DescribeMotion(NiMotion::pHead);assert(d.totalDistance==3&&d.duration==3&&d.avgSpeed==1);
  int visited=0;motion.ForEachMoment(NiMotion::pHead,[&](Vec p,float){assert(p.x>=100);++visited;return false;});assert(visited==4);
  nodes.head->world.translate.x=std::numeric_limits<float>::quiet_NaN();motion.Push(nodes,9);
- assert(!motion.HasMomentData(NiMotion::pHead));assert(motion.DescribeMotion(NiMotion::pHead).totalDistance==0);
+ assert(!motion.HasMomentData(NiMotion::pHead));assert(!motion.HasMomentData(NiMotion::pThroat)&&!motion.HasMomentData(NiMotion::pMouth));assert(motion.DescribeMotion(NiMotion::pHead).totalDistance==0);
  nodes.head->world.translate={};motion.Push(nodes,std::numeric_limits<float>::infinity());assert(!motion.HasMomentData(NiMotion::pHead));
+ nodes.head->world.translate={};nodes.head->world.rotate.entry[0][2]=std::numeric_limits<float>::quiet_NaN();motion.Push(nodes,10);
+ assert(motion.HasMomentData(NiMotion::pHead)&&!motion.HasMomentData(NiMotion::pThroat)&&!motion.HasMomentData(NiMotion::pMouth));
+ nodes.head->world.rotate=Mat{};nodes.head->world.rotate.entry[0][1]=std::numeric_limits<float>::quiet_NaN();motion.Push(nodes,11);
+ assert(motion.HasMomentData(NiMotion::pThroat)&&!motion.HasMomentData(NiMotion::pMouth));nodes.head->world.rotate=Mat{};
  // Ring overwrite drops the gap and returns to the allocation-free full-window PCA path.
  for(int i=0;i<8;++i){nodes.head->world.translate={float(i),0,0};motion.Push(nodes,float(i));}
  d=motion.DescribeMotion(NiMotion::pHead);assert(d.totalDistance==5&&d.duration==5&&d.avgSpeed==1);

@@ -1,4 +1,6 @@
 #include "Expression.h"
+
+#include "Util/StringUtil.h"
 #include "Util/SaveQueue.h"
 
 namespace Registry
@@ -41,6 +43,8 @@ namespace Registry
                     const auto err = std::format("{}: Invalid data field: {}/32 values found at {}.", id, values.size(), i);
                     throw std::runtime_error(err);
                 }
+                if (!std::ranges::all_of(values, [](float value) { return std::isfinite(value); }))
+                    throw std::runtime_error("Non-finite expression values");
                 auto& it = data[i].emplace_back();
                 std::copy_n(values.begin(), it.size(), it.begin());
             }
@@ -74,6 +78,8 @@ namespace Registry
                     const auto err = std::format("Invalid value field: expected 32 values, found {} in field {}", values.size(), fieldname);
                     throw std::runtime_error(err);
                 }
+                if (!std::ranges::all_of(values, [](float value) { return std::isfinite(value); }))
+                    throw std::runtime_error("Non-finite legacy expression values");
                 auto& it = expression.data[sex].emplace_back();
                 std::copy_n(values.begin(), it.size(), it.begin());
             }
@@ -268,6 +274,9 @@ namespace Registry
     {
         if (!has_edits && !force)
             return;
+        if (id.empty() || !Util::IsSafeFileStem(id.c_str()))
+            throw std::invalid_argument("Expression ID cannot be used as a file name");
+        const auto path = fs::path{ a_fileLocation } / std::format("{}.yaml", id);
         if (force)
             has_edits = true;
         YAML::Node file;
@@ -287,7 +296,7 @@ namespace Registry
             }
         }
         file["enabled"] = enabled;
-        Util::SaveQueue::Get().Submit(std::format("{}\\{}.yaml", a_fileLocation, id), YAML::Dump(file), has_edits.Receipt());
+        Util::SaveQueue::Get().Submit(path, YAML::Dump(file), has_edits.Receipt());
     }
 
     void Expression::UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values)
@@ -295,6 +304,10 @@ namespace Registry
         // Preserve legacy profiles with many levels and ignore extra values as before.
         if (a_level < 0 || (version >= 1 && a_level > 1) || a_values.size() < Total) {
             logger::error("Invalid expression update for {}: level {}, {} values", id, a_level, a_values.size());
+            return;
+        }
+        if (!std::all_of(a_values.begin(), a_values.begin() + Total, [](float value) { return std::isfinite(value); })) {
+            logger::error("Non-finite expression update for {}", id);
             return;
         }
         auto& dataEntry = data[a_female];

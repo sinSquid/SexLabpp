@@ -184,9 +184,9 @@
       "note": "本轮读取完整源码本体并核查边界/消费者线索；未据此宣称整文件调用链闭环或全部行为通过。"
     },
     "src/Registry/Library.cpp": {
-      "sha256": "78405958edc65971fad5c4b49366ac11cedb722ab024447379756cfd1db25aa7",
+      "sha256": "f179ae3b6471d216db910001700e7c1a0ff38e8fa1c492ae16941fed33041eb3",
       "status": "body_read_contracts_open",
-      "note": "本轮读取完整源码本体并核查边界/消费者线索；未据此宣称整文件调用链闭环或全部行为通过。"
+      "note": "累计已读本体，本次仅改动段/相关消费者补核；不是新一轮每个函数全部重读。详情round-report.md及round-renumbering.json。"
     },
     "src/Registry/Library.h": {
       "sha256": "5a65425b5acc7d1b4483e174cf21ca36d1b287bf2fa4911a2852ff81a9fc1e7a",
@@ -194,9 +194,9 @@
       "note": "默认BedRoll的180度误作弧度已修复，实际默认初始化/Coordinate回归通过；Library其余状态及并发契约未关闭。"
     },
     "src/Registry/Define/Expression.cpp": {
-      "sha256": "01478e93eb292cda2c80d5ac47a1cd37d57860a4284d92197be6616dc68c4913",
+      "sha256": "17ea53768d25e268edb2bca2fadb2e47ac24331653f5365332bf3575e6c9c707",
       "status": "body_read_contracts_open",
-      "note": "本轮读取完整源码本体并核查边界/消费者线索；未据此宣称整文件调用链闭环或全部行为通过。"
+      "note": "累计已读本体，本次仅改动段/相关消费者补核；不是新一轮每个函数全部重读。详情round-report.md及round-renumbering.json。"
     },
     "src/Registry/Define/Expression.h": {
       "sha256": "20bf19f82fc224111b8e335894469847ccfcd9f4475fbb61e266b38737827a95",
@@ -259,9 +259,9 @@
       "note": "本轮读取完整源码本体并核查边界/消费者线索；未据此宣称整文件调用链闭环或全部行为通过。"
     },
     "src/Util/StringUtil.h": {
-      "sha256": "ca4ad6b2e2c57a2dfbd45d9317b3ce19d4a5e91d724e666e8f11e1ab5cdefc57",
+      "sha256": "b90ade03f87e2aed62ae6ff8f5c847a2b2f7110a579c50c0bf8ea491ef01dda5",
       "status": "body_read_contracts_open",
-      "note": "本轮读取完整源码本体并核查边界/消费者线索；未据此宣称整文件调用链闭环或全部行为通过。"
+      "note": "累计已读本体，本次仅改动段/相关消费者补核；不是新一轮每个函数全部重读。详情round-report.md及round-renumbering.json。"
     },
     "src/Papyrus/SexLabRegistry.cpp": {
       "sha256": "d0fad08b6c1c198c345d13e74fc628d964aa425fdb6c6573d1cf5fc788346b29",
@@ -284,9 +284,9 @@
       "note": "本轮读取完整源码本体并核查边界/消费者线索；未据此宣称整文件调用链闭环或全部行为通过。"
     },
     "src/Thread/ThreadCtor.cpp": {
-      "sha256": "a8717b5a041de0f77f6bffe122ce1ad016d53936e07ec6d8c418cd8c48d5f1c4",
+      "sha256": "05bd3740a2a9648d9c355d222c382414463e15c67a44928c16752709075e5149",
       "status": "body_read_contracts_open",
-      "note": "既有已读本体保留；本次改动段及相关调用方定点复核。逐函数差异记录见decisions.json/closure-renumbering.json；不是整文件全链验证。"
+      "note": "累计已读本体，本次仅改动段/相关消费者补核；不是新一轮每个函数全部重读。详情round-report.md及round-renumbering.json。"
     },
     "src/Registry/Define/Animation.cpp": {
       "sha256": "b2e9dc4e930f0ce2e9f5edba11926f0f88019b5e6e2ed6ee99d59fb7fec7e585",
@@ -699,9 +699,9 @@
       "note": "本輪完整本体重读；节点/PCA/ring buffer/descriptor/识别调用方向及锁消费核查。FakeSchlong未实例化，不能把其owner引用假设称为已发生缺陷；NiPosition注释旧代码失活。"
     },
     "src/Thread/NiNode/NiMotion.cpp": {
-      "sha256": "07a5f09dfd68ef5a466cec49586e98c4310860b475cc47f5b3209ba125dbb00b",
+      "sha256": "7ce556e53ab1c5e4f6ee774c11b711b09cdbd860f3354de7b0977ca610d3b3e7",
       "status": "body_read_contracts_open",
-      "note": "本輪完整本体重读；节点/PCA/ring buffer/descriptor/识别调用方向及锁消费核查。FakeSchlong未实例化，不能把其owner引用假设称为已发生缺陷；NiPosition注释旧代码失活。 本体修改已回读，对应边界/状态/所有权修复证据见本轮NEW条目；整文件全链验证未宣称。"
+      "note": "累计已读本体，本次仅改动段/相关消费者补核；不是新一轮每个函数全部重读。详情round-report.md及round-renumbering.json。"
     },
     "src/Thread/NiNode/NiMotion.h": {
       "sha256": "d7b7559e8feea4880d0f9eac0e7fb95a6047d22d876306a808d34d12e4752e6b",
@@ -804,9 +804,9 @@
       "note": "本轮完整本体重读；核查UI索引/尺寸、旧识别缺失节点、线程构造/阶段/清理/计时、加载保存锁与失败隔离。引擎ABI/调度、共享图锁、跨存档仍未验证，非全链已闭环。"
     },
     "src/Registry/Library_SaveLoad.cpp": {
-      "sha256": "cec0ee92c8a212252f56e060e666d6545f8ff4924da6cd64599a0285d0c2f03f",
+      "sha256": "999de8bb1d8276e00d6e25b897ac459382e1c804b395b46b3ecbfe2e93bfdf6a",
       "status": "body_read_contracts_open",
-      "note": "本轮完整本体重读；核查UI索引/尺寸、旧识别缺失节点、线程构造/阶段/清理/计时、加载保存锁与失败隔离。引擎ABI/调度、共享图锁、跨存档仍未验证，非全链已闭环。"
+      "note": "累计已读本体，本次仅改动段/相关消费者补核；不是新一轮每个函数全部重读。详情round-report.md及round-renumbering.json。"
     },
     "src/Thread/Interface/Elements/EnjBarsOverlay.cpp": {
       "sha256": "1e989bb612d319cdf84c39fc18dc5ce69dc62d3c87cd9ffc7a007827a2d34ffd",
@@ -1044,9 +1044,9 @@
       "note": "本轮完整有效源码重读（注释剥离保留行号）；核查native声明、legacy兼容stub、数组入口与消费者、循环进展及状态/初始化。VM并发/latent/外部插件语义保留未验证。"
     },
     "dist/Source/Scripts/sslBaseExpression.psc": {
-      "sha256": "27b1d6038228c4c5c448d8a4d9db9b90b1c89e663b46e64a02adaea565535064",
+      "sha256": "edfaced366028a934920798d50bd0a9812f9978333c31399c9b9018564359f15",
       "status": "body_read_contracts_open",
-      "note": "本轮完整有效源码重读（注释剥离保留行号）；核查native声明、legacy兼容stub、数组入口与消费者、循环进展及状态/初始化。VM并发/latent/外部插件语义保留未验证。 本体修改已回读，对应边界/状态/所有权修复证据见本轮NEW条目；整文件全链验证未宣称。"
+      "note": "累计已读本体，本次仅改动段/相关消费者补核；不是新一轮每个函数全部重读。详情round-report.md及round-renumbering.json。"
     },
     "dist/Source/Scripts/sslActorLibrary.psc": {
       "sha256": "f649848143a5e5edaf7df9f280524bbf20048bb646777784d150f17125e92a61",
@@ -1293,6 +1293,36 @@
       "status": "fixed_local_regression_passed",
       "summary": "Controller四原始持久控制位按共享/替换controller所有权保存和恢复，保留无关位",
       "evidence": "tests/collision_controller_restore.py；实际源码/片段加有限引擎替身，不证明ABI和游戏调度。"
+    },
+    {
+      "id": "NEW-33",
+      "status": "fixed_local_validation_with_limits",
+      "summary": "家具选择finalization移除detached worker，game task内过滤跨世界任务和缺失request",
+      "evidence": "tests/round_eighth_regressions.py；没有完整DLL/PEX/VM证明。"
+    },
+    {
+      "id": "NEW-34",
+      "status": "fixed_local_validation_with_limits",
+      "summary": "表情创建/保存及场景name/hash导出路径检查，单坏表情保存隔离",
+      "evidence": "tests/round_eighth_regressions.py；没有完整DLL/PEX/VM证明。"
+    },
+    {
+      "id": "NEW-35",
+      "status": "fixed_local_validation_with_limits",
+      "summary": "表情导入与编辑非finite值拒绝",
+      "evidence": "实际UpdateValues回归；import路径为源码检查；没有完整DLL/PEX/VM证明。"
+    },
+    {
+      "id": "NEW-36",
+      "status": "fixed_local_validation_with_limits",
+      "summary": "Papyrus表情ID不同但强度相同时正确更新，no-op省写、native读取3-4→2次，短数组/None保护",
+      "evidence": "有限Papyrus翻译；没有完整DLL/PEX/VM证明。"
+    },
+    {
+      "id": "NEW-37",
+      "status": "fixed_local_validation_with_limits",
+      "summary": "Motion的throat/mouth presence由上游有效anchor决定，防止零占位误采样",
+      "evidence": "tests/motion_presence.py；没有完整DLL/PEX/VM证明。"
     }
   ],
   "scope_correction": "Previous production inventory omitted dist/Interface/Translations/translate.py. Tests, CI and audit tooling are separate auxiliary source scope. Third-party implementation excluded with explicit interface review.",
@@ -1304,10 +1334,10 @@
     "Revert已取消实例并清Ni、Actor准备记录和UI；旧世代排队创建/selection/撤销任务已过滤。已开始执行VM/native调用与Revert是否互斥，真实SKSE加载暂停契约未证实。",
     "Ending game-time超时、菜单暂停和死亡/essential恢复事件时序需真实VM验证。",
     "辅助源码/CI/审查工具当前59文件列入范围与语法检查；不冒称全部辅助实现人工逐函数验证。",
-    "源码阅读台账包含本次29条差异结论；source_reviewed不代表全调用链证明，见closure-renumbering.json。"
+    "当前累计4924条源码阅读结论；本次16差异条目逐项检查、110同本体阅读记录迁移，证据round-renumbering.json；不是本轮4924函数重新人工审查或完整调用链证明。"
   ],
   "validation": {
-    "portable": "validation/closure-portable.log",
+    "portable": "validation/round-portable.log",
     "asan": [
       "validation/full-scan-asan-actor_query_boundaries.log",
       "validation/full-scan-asan-collision-physics.log",
@@ -1325,25 +1355,41 @@
       "validation/full-scan-asan-ui-voice.log",
       "validation/closure-asan-controller.log",
       "validation/closure-asan-foot-ik.log",
-      "validation/closure-asan-world.log"
+      "validation/closure-asan-world.log",
+      "validation/round-asan.log",
+      "validation/round-asan-motion.log"
     ],
     "limit": "真实DLL/MSVC/Papyrus/VM/游戏未验证；body_read不是全链验证。",
     "portable_exit_code": 0,
     "baseline_expected_failure": [
       "validation/full-scan-baseline-motion.log",
-      "validation/full-scan-baseline-preparation.log"
+      "validation/full-scan-baseline-preparation.log",
+      "validation/round-baseline-finalize.log",
+      "validation/round-baseline-profile.log",
+      "validation/round-baseline-scene.log",
+      "validation/round-baseline-script.log",
+      "validation/round-baseline-motion.log"
     ],
-    "final_consistency": "222个生产文件阅读指纹匹配；4920条source_reviewed/pending=0且call_chain_closed=false；11解析诊断文件对账；范围222生产/59辅助无遗漏和语法错误；完整portable退出0，最后native入口世代捕获位置调整另经world测试通过；targeted sanitizer无错误。"
+    "final_consistency": "新轮222文件结构扫描、287native名称/参数数对账；累计阅读台账4924条含110不变记录迁移和16差异检查。完整portable及针对性sanitizer通过；不声明本轮新鲜人工重读所有函数或问题穷尽。"
   },
   "partial_body_read_ranges": {},
   "function_records": {
-    "total": 4920,
-    "source_reviewed": 4920,
+    "total": 4924,
+    "source_reviewed": 4924,
     "pending": 0,
     "unchanged_name_and_body_records_relocated": 1226,
     "changed_or_new_individually_recorded": 88,
     "limitation": "source_reviewed=已阅读并登记检查，不表示每条完整调用链闭环；见decisions.json逐项验证边界及decision-renumbering.json复用证据。",
     "closure_unchanged_records_relocated": 218,
-    "closure_changed_or_new_individually_recorded": 29
+    "closure_changed_or_new_individually_recorded": 29,
+    "round_relocated_unchanged": 110,
+    "round_changed_individually_recorded": 16
+  },
+  "latest_round": {
+    "baseline": "44ae5487",
+    "structural_scan_production_files": 222,
+    "native_wiring_names_and_arity": 287,
+    "manual_fresh_reread_all_functions": false,
+    "report": "round-report.md"
   }
 }

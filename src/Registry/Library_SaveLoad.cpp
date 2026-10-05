@@ -522,12 +522,20 @@ namespace Registry
                 std::shared_lock lock{ _mScenes };
                 snapshots.reserve(packages.size());
                 for (const auto& package : packages) {
+                    const auto packageName = package->GetName();
+                    const auto packageHash = package->GetHash();
+                    const auto filename = std::format("{}_{}.yaml", packageName.data(), packageHash);
+                    if (!Util::IsSafeFileStem(filename)) {
+                        logger::error("Cannot export settings for a package with an invalid file stem");
+                        continue;
+                    }
                     YAML::Node data;
                     for (const auto& scene : package->scenes) {
                         auto node = data[scene->id];
                         scene->Save(node);
                     }
-                    snapshots.emplace_back(std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, package->GetName().data(), package->GetHash()), std::move(data));
+                    const auto path = fs::path{ SCENE_USER_CONFIG } / filename;
+                    snapshots.emplace_back(path.string(), std::move(data));
                 }
             }
             for (const auto& [path, data] : snapshots)
@@ -549,8 +557,13 @@ namespace Registry
             }
             // Snapshots share the acknowledgement for their edit version only.
             // Successful writes acknowledge that version; failures remain dirty.
-            for (const auto& expression : snapshots)
-                expression.Save(EXPRESSION_PATH, false);
+            for (const auto& expression : snapshots) {
+                try {
+                    expression.Save(EXPRESSION_PATH, false);
+                } catch (const std::exception& error) {
+                    logger::error("Unable to save expression {}: {}", expression.GetId(), error.what());
+                }
+            }
         } catch (const std::exception& e) {
             logger::error("Unable to snapshot expressions: {}", e.what());
         }

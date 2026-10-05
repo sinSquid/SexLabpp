@@ -177,8 +177,8 @@
     },
     {
       "path": "dist/Source/Scripts/sslBaseExpression.psc",
-      "sha256": "27b1d6038228c4c5c448d8a4d9db9b90b1c89e663b46e64a02adaea565535064",
-      "lines": 521,
+      "sha256": "edfaced366028a934920798d50bd0a9812f9978333c31399c9b9018564359f15",
+      "lines": 524,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -474,8 +474,18 @@
     },
     {
       "path": "docs/logic-audit/build_inventory.py",
-      "sha256": "618286508ed3c4ee4659665e1a8e9ea0f048474cb79f4334fc8df7bda1db3c4f",
+      "sha256": "ed11fa3be416d96a50e0d4470fc01c64277d6c66d6989b4562d26a53cadefdfd",
       "lines": 152,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
+      "path": "docs/logic-audit/round_scan.py",
+      "sha256": "52534a8950226caebd0d7a73115670a6e1dbdc5a15f20e110859ff69a9d79059",
+      "lines": 94,
       "scope": "auxiliary",
       "evidence": [
         "file_enumerated_and_hashed",
@@ -842,8 +852,8 @@
     },
     {
       "path": "src/Registry/Define/Expression.cpp",
-      "sha256": "01478e93eb292cda2c80d5ac47a1cd37d57860a4284d92197be6616dc68c4913",
-      "lines": 326,
+      "sha256": "17ea53768d25e268edb2bca2fadb2e47ac24331653f5365332bf3575e6c9c707",
+      "lines": 339,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -986,8 +996,8 @@
     },
     {
       "path": "src/Registry/Library.cpp",
-      "sha256": "78405958edc65971fad5c4b49366ac11cedb722ab024447379756cfd1db25aa7",
-      "lines": 654,
+      "sha256": "f179ae3b6471d216db910001700e7c1a0ff38e8fa1c492ae16941fed33041eb3",
+      "lines": 659,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1004,8 +1014,8 @@
     },
     {
       "path": "src/Registry/Library_SaveLoad.cpp",
-      "sha256": "cec0ee92c8a212252f56e060e666d6545f8ff4924da6cd64599a0285d0c2f03f",
-      "lines": 589,
+      "sha256": "999de8bb1d8276e00d6e25b897ac459382e1c804b395b46b3ecbfe2e93bfdf6a",
+      "lines": 602,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1562,8 +1572,8 @@
     },
     {
       "path": "src/Thread/NiNode/NiMotion.cpp",
-      "sha256": "07a5f09dfd68ef5a466cec49586e98c4310860b475cc47f5b3209ba125dbb00b",
-      "lines": 250,
+      "sha256": "7ce556e53ab1c5e4f6ee774c11b711b09cdbd860f3354de7b0977ca610d3b3e7",
+      "lines": 252,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1670,8 +1680,8 @@
     },
     {
       "path": "src/Thread/ThreadCtor.cpp",
-      "sha256": "a8717b5a041de0f77f6bffe122ce1ad016d53936e07ec6d8c418cd8c48d5f1c4",
-      "lines": 457,
+      "sha256": "05bd3740a2a9648d9c355d222c382414463e15c67a44928c16752709075e5149",
+      "lines": 460,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -1895,8 +1905,8 @@
     },
     {
       "path": "src/Util/StringUtil.h",
-      "sha256": "ca4ad6b2e2c57a2dfbd45d9317b3ce19d4a5e91d724e666e8f11e1ab5cdefc57",
-      "lines": 89,
+      "sha256": "b90ade03f87e2aed62ae6ff8f5c847a2b2f7110a579c50c0bf8ea491ef01dda5",
+      "lines": 102,
       "scope": "production",
       "evidence": [
         "file_enumerated_and_hashed"
@@ -2179,8 +2189,8 @@
     },
     {
       "path": "tests/full_sixth_scripts.py",
-      "sha256": "52069fd6d5cb807ec4e7c1630977f4311a70873a220feca32d06b23bf3a91b34",
-      "lines": 234,
+      "sha256": "bc426767815a7d78ec0256eedd7663fbe73c9b95a657d4681eafbd5d35724b83",
+      "lines": 236,
       "scope": "auxiliary",
       "evidence": [
         "file_enumerated_and_hashed",
@@ -2259,8 +2269,8 @@
     },
     {
       "path": "tests/motion_presence.py",
-      "sha256": "7b511311629086b1be33f417fd8c84d92e964cf707a2944cc4364379c17fb6ee",
-      "lines": 69,
+      "sha256": "f7641d8901d98665cde63833f3535bc780d97335ca65af373a51b2b4d5bba25c",
+      "lines": 74,
       "scope": "auxiliary",
       "evidence": [
         "file_enumerated_and_hashed",
@@ -2336,8 +2346,18 @@
       ]
     },
     {
+      "path": "tests/round_eighth_regressions.py",
+      "sha256": "453bcdeb93d5ec8c6cbc4c2fd17128317987a3c6be62fa998d6427cd5eb1628b",
+      "lines": 194,
+      "scope": "auxiliary",
+      "evidence": [
+        "file_enumerated_and_hashed",
+        "python_ast_parsed"
+      ]
+    },
+    {
       "path": "tests/run.py",
-      "sha256": "3fe7dbbbe4d9d135faf2d85eb0da607ca16f7bbce209df6347d4b0ba19950835",
+      "sha256": "c07a7c8fa16dba5cb1e8ab06ad45310b017f7ba465f7146ca7e7059d3773d2db",
       "lines": 15,
       "scope": "auxiliary",
       "evidence": [

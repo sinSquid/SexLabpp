@@ -39,8 +39,10 @@ namespace Thread::NiNode
                 _headBounds[idx] = *opt;
                 const auto down = _headBounds[idx].boundMin.z * 0.17f;
                 const auto forward = _headBounds[idx].boundMax.y * 0.88f;
-                store(Anchor::pThroat, (_moments[Anchor::vHeadZ][idx] * down) + _moments[Anchor::pHead][idx]);
-                store(Anchor::pMouth, (_moments[Anchor::vHeadY][idx] * forward) + _moments[Anchor::pThroat][idx]);
+                if (_present[idx].test(Anchor::vHeadZ) && _present[idx].test(Anchor::pHead))
+                    store(Anchor::pThroat, (_moments[Anchor::vHeadZ][idx] * down) + _moments[Anchor::pHead][idx]);
+                if (_present[idx].test(Anchor::vHeadY) && _present[idx].test(Anchor::pThroat))
+                    store(Anchor::pMouth, (_moments[Anchor::vHeadY][idx] * forward) + _moments[Anchor::pThroat][idx]);
             } else {
                 _headBounds[idx] = ObjectBound{};
                 logger::warn("Failed to get head bounding box");

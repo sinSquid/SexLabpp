@@ -1,6 +1,7 @@
 #include "Library.h"
 
 #include "Define/RaceKey.h"
+#include "Util/StringUtil.h"
 
 namespace Registry
 {
@@ -540,6 +541,10 @@ namespace Registry
     bool Library::CreateExpression(const RE::BSFixedString& a_id)
     {
         std::unique_lock lock{ _mExpressions };
+        if (a_id.empty() || !Util::IsSafeFileStem(a_id.c_str())) {
+            logger::error("Expression ID cannot be used as a file name");
+            return false;
+        }
         if (expressions.contains(a_id)) {
             logger::error("Expression {} has already been initialized", a_id);
             return false;

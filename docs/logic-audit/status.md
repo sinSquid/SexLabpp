@@ -2,11 +2,11 @@
 
 **本体覆盖与逐函数审查结论分别统计；全调用链闭环尚未完成。**
 
-生产文件：222；源码行：58891；已提取函数/事件/声明条目：4920。
+生产文件：222；源码行：58943；已提取函数/事件/声明条目：4924。
 
-当前指纹匹配的本轮完整本体读取：222/222 文件；4920/4920 提取条目在已读本体内（由文件记录派生，非逐函数验证）。
+当前指纹匹配的累计本体阅读记录（含差异补核）：222/222 文件；4924/4924 提取条目在已读本体内（由文件记录派生，非逐函数验证）。
 
-逐函数结论台账状态（旧记录不代表本轮全链验证）：source_reviewed=4920。
+逐函数结论台账状态（旧记录不代表本轮全链验证）：source_reviewed=4924。
 
 解析诊断文件已人工对账：11/11（按文件及定义指纹校验）。详见 parser-reconciliation.json。
 
@@ -102,7 +102,7 @@
 | src/Papyrus/sslThreadModel.h | 2 | 2 | 0 | 0 |
 | src/Registry/Define/Animation.cpp | 62 | 62 | 0 | 0 |
 | src/Registry/Define/Animation.h | 13 | 13 | 0 | 0 |
-| src/Registry/Define/Expression.cpp | 11 | 11 | 0 | 0 |
+| src/Registry/Define/Expression.cpp | 14 | 14 | 0 | 0 |
 | src/Registry/Define/Expression.h | 6 | 6 | 0 | 0 |
 | src/Registry/Define/Fragment.cpp | 12 | 12 | 0 | 0 |
 | src/Registry/Define/Fragment.h | 15 | 15 | 0 | 0 |
@@ -219,7 +219,7 @@
 | src/Util/Script.h | 9 | 9 | 0 | 0 |
 | src/Util/SharedSnapshot.h | 3 | 3 | 0 | 1 |
 | src/Util/Singleton.h | 7 | 7 | 0 | 0 |
-| src/Util/StringUtil.h | 13 | 13 | 0 | 0 |
+| src/Util/StringUtil.h | 14 | 14 | 0 | 0 |
 | src/Util/World.h | 1 | 1 | 0 | 0 |
 | src/main.cpp | 6 | 6 | 0 | 0 |
 | xmake.lua | 12 | 12 | 0 | 0 |

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/sin/code/mine/SexLabpp/tests/round_eighth_regressions.py", line 191, in <module>
+    assert actor.moods==([(target_id,int(target_strength*100))] if changed else [])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

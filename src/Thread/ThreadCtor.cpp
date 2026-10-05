@@ -402,15 +402,18 @@ namespace Thread
 
     void Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, int32_t a_request)
     {
-        auto finalize = [a_linkedQst, a_request]() {
+        const auto generation = GetWorldGeneration();
+        auto finalize = [a_linkedQst, a_request, generation]() {
             std::shared_ptr<Instance> instance{};
             {
                 std::unique_lock lock{ _mInstances };
+                if (GetWorldGeneration() != generation)
+                    return;
                 const auto it = std::ranges::find_if(pendingInstances, [a_linkedQst, a_request](const auto& i) {
                     return i->linkedQst == a_linkedQst && i->IsStartupRequest(a_request);
                 });
                 if (it == pendingInstances.end()) {
-                    logger::error("FinalizeCenterRefSelection: no pending instance found for TESQuest {:X}.", a_linkedQst->formID);
+                    logger::error("FinalizeCenterRefSelection: no pending instance found for request {}.", a_request);
                     return;
                 }
                 instance = std::move(*it);
@@ -441,7 +444,7 @@ namespace Thread
             }
         };
         try {
-            std::thread(std::move(finalize)).detach();
+            SKSE::GetTaskInterface()->AddTask(std::move(finalize));
         } catch (const std::exception& error) {
             {
                 std::unique_lock lock{ _mInstances };
@@ -449,7 +452,7 @@ namespace Thread
                     return instance->linkedQst == a_linkedQst && instance->startupRequest == a_request;
                 });
             }
-            logger::error("Unable to start center selection worker: {}", error.what());
+            logger::error("Unable to queue center selection completion: {}", error.what());
             DispatchContinueSetup(a_linkedQst, false, a_request);
         }
     }

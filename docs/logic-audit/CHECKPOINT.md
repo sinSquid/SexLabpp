@@ -1,16 +1,16 @@
-# 全量本体阅读及剩余疑点定点处理完成；外部契约待验收
+# 最新轮：全量结构扫描及五组修复完成，外部契约待验收
 
-更新时间：2026-10-05。仓库 `/Users/sin/code/mine/SexLabpp`，HEAD/master `36e6ff76e3f5d3a28aa34c48962240f3a50ac678`。
+日期：2026-10-05。仓库 `/Users/sin/code/mine/SexLabpp`；本轮基线/HEAD `44ae5487`，master。
 
-- 222个生产文件本体已读，后续改动段补核；当前58,891行、4,920条源码阅读结论，pending=0，call_chain_closed仍false。
-- 累计32组修复。本次新增Foot IK原值与共享owner/锁序、Revert跨存档清理与任务世代、controller四持久控制位原值恢复。详见[closure-report.md](closure-report.md)。
-- 218同名同本体记录迁移、29新/改条目分别登记，证据closure-renumbering.json；11解析诊断文件已对账。枚举/阅读标志不是全链验证。
-- 当前完整portable退出0；最后native世代捕获位置调整另经world测试通过；三组针对性ASan+UBSan通过，diff/scope检查通过。
-- 瞬时controller支撑/状态机、引擎内部锁、私有Foot IK ABI、已执行VM调用与Revert互斥、UI框架线程和Ending真实事件时序仍缺外部契约。逐项实机步骤已记录，不再泛称“继续观察”。
-- 59个辅助源/CI/审查工具文件枚举和语法检查；没有声称全部人工逐函数核验。
-- 既有修改全部保留，未提交、未推送。本轮没有完整DLL/PEX或游戏验证。
+- 222个自有生产源码文件全量结构/风险位置扫描；287 native名称和参数数量全部对账。详情[round-report.md](round-report.md)及round-full-scan.json。不是本轮再次人工读完所有函数的声明。
+- 新增五组修复：家具选择game-task/世代；表情与Scene导出路径和单profile异常隔离；非finite表情值拒绝；mood更新判断及重复查询；喉/嘴派生anchor有效性。
+- 累计阅读清单4,924条，call_chain_closed仍false；110个同本体记录平移、16差异条目逐项登记，兼容补核另平移2条；证据round-renumbering.json。累计已读本体指纹包括改动段补核，不是新一轮所有函数重读。
+- 完整portable和针对性ASan+UBSan通过，基线行为失败日志留存；YAML/legacy导入finite guard仅为源码证据。11解析诊断文件对账。
+- 61辅助源码/CI/审查工具枚举及Python语法检查；没有声称全部辅助实现人工逐函数验证。
+- 真实DLL/PEX/VM、引擎内部锁、private foot ABI及瞬时controller状态机仍无完整证据；实机步骤沿用closure-report.md，并加入家具选择完成排队阶段。
+- 本轮新改动未提交、未推送。此前累计37组生产修复的编号是问题组，不是全部函数通过数。
 
-续接从closure-report.md的具体待验证契约开始，不重复把222个文件再读一遍当作新的验证。台账以文件/函数SHA绑定，用Python3.12与已锁定解析器重建；scratch工具根 `/Users/sin/Documents/Codex/2026-10-04/users-sin-code-mine-sexlabpp/work`。
+续接以round-report.md的具体未验证契约为准，不以源码阅读或结构扫描结果包装问题穷尽。工具scratch根 `/Users/sin/Documents/Codex/2026-10-04/users-sin-code-mine-sexlabpp/work`；build_inventory/round_scan使用Python3.12和requirements中锁定的解析器，工作目录指向仓库。
 
 ---
 

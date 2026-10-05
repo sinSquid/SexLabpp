@@ -133,7 +133,7 @@ def main():
     counts = Counter(row['status'] for row in records)
     report = ['# 本轮覆盖状态', '', '**本体覆盖与逐函数审查结论分别统计；全调用链闭环尚未完成。**', '',
               f'生产文件：{len(files)}；源码行：{sum(x["lines"] for x in files)}；已提取函数/事件/声明条目：{len(records)}。', '',
-              f'当前指纹匹配的本轮完整本体读取：{len(read_paths)}/{len(files)} 文件；{sum(row["body_read_this_pass"] for row in records)}/{len(records)} 提取条目在已读本体内（由文件记录派生，非逐函数验证）。', '',
+              f'当前指纹匹配的累计本体阅读记录（含差异补核）：{len(read_paths)}/{len(files)} 文件；{sum(row["body_read_this_pass"] for row in records)}/{len(records)} 提取条目在已读本体内（由文件记录派生，非逐函数验证）。', '',
               '逐函数结论台账状态（旧记录不代表本轮全链验证）：' + ', '.join(f'{key}={value}' for key, value in sorted(counts.items())) + '。', '',
               f'解析诊断文件已人工对账：{len(reconciled)}/{len(diagnostic_files)}（按文件及定义指纹校验）。详见 parser-reconciliation.json。', '',
               '条目分母为实现/事件/lambda与Papyrus native声明；C++前置及纯virtual声明的调用契约另在源码阅读中核查。source_reviewed 不等于调用链闭环或实机验证。', '',

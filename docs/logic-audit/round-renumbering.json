@@ -1,0 +1,920 @@
+{
+  "baseline": "44ae5487",
+  "relocated_unchanged_reading_records": [
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:279:SetIndex",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:282:SetIndex",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "SetIndex",
+      "sha256": "1420be8f2528777c4a5b1b8998093214a1349229165029dd5cc01fe39129a900",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:304:SetPreset",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:307:SetPreset",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "SetPreset",
+      "sha256": "0a409166cdb9873925bd1c893acce85faaa28b64066fce030d29ddff9ad0a7cf",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:314:SetMood",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:317:SetMood",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "SetMood",
+      "sha256": "43f044b5197d149f2b0e27817cc8e963e364d060d20fc4e3c9221e0d49887c27",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:325:SetModifier",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:328:SetModifier",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "SetModifier",
+      "sha256": "5602fda3324c12d731d297ac7f3fc4c50aa880d3570505be4307d7b5809f4900",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:334:SetPhoneme",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:337:SetPhoneme",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "SetPhoneme",
+      "sha256": "5b0c2526644eeb7fb2e7ab1e2f58ad4586304a0964a759bbf564007acf3b401e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:343:EmptyPhase",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:346:EmptyPhase",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "EmptyPhase",
+      "sha256": "9e96734ea8603ea84e5c9163be6e51d9cb9e3bacb9d34429c4143aba6816661a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:348:AddPhase",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:351:AddPhase",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "AddPhase",
+      "sha256": "c09c9a46d194ad8a3e396c181ab4444929d87a52ddf16142a2fd2e736b33761e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:363:HasPhase",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:366:HasPhase",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "HasPhase",
+      "sha256": "1f48451cf713792354040d824130648e353c890959769f8973c016b530ef5f00",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:371:GetPhonemes",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:374:GetPhonemes",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "GetPhonemes",
+      "sha256": "30e9ce63dc49a922fc788d1ff82881d43b3609fa99201fabb563ec07bd007130",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:382:GetModifiers",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:385:GetModifiers",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "GetModifiers",
+      "sha256": "5d9d7af16ba4df705ad5fbd49aad6e9419d5b03eefd4f3ae6dec4dfacddd7e36",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:393:GetMoodType",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:396:GetMoodType",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "GetMoodType",
+      "sha256": "995645342ee40196c6ea67c36629a9a6b62da188c81aa965ea88e5d384cbb229",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:397:GetMoodAmount",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:400:GetMoodAmount",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "GetMoodAmount",
+      "sha256": "eceef3d824a4923b801c88156660efa0b0a4a27889cb8353a0bfd0285cbe780a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:401:GetIndex",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:404:GetIndex",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "GetIndex",
+      "sha256": "ea046caba20156565e6f911e3fb7f3ca882d16ed3b940005a6f845f1bd09b332",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:418:CountPhases",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:421:CountPhases",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "CountPhases",
+      "sha256": "d0b8c19574375de11ffdd2482be0888f139632147085966c7ce735cb1d3e04c8",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:421:GenderPhase",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:424:GenderPhase",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "GenderPhase",
+      "sha256": "bbc62b7e471a8384a4a8d1eea0744987317419ddd61b0a45dca94ef337b26dad",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:423:SetPhase",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:426:SetPhase",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "SetPhase",
+      "sha256": "ac508186ea906a5ae53d364abf5ed3600a2868e954204cce76bc5f35112ddbca",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:438:ValidatePreset",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:441:ValidatePreset",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "ValidatePreset",
+      "sha256": "e907c49bd0815ea32b0038b9e75b384d0cd8bf03497a8721ec1fa49de0dda93e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:452:get",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:455:get",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "get",
+      "sha256": "730361b5b7b885cf29a0bcfcf3dae69e1c25008cc06231a7f926e773d9653194",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:457:ImportJson",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:460:ImportJson",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "ImportJson",
+      "sha256": "1639dd851faa59ec3c6d83a7e446be26eb43f512684bd0a19821f36437433bf2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:460:ExportJson",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:463:ExportJson",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "ExportJson",
+      "sha256": "edbac3271563c0ca3b4bac2ff56769a6f5f1b5038f2657c8392e10b6d2dd2726",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:462:Save",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:465:Save",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "Save",
+      "sha256": "6fdf6c17eddb5e90175c775a3ac5252ae8591ea6077a797d9f23be5b29489b3e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:466:ApplyTo",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:469:ApplyTo",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "ApplyTo",
+      "sha256": "78fd90b5e437da77e0a9c841ae1a0d832d80b02d5e1008b2cf01c6ef72283b1c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:479:GetPhase",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:482:GetPhase",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "GetPhase",
+      "sha256": "4456537bc7cbb5037a7400dcd671f94797ca12e0e04209da7477978d8eed8d3b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:483:PickPreset",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:486:PickPreset",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "PickPreset",
+      "sha256": "52ac6b2b0a9a3259dd86cbf4cd8ae933b5727d5a766f5c3ea7a8e7816288f0e1",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:487:CalcPhase",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:490:CalcPhase",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "CalcPhase",
+      "sha256": "4f32a01985df9072da7926b1ce772a500bf749a4610e89baeed8c73d5e7a0519",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:489:ApplyPreset",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:492:ApplyPreset",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "ApplyPreset",
+      "sha256": "c99954ec92a8537b080db1f8676453b3317558fb6339326f72c142c34df9a98e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:495:ToIntArray",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:498:ToIntArray",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "ToIntArray",
+      "sha256": "bb8d29be7fd63ba34212af642f2b9b18af34542f195c3ebf5a9cdb8141d9bb84",
+      "checks_unchanged": true
+    },
+    {
+      "from": "dist/Source/Scripts/sslBaseExpression.psc:509:ToFloatArray",
+      "to": "dist/Source/Scripts/sslBaseExpression.psc:512:ToFloatArray",
+      "path": "dist/Source/Scripts/sslBaseExpression.psc",
+      "name": "ToFloatArray",
+      "sha256": "2f9d174075041062b185fb91ce5b711fecd698910eccb218a8bf9b5e6708f48d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Define/Expression.cpp:87:(const char* fieldname) -> bool",
+      "to": "src/Registry/Define/Expression.cpp:93:(const char* fieldname) -> bool",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "(const char* fieldname) -> bool",
+      "sha256": "9fafa3871a86f311906376c5e3d6f9606748ec0143e56fc7a15a384d3f2514ec",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Define/Expression.cpp:102:Expression::Expression(DefaultExpression a_default)",
+      "to": "src/Registry/Define/Expression.cpp:108:Expression::Expression(DefaultExpression a_default)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::Expression(DefaultExpression a_default)",
+      "sha256": "745f6277bc95e1c02ccd84e921d6bb118a45ced93b19c0932e2b57aef02e176e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Define/Expression.cpp:200:Expression::GetData(RE::SEXES::SEX a_sex, float a_strength) const",
+      "to": "src/Registry/Define/Expression.cpp:206:Expression::GetData(RE::SEXES::SEX a_sex, float a_strength) const",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::GetData(RE::SEXES::SEX a_sex, float a_strength) const",
+      "sha256": "2755f722915d5793293ebee2e6f97cf483d12db2cc386d4bb52282951ae8a474",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Define/Expression.cpp:308:Expression::UpdateTags(const TagData& a_newtags)",
+      "to": "src/Registry/Define/Expression.cpp:321:Expression::UpdateTags(const TagData& a_newtags)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::UpdateTags(const TagData& a_newtags)",
+      "sha256": "933df8c4bea0828463ce31b6ff385ffd959facf09986f097f1b633a90535873d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Define/Expression.cpp:314:Expression::SetScaling(Scaling a_scaling)",
+      "to": "src/Registry/Define/Expression.cpp:327:Expression::SetScaling(Scaling a_scaling)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::SetScaling(Scaling a_scaling)",
+      "sha256": "bf4226c17c174975518f05e2c2c3e91b4dd4c7c24a4046915b6f68b29a2512fc",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Define/Expression.cpp:320:Expression::SetEnabled(bool a_enabled)",
+      "to": "src/Registry/Define/Expression.cpp:333:Expression::SetEnabled(bool a_enabled)",
+      "path": "src/Registry/Define/Expression.cpp",
+      "name": "Expression::SetEnabled(bool a_enabled)",
+      "sha256": "f4ca95d3e1a582b8ff23d57128238ba2c57c9183744f15fbb9efe2727a03d59e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:7:Library::LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const",
+      "to": "src/Registry/Library.cpp:8:Library::LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const",
+      "sha256": "93009c8248d0882468dc68a34f4a5fdb04c099de8d728e055342fb089c3759c2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:59:Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const",
+      "to": "src/Registry/Library.cpp:60:Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::GetByTags(int32_t a_positions, const std::vector<std::string_view>& a_tags) const",
+      "sha256": "d6b1767f4e2a9013bc6b895e61dfc3dfbec847649f6bf15279331e925fcf8e8a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:80:Library::GetLegacyProxyIds(size_t a_limit, uint32_t a_creatureSpecifier) const",
+      "to": "src/Registry/Library.cpp:81:Library::GetLegacyProxyIds(size_t a_limit, uint32_t a_creatureSpecifier) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::GetLegacyProxyIds(size_t a_limit, uint32_t a_creatureSpecifier) const",
+      "sha256": "4c5133b2611d57c46de4fa7a4588fffcc741275ce947f23149fcb91ded2c825a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:100:(const auto* lhs, const auto* rhs)",
+      "to": "src/Registry/Library.cpp:101:(const auto* lhs, const auto* rhs)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(const auto* lhs, const auto* rhs)",
+      "sha256": "a53281a35d732b6c03aaecad049be819f83cea1ebe60be73fa109ed32061eff9",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:114:* Library::GetPackageFromScene(const Scene* a_scene) const",
+      "to": "src/Registry/Library.cpp:115:* Library::GetPackageFromScene(const Scene* a_scene) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetPackageFromScene(const Scene* a_scene) const",
+      "sha256": "3c0c8379c1444068e1edac8ab71ac6191e66ee512d3ca1a9503c5e7c1683172f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:121:* Library::GetSceneById(const RE::BSFixedString& a_id) const",
+      "to": "src/Registry/Library.cpp:122:* Library::GetSceneById(const RE::BSFixedString& a_id) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetSceneById(const RE::BSFixedString& a_id) const",
+      "sha256": "3beef9b835a188432c2ec6f23468e089a46e543968a6a4f49322a29e7c981509",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:128:* Library::GetSceneByName(const RE::BSFixedString& a_name) const",
+      "to": "src/Registry/Library.cpp:129:* Library::GetSceneByName(const RE::BSFixedString& a_name) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetSceneByName(const RE::BSFixedString& a_name) const",
+      "sha256": "df1a667ac43bc4e1be31b790f363adfa087747e7be1f9e929546761a4207b1e4",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:135:Library::GetSceneCount() const",
+      "to": "src/Registry/Library.cpp:136:Library::GetSceneCount() const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::GetSceneCount() const",
+      "sha256": "43540a8d34eae5df5e179cff4daaeb3ad94ea49aa91d05d44875e2a1aa3e0131",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:141:Library::EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func)",
+      "to": "src/Registry/Library.cpp:142:Library::EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func)",
+      "sha256": "efa6eb61665cfa538a97a3d80f37d1dcd4a206047210e3dc8e04ba0fb7d2f47d",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:152:Library::EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func)",
+      "to": "src/Registry/Library.cpp:153:Library::EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func)",
+      "sha256": "913777e32c0330c9fe84928ec2dd445a2b654b6abfce9c9fd8cde1d09bca889f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:169:Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const",
+      "to": "src/Registry/Library.cpp:170:Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ForEachPackage(std::function<bool(const AnimPackage*)> a_visitor) const",
+      "sha256": "0051caf9dc3b6c74700c50ef2924210094d364215dfe8cce7fb34821dc86bbcb",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:179:Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const",
+      "to": "src/Registry/Library.cpp:180:Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ForEachScene(std::function<bool(const Scene*)> a_visitor) const",
+      "sha256": "02829b9a4033bab9080b0e4ad27329813f610f88bb79628331580a0cd9172537",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:189:Library::GetAllVoiceIds(RaceKey a_race) const",
+      "to": "src/Registry/Library.cpp:190:Library::GetAllVoiceIds(RaceKey a_race) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::GetAllVoiceIds(RaceKey a_race) const",
+      "sha256": "43a0391ea2e151ce8a160b6afb163cfe58903b89835aa8fe09a2ed42283e311b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:202:Library::ForEachVoice(std::function<bool(const Voice&)> a_visitor) const",
+      "to": "src/Registry/Library.cpp:203:Library::ForEachVoice(std::function<bool(const Voice&)> a_visitor) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ForEachVoice(std::function<bool(const Voice&)> a_visitor) const",
+      "sha256": "bac2399d3178d1abc136d049cea7c6c12cea9ae8dd39148eaeb79b5a1770e17f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:212:* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)",
+      "to": "src/Registry/Library.cpp:213:* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)",
+      "sha256": "6a51af4e8aa99b88a75938ce5c9664fd054de3cafab676eaf281f1d65d83214e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:252:(const auto& v)",
+      "to": "src/Registry/Library.cpp:253:(const auto& v)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(const auto& v)",
+      "sha256": "6e48e9319588cc626dd54c7a4637bd382d7486396b1a6a348bd6d287108ed998",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:263:* Library::GetVoice(const TagDetails& tags) const",
+      "to": "src/Registry/Library.cpp:264:* Library::GetVoice(const TagDetails& tags) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetVoice(const TagDetails& tags) const",
+      "sha256": "ef76ac2f31c38bea81c9b68e2b484c89f348a83f0b760916fd0bdfa8c093f38a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:275:* Library::GetVoice(RaceKey a_race) const",
+      "to": "src/Registry/Library.cpp:276:* Library::GetVoice(RaceKey a_race) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetVoice(RaceKey a_race) const",
+      "sha256": "a6b213c4c3ae2652fa914a166a5f031214ccedaa7f2ed47f2e03008d2f4a91d6",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:287:* Library::GetVoiceById(RE::BSFixedString a_voice) const",
+      "to": "src/Registry/Library.cpp:288:* Library::GetVoiceById(RE::BSFixedString a_voice) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetVoiceById(RE::BSFixedString a_voice) const",
+      "sha256": "37c55aff1d4036ee75b9fd686bfe419c36a762333e7f12cf8538edb38927a04b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:294:Library::ReadVoice(RE::BSFixedString a_voice, const std::function<void(const Voice&)>& a_reader) const",
+      "to": "src/Registry/Library.cpp:295:Library::ReadVoice(RE::BSFixedString a_voice, const std::function<void(const Voice&)>& a_reader) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ReadVoice(RE::BSFixedString a_voice, const std::function<void(const Voice&)>& a_reader) const",
+      "sha256": "9fcf068e30186c1af6cc7d15c8edf5657496706058d7ef6219c8d7ffda4bf1bf",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:304:Library::CreateVoice(RE::BSFixedString a_voice)",
+      "to": "src/Registry/Library.cpp:305:Library::CreateVoice(RE::BSFixedString a_voice)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::CreateVoice(RE::BSFixedString a_voice)",
+      "sha256": "80d4d8c84c1acea92fbaf2c093c5d24f036f0826cbe6a1cc6b371509060c0911",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:315:Library::WriteVoiceToFile(RE::BSFixedString a_voice) const",
+      "to": "src/Registry/Library.cpp:316:Library::WriteVoiceToFile(RE::BSFixedString a_voice) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::WriteVoiceToFile(RE::BSFixedString a_voice) const",
+      "sha256": "b697488734328701ecb2288cc2342620038aca0b62e884915801423c2379fa1a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:318:(const Voice& voice)",
+      "to": "src/Registry/Library.cpp:319:(const Voice& voice)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(const Voice& voice)",
+      "sha256": "c40937b00ad2d62e3e53c513b0dcc7894d3d2d661ec95380d83facb89ad6de7f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:330:Library::GetSavedActors() const",
+      "to": "src/Registry/Library.cpp:331:Library::GetSavedActors() const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::GetSavedActors() const",
+      "sha256": "bda4b5d543fc967bdc466b79f4525d8ce32f37f76750b3c866f705b9c7f50f6b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:343:* Library::GetSavedVoice(RE::FormID a_key) const",
+      "to": "src/Registry/Library.cpp:344:* Library::GetSavedVoice(RE::FormID a_key) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetSavedVoice(RE::FormID a_key) const",
+      "sha256": "a23ed34d0cd363ca3edec07424c9ee50bf310ec11935cfde13f5020d9ccb964e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:350:Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)",
+      "to": "src/Registry/Library.cpp:351:Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)",
+      "sha256": "d8855541add7cad0bfd58c35a0e7469616c6bbed13dc8575574cc7d61d38bdc2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:361:Library::ClearVoice(RE::FormID a_key)",
+      "to": "src/Registry/Library.cpp:362:Library::ClearVoice(RE::FormID a_key)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ClearVoice(RE::FormID a_key)",
+      "sha256": "918d9deca3902a9f82feb21002cf73138cd374c4507360e88b15860e1091d94c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:367:* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const",
+      "to": "src/Registry/Library.cpp:368:* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const",
+      "sha256": "dc8ff0174e6d6f2ced10220fa6c67e4a93955f52ee78080abb75a4bb36d6749e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:378:* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "to": "src/Registry/Library.cpp:379:* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::PickSound(RE::BSFixedString a_voice, uint32_t a_excitement, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "sha256": "d6116b6a16b478ab5827df8633e68bb4b5423378563b2b1723fbf423e247bc71",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:389:* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "to": "src/Registry/Library.cpp:390:* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::PickOrgasmSound(RE::BSFixedString a_voice, REX::EnumSet<VoiceAnnotation> a_annotation) const",
+      "sha256": "0371a11395764f61ebb53abb0ba6f38cdaf614d947bf2ee31dbeb7f66108af09",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:400:Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)",
+      "to": "src/Registry/Library.cpp:401:Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceEnabled(RE::BSFixedString a_voice, bool a_enabled)",
+      "sha256": "54036bf3296732bbd5cb76bc38022607e6351b7cb83bcbc86e03ce76c86612f6",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:411:Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)",
+      "to": "src/Registry/Library.cpp:412:Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting, RE::TESSound* a_sound)",
+      "sha256": "0d28c158cc4cfefcf6d4f2e77c7912e7d37be5b046d5f1b2387437d1bce4476a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:427:(const auto& set)",
+      "to": "src/Registry/Library.cpp:428:(const auto& set)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(const auto& set)",
+      "sha256": "c07e03bfae908fd96f68302f5035ba50c3ff1d03b6b12ff0a75c1f855d87515b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:446:Library::SetVoiceTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)",
+      "to": "src/Registry/Library.cpp:447:Library::SetVoiceTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceTags(RE::BSFixedString a_voice, const std::vector<RE::BSFixedString>& a_tags)",
+      "sha256": "4a210c2258351c4387cc7eea09561786d8a3bfd71b87f0e1042a4c96fa325511",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:457:Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)",
+      "to": "src/Registry/Library.cpp:458:Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceRace(RE::BSFixedString a_voice, const std::vector<RaceKey>& a_races)",
+      "sha256": "a8e324f6dc94f82662b96c6cd24c402c124a72335d77d01c99bb1c12b664ba9a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:466:(auto& it)",
+      "to": "src/Registry/Library.cpp:467:(auto& it)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(auto& it)",
+      "sha256": "f8b04b75b56a9ce90a14475e44d051c292b3099da4d5b16d014d6f8b63761d56",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:474:Library::SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)",
+      "to": "src/Registry/Library.cpp:475:Library::SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetVoiceSex(RE::BSFixedString a_voice, RE::SEXES::SEX a_sex)",
+      "sha256": "9fdff70e11b39089b26fac8538d449aa82fd8eaf7b4df613454072e9604b89ee",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:500:* Library::GetExpressionById(const RE::BSFixedString& a_id) const",
+      "to": "src/Registry/Library.cpp:501:* Library::GetExpressionById(const RE::BSFixedString& a_id) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetExpressionById(const RE::BSFixedString& a_id) const",
+      "sha256": "94a426e2530523023e8c1bb58da474553b1cc382915a1c69c72904b02386ed16",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:507:Library::ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const",
+      "to": "src/Registry/Library.cpp:508:Library::ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ReadExpression(const RE::BSFixedString& a_id, const std::function<void(const Expression&)>& a_reader) const",
+      "sha256": "410cc68b03a77b108a884d7244b3f57581d77ff2a55cbbb698593f8eeb5d1874",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:517:* Library::GetExpression(const TagDetails& a_details) const",
+      "to": "src/Registry/Library.cpp:518:* Library::GetExpression(const TagDetails& a_details) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetExpression(const TagDetails& a_details) const",
+      "sha256": "cb63479aca02c9809b5fd3b08c2e0e7e98933f8c0376efc7be9f95dd3621e014",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:529:Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const",
+      "to": "src/Registry/Library.cpp:530:Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::ForEachExpression(std::function<bool(const Expression&)> a_func) const",
+      "sha256": "0755d88ebd89b4ac8a81cfb95ff6e1cf1ad9bc219fcfe7400b909e54f205d5f0",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:551:Library::MarkExpressionForSave(const RE::BSFixedString& a_id)",
+      "to": "src/Registry/Library.cpp:556:Library::MarkExpressionForSave(const RE::BSFixedString& a_id)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::MarkExpressionForSave(const RE::BSFixedString& a_id)",
+      "sha256": "f2869a697e39a6498775cb8c557554b1fc1217edf32a1ce240b0d8e8e08ac2da",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:561:Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values)",
+      "to": "src/Registry/Library.cpp:566:Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, const std::vector<float>& a_values)",
+      "sha256": "626d7b9cd2b9464543734330c3c5c787ded142c06d6d05f2f4a590ed17ece6b4",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:572:Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)",
+      "to": "src/Registry/Library.cpp:577:Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)",
+      "sha256": "51b01a5971ffee0514c19e30fbe35559365f01f64a2f8fc973b83d19312224d5",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:583:Library::SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)",
+      "to": "src/Registry/Library.cpp:588:Library::SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling)",
+      "sha256": "f507cf2a35d6610d4bda702d8950ce1da444908649b4b99e13b11e1ac1fb870e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:594:Library::SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled)",
+      "to": "src/Registry/Library.cpp:599:Library::SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled)",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled)",
+      "sha256": "0de8ace8c3908584be904c0876bf2f8d95cdbb670b5f3d91d19abb46991a18d2",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:606:Library::PickRandomFxSet(FxType a_type) const",
+      "to": "src/Registry/Library.cpp:611:Library::PickRandomFxSet(FxType a_type) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::PickRandomFxSet(FxType a_type) const",
+      "sha256": "ea82cf512cd002cc1cb1f3252c5c75d025c267f4f659254b332a9fad2ec8731c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:616:Library::GetFxCount(FxType a_type, RE::BSFixedString a_set) const",
+      "to": "src/Registry/Library.cpp:621:Library::GetFxCount(FxType a_type, RE::BSFixedString a_set) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "Library::GetFxCount(FxType a_type, RE::BSFixedString a_set) const",
+      "sha256": "b19b64580ceb4f9fad46dad97d9ab2b65fd7c4a0664f4d509bebc675375917c1",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:619:(const auto& pair)",
+      "to": "src/Registry/Library.cpp:624:(const auto& pair)",
+      "path": "src/Registry/Library.cpp",
+      "name": "(const auto& pair)",
+      "sha256": "20af2db364a9a9e7638042a89b3d159c5844e0b3e5b9c8308966992413a2bd20",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library.cpp:629:* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const",
+      "to": "src/Registry/Library.cpp:634:* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const",
+      "path": "src/Registry/Library.cpp",
+      "name": "* Library::GetFurnitureDetails(const RE::TESObjectREFR* a_ref) const",
+      "sha256": "e5812b74fc551833bf36d63586189bfc98130600a84b94513a81055d835d385f",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Registry/Library_SaveLoad.cpp:559:Library::SaveVoices() const",
+      "to": "src/Registry/Library_SaveLoad.cpp:571:Library::SaveVoices() const",
+      "path": "src/Registry/Library_SaveLoad.cpp",
+      "name": "Library::SaveVoices() const",
+      "sha256": "98a09bccac05f036f4e879d7cdfa887aff81dee1455872ded250cf754adc515b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:77:NiMotion::ForEachMoment(Anchor c, const std::function<bool(const RE::NiPoint3&, float)>& func) const",
+      "to": "src/Thread/NiNode/NiMotion.cpp:79:NiMotion::ForEachMoment(Anchor c, const std::function<bool(const RE::NiPoint3&, float)>& func) const",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "NiMotion::ForEachMoment(Anchor c, const std::function<bool(const RE::NiPoint3&, float)>& func) const",
+      "sha256": "50a4a730deed04258df93359e36dbf9a7f9005af8fbdad4def2df41bb6734a38",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:86:NiMotion::GetMotion(Anchor c) const",
+      "to": "src/Thread/NiNode/NiMotion.cpp:88:NiMotion::GetMotion(Anchor c) const",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "NiMotion::GetMotion(Anchor c) const",
+      "sha256": "06db8a72f751e19924f4ca87665bd119c241d4f3fa91e2d4203bb81fb48f681c",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:105:NiMotion::DescribeMotion(Anchor c) const",
+      "to": "src/Thread/NiNode/NiMotion.cpp:107:NiMotion::DescribeMotion(Anchor c) const",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "NiMotion::DescribeMotion(Anchor c) const",
+      "sha256": "66580eb5b25409bd065e9ab3f9642aecc5d113c84900dc4dff3f6b7c39f4dc44",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:113:NiMotion::ComputeDescriptor(Anchor c) const",
+      "to": "src/Thread/NiNode/NiMotion.cpp:115:NiMotion::ComputeDescriptor(Anchor c) const",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "NiMotion::ComputeDescriptor(Anchor c) const",
+      "sha256": "dc57f45e4e39c4031bb50d2ecc16e34213710e5d982220b53e68393b02ca6221",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:144:(const RE::NiPoint3& p, float t)",
+      "to": "src/Thread/NiNode/NiMotion.cpp:146:(const RE::NiPoint3& p, float t)",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "(const RE::NiPoint3& p, float t)",
+      "sha256": "0b1d7e01cf1c42e5d7c4377dd1b8624b61c74419c4c900774d5fb27389fcf0ab",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:215:NiMotion::ValidStart(Anchor c) const",
+      "to": "src/Thread/NiNode/NiMotion.cpp:217:NiMotion::ValidStart(Anchor c) const",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "NiMotion::ValidStart(Anchor c) const",
+      "sha256": "052471871157bd94c292556656078e34860f509dd2fdeab56b713cd1a1b4ba08",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:223:NiMotion::AbsoluteToRelativeIndex(size_t n) const",
+      "to": "src/Thread/NiNode/NiMotion.cpp:225:NiMotion::AbsoluteToRelativeIndex(size_t n) const",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "NiMotion::AbsoluteToRelativeIndex(size_t n) const",
+      "sha256": "77002b66c01f529e4dd21d23f79900afafa2abcf064bd4b55692e3771d91b092",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:231:& NiMotion::GetNthMoment(Anchor c, size_t n) const",
+      "to": "src/Thread/NiNode/NiMotion.cpp:233:& NiMotion::GetNthMoment(Anchor c, size_t n) const",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "& NiMotion::GetNthMoment(Anchor c, size_t n) const",
+      "sha256": "b908d5ecab8bd4751af37a76b006c1863324d49dae27da157af61294232e4c3e",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:238:& NiMotion::GetNthHeadBound(size_t n) const",
+      "to": "src/Thread/NiNode/NiMotion.cpp:240:& NiMotion::GetNthHeadBound(size_t n) const",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "& NiMotion::GetNthHeadBound(size_t n) const",
+      "sha256": "2a83f28ac76cfec6e85ad8aefbf2ec55431a51c42dc4fd416d8f5932b9f93207",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/NiNode/NiMotion.cpp:244:NiMotion::GetNthTimestamp(size_t n) const",
+      "to": "src/Thread/NiNode/NiMotion.cpp:246:NiMotion::GetNthTimestamp(size_t n) const",
+      "path": "src/Thread/NiNode/NiMotion.cpp",
+      "name": "NiMotion::GetNthTimestamp(size_t n) const",
+      "sha256": "51767fbf91119df11a64ce3185d8fa9ad78df1fbf33b3fd8282c927aeb8b7892",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:409:(const auto& i)",
+      "to": "src/Thread/ThreadCtor.cpp:412:(const auto& i)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "(const auto& i)",
+      "sha256": "e4a51bdefb72dd21cf748593ecb5a2be1ef961306f3a646b5f39de74ea736c75",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Thread/ThreadCtor.cpp:448:(const auto& instance)",
+      "to": "src/Thread/ThreadCtor.cpp:451:(const auto& instance)",
+      "path": "src/Thread/ThreadCtor.cpp",
+      "name": "(const auto& instance)",
+      "sha256": "00597dc36173a6cc0d22911759769611f2ff3efdc3d81d2c56ed84fd78aac54b",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:10:ToLower(T& str)",
+      "to": "src/Util/StringUtil.h:23:ToLower(T& str)",
+      "path": "src/Util/StringUtil.h",
+      "name": "ToLower(T& str)",
+      "sha256": "1db1ac0a0f8aaae21ca2c9dcc3ef8f3c412e31482618b6edb5749b81ef9c1e06",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:15:ToUpper(T& str)",
+      "to": "src/Util/StringUtil.h:28:ToUpper(T& str)",
+      "path": "src/Util/StringUtil.h",
+      "name": "ToUpper(T& str)",
+      "sha256": "c6489287194adb414f4cb5382a3b7fedca456adefdc527089574fa9f94a7199a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:19:CastLower(std::string str)",
+      "to": "src/Util/StringUtil.h:32:CastLower(std::string str)",
+      "path": "src/Util/StringUtil.h",
+      "name": "CastLower(std::string str)",
+      "sha256": "f19106e1889de906595b91bbdd3aacf9a7667e3edbe1a383d9dd08b0af6345ea",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:24:CastUpper(std::string str)",
+      "to": "src/Util/StringUtil.h:37:CastUpper(std::string str)",
+      "path": "src/Util/StringUtil.h",
+      "name": "CastUpper(std::string str)",
+      "sha256": "cda226d196097c9ab7537744e080b16363914f0922ce4abdb5d5a7253ba82889",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:33:StringSplit(const std::string_view& a_view, const std::string_view& a_delim)",
+      "to": "src/Util/StringUtil.h:46:StringSplit(const std::string_view& a_view, const std::string_view& a_delim)",
+      "path": "src/Util/StringUtil.h",
+      "name": "StringSplit(const std::string_view& a_view, const std::string_view& a_delim)",
+      "sha256": "6b8332d8164c73c4bb6274fa3f389a9c10c8d65f5826f0c1ad087f0bb2ac397a",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:36:(auto&& subrange)",
+      "to": "src/Util/StringUtil.h:49:(auto&& subrange)",
+      "path": "src/Util/StringUtil.h",
+      "name": "(auto&& subrange)",
+      "sha256": "f1f825b5d18bf4778743c02bd4da1da261c82f702e8259b0a4589acdcb30f4af",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:45:(auto&& word)",
+      "to": "src/Util/StringUtil.h:58:(auto&& word)",
+      "path": "src/Util/StringUtil.h",
+      "name": "(auto&& word)",
+      "sha256": "c77deb648d6c7e343a26bfea79395ca7043826ca1da14bc4ccf0736b28f71068",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:49:StringSplitToOwned(const std::string_view& a_view, const std::string_view& a_delim)",
+      "to": "src/Util/StringUtil.h:62:StringSplitToOwned(const std::string_view& a_view, const std::string_view& a_delim)",
+      "path": "src/Util/StringUtil.h",
+      "name": "StringSplitToOwned(const std::string_view& a_view, const std::string_view& a_delim)",
+      "sha256": "14381b1c331c1ecb5ddcaa39c82345ba51d2f61264bd358742f168f519e021b8",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:56:StringJoin(const std::vector<T>& a_vec, std::string_view a_delimiter)",
+      "to": "src/Util/StringUtil.h:69:StringJoin(const std::vector<T>& a_vec, std::string_view a_delimiter)",
+      "path": "src/Util/StringUtil.h",
+      "name": "StringJoin(const std::vector<T>& a_vec, std::string_view a_delimiter)",
+      "sha256": "bb5f59288bff3307549de9f19327742bc8bc9320956c73fd14f37b16aa891550",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:70:IsNumericString(const std::string& a_str)",
+      "to": "src/Util/StringUtil.h:83:IsNumericString(const std::string& a_str)",
+      "path": "src/Util/StringUtil.h",
+      "name": "IsNumericString(const std::string& a_str)",
+      "sha256": "7ea48aa707138c5caa867375ef7923ef2b24868eef6ab22797f7dd87faa155e1",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:76:FilterByPrefix(std::vector<std::string> a_strs, const std::string& a_prefix)",
+      "to": "src/Util/StringUtil.h:89:FilterByPrefix(std::vector<std::string> a_strs, const std::string& a_prefix)",
+      "path": "src/Util/StringUtil.h",
+      "name": "FilterByPrefix(std::vector<std::string> a_strs, const std::string& a_prefix)",
+      "sha256": "f6a56a391f07d9ef958ebc50104cc70058043cf3c86600290b6753b35fabf848",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:78:(std::string& a_str)",
+      "to": "src/Util/StringUtil.h:91:(std::string& a_str)",
+      "path": "src/Util/StringUtil.h",
+      "name": "(std::string& a_str)",
+      "sha256": "8c047381563760a8cb4a4e2e968d1ac0f764f6a0b3d215d8a27bdbe4b90b50bc",
+      "checks_unchanged": true
+    },
+    {
+      "from": "src/Util/StringUtil.h:82:Replace(std::string str, const std::string& substr1, const std::string& substr2)",
+      "to": "src/Util/StringUtil.h:95:Replace(std::string str, const std::string& substr1, const std::string& substr2)",
+      "path": "src/Util/StringUtil.h",
+      "name": "Replace(std::string str, const std::string& substr1, const std::string& substr2)",
+      "sha256": "37d26f53f771ddea08dfb452e96000079d7f472dfbda60f579109434c9360e8e",
+      "checks_unchanged": true
+    }
+  ],
+  "individually_recorded_changes": [
+    "dist/Source/Scripts/sslBaseExpression.psc:242:ApplyPresetFloatsLegacy",
+    "src/Registry/Define/Expression.cpp:29:Expression::Expression(const YAML::Node& a_src)",
+    "src/Registry/Define/Expression.cpp:46:(float value)",
+    "src/Registry/Define/Expression.cpp:54:Expression::FromLegacyFile(const fs::path& a_path)",
+    "src/Registry/Define/Expression.cpp:69:(RE::SEXES::SEX sex, std::string prefix)",
+    "src/Registry/Define/Expression.cpp:81:(float value)",
+    "src/Registry/Define/Expression.cpp:273:Expression::Save(std::string_view a_fileLocation, bool force) const",
+    "src/Registry/Define/Expression.cpp:302:Expression::UpdateValues(bool a_female, int a_level, const std::vector<float>& a_values)",
+    "src/Registry/Define/Expression.cpp:309:(float value)",
+    "src/Registry/Library.cpp:541:Library::CreateExpression(const RE::BSFixedString& a_id)",
+    "src/Registry/Library_SaveLoad.cpp:517:Library::SaveScenes() const noexcept",
+    "src/Registry/Library_SaveLoad.cpp:547:Library::SaveExpressions() const noexcept",
+    "src/Thread/NiNode/NiMotion.cpp:16:NiMotion::Push(const Node::NodeData& nodes, float timeStamp)",
+    "src/Thread/ThreadCtor.cpp:403:Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, int32_t a_request)",
+    "src/Thread/ThreadCtor.cpp:406:()",
+    "src/Util/StringUtil.h:7:IsSafeFileStem(std::string_view a_stem)"
+  ],
+  "limit": "Same path/name/body SHA only; retained reading checks do not acquire new validation claims.",
+  "compatibility_followup_relocations": [
+    {
+      "from": "src/Registry/Library_SaveLoad.cpp:547:Library::SaveExpressions() const noexcept",
+      "to": "src/Registry/Library_SaveLoad.cpp:548:Library::SaveExpressions() const noexcept",
+      "sha256": "fa87399b85e8e7e9051888b5e3af8f92462ae9b6f91321bbc68865809f8584d6"
+    },
+    {
+      "from": "src/Registry/Library_SaveLoad.cpp:571:Library::SaveVoices() const",
+      "to": "src/Registry/Library_SaveLoad.cpp:572:Library::SaveVoices() const",
+      "sha256": "98a09bccac05f036f4e879d7cdfa887aff81dee1455872ded250cf754adc515b"
+    }
+  ],
+  "compatibility_followup_checks": [
+    "最终包文件名进行检查；兼容空包显示名和尾标点",
+    "stem末尾dot/space在追加.yaml后是普通文件名，不据此额外拒绝ID"
+  ]
+}

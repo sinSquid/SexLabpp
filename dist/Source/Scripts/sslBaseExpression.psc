@@ -242,13 +242,16 @@ function TransitPresetFloats(Actor ActorRef, float[] FromPreset, float[] ToPrese
 endFunction
 
 function ApplyPresetFloatsLegacy(Actor ActorRef, float[] Preset, bool IsMouthOpen) global 
+	if !ActorRef || Preset.Length < 32
+		return
+	endIf
 	int i
 	int p
 	int m
 	; Set expression
 	float currExpr = GetExpression(ActorRef, true)
 	float currExprStr = GetExpression(ActorRef, false)
-	if (GetExpression(ActorRef, true) == Preset[30] || GetExpression(ActorRef, false) != Preset[31]) && !IsMouthOpen
+	if (currExpr != Preset[30] || currExprStr != Preset[31]) && !IsMouthOpen
 		ActorRef.SetExpressionOverride(Preset[30] as int, (Preset[31] * 100.0) as int)
 	endIf
 	; Set Phoneme
