@@ -1962,6 +1962,7 @@ EndFunction
 
 Function InitSceneHUDImpl() native
 Function DestroySceneHUDImpl() native
+Function SetSpeedHotkeysEnabled(bool abEnabled) native
 Function SetFocusSceneHUDImpl(bool abFocused) native
 
 Function UpdateMenuTimerDisplay(float afDuration, float afTime) native
@@ -2101,7 +2102,7 @@ Function Initialize()
 	_ThreadTags = Utility.CreateStringArray(0)
 	_ContextTags = Utility.CreateStringArray(0)
 	_Hooks = Utility.CreateStringArray(0)
-	_AnimationSpeedBase = 1.0
+	_AnimationSpeedBase = 1.25
 	_TimerPaused = false
 	_NativeFixedLengthTimer = false
 	_QuickResetScenes = false

@@ -7,6 +7,7 @@
 #include "Thread/Collision/CollisionHandler.h"
 #include "Thread/Interaction/Interaction.h"
 #include "Thread/Thread.h"
+#include "Thread/Interface/SceneHUD.h"
 #include "UserData/StripData.h"
 #include "Util/Script.h"
 #include "Util/StringUtil.h"
@@ -682,6 +683,11 @@ namespace Papyrus::ThreadModel
     {
         GET_INSTANCE();
         return instance->DestroySceneHUDImpl();
+    }
+
+    void SetSpeedHotkeysEnabled(QUESTARGS, bool a_enabled)
+    {
+        Thread::Interface::SceneHUD::GetSingleton().SetSpeedControl(a_qst, a_enabled);
     }
 
     void SetFocusSceneHUDImpl(QUESTARGS, bool a_focused)

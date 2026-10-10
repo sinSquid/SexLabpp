@@ -12,21 +12,28 @@ namespace Thread::Interface
         _stageTimer = a_timer;
     }
 
-    void AnimSpeedOverlay::OnSpeedChange(SceneHUD& a_hud, float a_delta)
+    void AnimSpeedOverlay::OnSpeedChange(RE::TESQuest* a_quest, float a_delta)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto* inst = Instance::GetInstance(a_quest);
         if (!inst)
             return;
-        const float next = std::clamp(_speed + a_delta, 0.25f, 3.0f);
-        _speed = next;
+        const float next = std::clamp(inst->GetAnimationPlaybackSpeed() + a_delta, 0.25f, 3.0f);
         inst->SetAnimationPlaybackSpeed(next);
         Script::DispatchMethodCall(
-            Script::GetScriptObject(a_hud.GetLinkedThread(), "sslThreadModel"),
-            "UpdateBaseSpeed", a_hud.GetCallback(), static_cast<float>(_speed));
+            Script::GetScriptObject(a_quest, "sslThreadModel"),
+            "UpdateBaseSpeed", Script::CallbackPtr{}, static_cast<float>(next));
+    }
+
+    void AnimSpeedOverlay::StepSpeed(RE::TESQuest* a_quest, bool a_increase)
+    {
+        OnSpeedChange(a_quest, a_increase ? 0.25f : -0.25f);
     }
 
     void AnimSpeedOverlay::Render(SceneHUD& a_hud)
     {
+        auto* instance = a_hud.GetThreadInstance();
+        if (!instance)
+            return;
         auto& scale = a_hud.GetScale();
 
         auto* io = ImGuiMCP::GetIO();
@@ -62,12 +69,7 @@ namespace Thread::Interface
         SetWindowFontSize(scale.TextPx(UI::Theme::FontSize.overlay));
         const float contentW = ImGuiMCP::GetContentRegionAvail().x;
 
-        const float spd = _speed;
-        char buf[16];
-        std::snprintf(buf, sizeof(buf), "%.2fx", spd);
-
         // [slower]  value  [faster]
-        const ImGuiMCP::ImVec2 valSz = ImGuiMCP::CalcTextSize(buf);
         SKSEMenuFramework::PushFont(UI::Theme::Icon::solidFont);
         const ImGuiMCP::ImVec2 leftIconSize = ImGuiMCP::CalcTextSize(UI::Theme::Icon::anglesLeft);
         const ImGuiMCP::ImVec2 rightIconSize = ImGuiMCP::CalcTextSize(UI::Theme::Icon::anglesRight);
@@ -83,12 +85,16 @@ namespace Thread::Interface
         if (a_hud.IsFocused()) {
             ImGuiMCP::SetCursorScreenPos(rowScreenPos);
             if (ImGuiMCP::InvisibleButton("##slpp_dec", ImGuiMCP::ImVec2{ btnW, rowH }))
-                OnSpeedChange(a_hud, -0.25f);
+                OnSpeedChange(a_hud.GetLinkedThread(), -0.25f);
 
             ImGuiMCP::SetCursorScreenPos(ImGuiMCP::ImVec2{ rowScreenPos.x + contentW - btnW, rowScreenPos.y });
             if (ImGuiMCP::InvisibleButton("##slpp_inc", ImGuiMCP::ImVec2{ btnW, rowH }))
-                OnSpeedChange(a_hud, +0.25f);
+                OnSpeedChange(a_hud.GetLinkedThread(), +0.25f);
         }
+
+        char buf[16];
+        std::snprintf(buf, sizeof(buf), "%.2fx", instance->GetAnimationPlaybackSpeed());
+        const ImGuiMCP::ImVec2 valSz = ImGuiMCP::CalcTextSize(buf);
 
         SKSEMenuFramework::PushFont(UI::Theme::Icon::solidFont);
         DrawTextShadowed(dl,

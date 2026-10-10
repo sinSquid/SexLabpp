@@ -69,6 +69,8 @@ namespace Thread::Interface
             return;
         }
 
+        SetSpeedControl(a_quest, true);
+
         float scaleMultiplier = instance->GetThreadProperty<float>("VarUI_MenuScaleMult");
         if (scaleMultiplier <= 0.0f) {
             scaleMultiplier = 1.0f;
@@ -101,6 +103,7 @@ namespace Thread::Interface
         _window.Close();
         _elements.reset();
         _activePanel = PanelId::kNone;
+        _focused = false;
         _linkedThread = nullptr;
         _threadScript = nullptr;
         logger::info("SceneHUD::Destroy >> scene UI deactivated");
@@ -109,6 +112,71 @@ namespace Thread::Interface
     void __stdcall SceneHUD::RenderCallback()
     {
         GetSingleton().Render();
+    }
+
+    void SceneHUD::SetSpeedControl(RE::TESQuest* a_quest, bool a_enabled)
+    {
+        if (!a_quest)
+            return;
+        if (!a_enabled) {
+            if (_speedThread == a_quest) {
+                _speedThread = nullptr;
+                ++_controlGeneration;
+            }
+            return;
+        }
+        if (!Instance::GetInstance(a_quest))
+            return;
+        if (_speedThread != a_quest) {
+            _speedThread = a_quest;
+            ++_controlGeneration;
+        }
+        if (!_inputRegistered) {
+            if (auto* input = RE::BSInputDeviceManager::GetSingleton()) {
+                input->AddEventSink(this);
+                _inputRegistered = true;
+            }
+        }
+    }
+
+    bool SceneHUD::CanAdjustSpeed() const
+    {
+        return _speedThread && Instance::GetInstance(_speedThread) &&
+            !RE::UI::GetSingleton()->GameIsPaused() &&
+            (!IsActive() || !_focused || _activePanel == PanelId::kNone);
+    }
+
+    RE::BSEventNotifyControl SceneHUD::ProcessEvent(RE::InputEvent* const* a_event,
+        RE::BSTEventSource<RE::InputEvent*>*)
+    {
+        if (!a_event || !CanAdjustSpeed())
+            return RE::BSEventNotifyControl::kContinue;
+
+        constexpr std::uint32_t kLeftArrow = 203;
+        constexpr std::uint32_t kRightArrow = 205;
+        for (auto* event = *a_event; event; event = event->next) {
+            if (event->GetDevice() != RE::INPUT_DEVICE::kKeyboard)
+                continue;
+            auto* button = event->AsButtonEvent();
+            if (!button || !button->IsDown())
+                continue;
+
+            const auto key = button->GetIDCode();
+            if (key != kLeftArrow && key != kRightArrow)
+                continue;
+
+            const bool increase = key == kRightArrow;
+            auto* linkedThread = _speedThread;
+            const auto controlGeneration = _controlGeneration;
+            SKSE::GetTaskInterface()->AddTask([increase, linkedThread, controlGeneration]() {
+                auto& hud = SceneHUD::GetSingleton();
+                if (hud._controlGeneration == controlGeneration && hud._speedThread == linkedThread &&
+                    hud.CanAdjustSpeed()) {
+                    AnimSpeedOverlay::StepSpeed(linkedThread, increase);
+                }
+            });
+        }
+        return RE::BSEventNotifyControl::kContinue;
     }
 
     void SceneHUD::Render()
