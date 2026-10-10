@@ -253,7 +253,7 @@ target("papyrus")
     add_includedirs("$(papyrus_include)/PapyrusUtil SE - Modders Scripting Utility Functions/Source/Scripts")
     add_includedirs("$(papyrus_include)/SkyUI SDK/Source/Scripts")
     add_includedirs("$(papyrus_include)/Race Menu Sources/Source/Scripts")
-    add_includedirs("$(papyrus_include)/Mfg-Fix-NG/Source/Scripts")
+    add_includedirs("$(papyrus_include)/MfgFix NG/Source/Scripts")
     add_includedirs("$(papyrus_include)/VRIK Player Avatar/Source/Scripts")
     add_includedirs("$(papyrus_gamesource)/Source/Scripts")
 

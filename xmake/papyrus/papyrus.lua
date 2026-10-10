@@ -14,7 +14,7 @@ local function _vexecv(program, argv)
 
     -- run command
     local ok, errors = os.vexecv(program, argv, opt)
-    -- local outdata = io.readfile(outfile)
+    local outdata = io.readfile(outfile)
     local errdata = io.readfile(errfile)
     os.rm(outfile)
     os.rm(errfile)
@@ -28,6 +28,9 @@ local function _vexecv(program, argv)
         -- get errors
         if ok ~= nil then
             errors = string.format("execv(%s) failed(%d)", cmd, ok)
+            if outdata then
+                errors = errors .. "\n" .. outdata
+            end
             if errdata then
                 errors = errors .. "\n" .. errdata
             end
