@@ -62,6 +62,7 @@ namespace Thread
 
         static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
+        static void CancelPendingCreations();
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
         static Instance* GetInstance(RE::TESQuest* a_linkedQst);
         static Instance* GetPendingInstance(RE::TESQuest* a_linkedQst);
@@ -245,6 +246,8 @@ namespace Thread
         static inline std::shared_mutex _mInstances{};
         static inline std::vector<std::unique_ptr<Instance>> instances{};
         static inline std::vector<std::unique_ptr<Instance>> pendingInstances{};
+        // Protected by _mInstances; invalidates queued construction/finalization work.
+        static inline std::map<RE::TESQuest*, std::uint64_t> creationGenerations{};
     };
 
 }  // namespace Thread

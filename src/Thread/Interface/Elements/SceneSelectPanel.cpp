@@ -44,29 +44,21 @@ namespace Thread::Interface
         }();
         if (trimmed == e.annotations)
             return;
-        e.annotations = trimmed;
-
         auto* lib = Registry::Library::GetSingleton();
-        const auto* scene = lib->GetSceneById(RE::BSFixedString{ e.id.c_str() });
-        if (!scene)
-            return;
-        for (const auto& a : scene->tags.GetAnnotations()) {
-            lib->EditScene(RE::BSFixedString{ e.id.c_str() }, [&](Registry::Scene* s) {
-                s->tags.RemoveAnnotation(a);
-            });
-        }
+        Registry::TagData annotations;
         std::istringstream ss(trimmed);
         std::string token;
         while (std::getline(ss, token, ',')) {
             const auto start = token.find_first_not_of(' ');
             const auto end = token.find_last_not_of(' ');
             if (start != std::string::npos) {
-                lib->EditScene(RE::BSFixedString{ e.id.c_str() }, [&](Registry::Scene* s) {
-                    s->tags.AddAnnotation(RE::BSFixedString{
-                        token.substr(start, end - start + 1).c_str() });
-                });
+                annotations.AddAnnotation(RE::BSFixedString{ token.substr(start, end - start + 1).c_str() });
             }
         }
+        if (lib->EditScene(RE::BSFixedString{ e.id.c_str() }, [&](Registry::Scene* s) {
+                s->tags.SetAnnotations(annotations.GetAnnotations());
+            }))
+            e.annotations = trimmed;
     }
 
     void SceneSelectPanel::RebuildEntries(SceneHUD& a_hud)

@@ -133,7 +133,9 @@ namespace Registry
 
       private:
         mutable std::shared_mutex _mScenes{};
+        mutable std::mutex _mSave{};
         std::vector<std::unique_ptr<AnimPackage>> packages;
+        std::unordered_map<const Scene*, const AnimPackage*> scenePackages;
         std::map<RE::BSFixedString, Scene*, FixedStringCompare> sceneMap;             // SceneId -> Scene
         std::unordered_map<ActorFragment::FragmentHash, std::vector<Scene*>> scenes;  // Hashes -> Scenes
 

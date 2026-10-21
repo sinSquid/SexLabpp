@@ -1,4 +1,5 @@
 #include "Expression.h"
+#include "Util/AtomicWrite.h"
 
 namespace Registry
 {
@@ -254,7 +255,6 @@ namespace Registry
     {
         if (!has_edits && !force)
             return;
-        has_edits = false;
         YAML::Node file;
         file["id"] = id.data();
         file["version"] = static_cast<int32_t>(version);
@@ -272,8 +272,8 @@ namespace Registry
             }
         }
         file["enabled"] = enabled;
-        std::ofstream fout(std::format("{}\\{}.yaml", a_fileLocation, id));
-        fout << file;
+        Util::AtomicWrite(std::format("{}\\{}.yaml", a_fileLocation, id), YAML::Dump(file));
+        has_edits = false;
     }
 
     void Expression::UpdateValues(bool a_female, int a_level, std::vector<float> a_values)

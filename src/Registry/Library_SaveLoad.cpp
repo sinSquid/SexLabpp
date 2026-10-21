@@ -2,6 +2,7 @@
 
 #include "Util/Combinatorics.h"
 #include "Util/StringUtil.h"
+#include "Util/AtomicWrite.h"
 
 namespace Registry
 {
@@ -110,11 +111,15 @@ namespace Registry
                             }
                             return Combinatorics::CResult::Next;
                         });
-                        sceneMap[scene->id] = scene.get();
                     }
                     logger::info("InitializeScenes: Finished parsing file {}", filename);
                     const std::unique_lock lock{ _mScenes };
                     packages.push_back(std::move(package));
+                    const auto* loaded = packages.back().get();
+                    for (const auto& scene : loaded->scenes) {
+                        sceneMap[scene->id] = scene.get();
+                        scenePackages.emplace(scene.get(), loaded);
+                    }
                 } catch (const std::exception& e) {
                     logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
                 }
@@ -483,77 +488,113 @@ namespace Registry
 
     void Library::Save() const noexcept
     {
-        SaveScenes();
-        SaveExpressions();
-        SaveVoices();
-        logger::info("Finished saving registry settings");
+        try {
+            std::lock_guard saveLock{ _mSave };
+            SaveScenes();
+            SaveExpressions();
+            SaveVoices();
+            logger::info("Finished saving registry settings");
+        } catch (const std::exception& e) {
+            logger::error("Failed to save registry settings: {}", e.what());
+        } catch (...) {
+            logger::error("Failed to save registry settings: unknown exception");
+        }
     }
 
     void Library::SaveScenes() const noexcept
     {
-        std::shared_lock lock{ _mScenes };
-        std::vector<std::thread> threads{};
-        for (auto&& p : packages) {
-            threads.emplace_back([&]() {
-                YAML::Node data{};
-                for (auto&& scene : p->scenes) {
-                    auto node = data[scene->id];
-                    scene->Save(node);
+        try {
+            std::vector<std::pair<fs::path, std::string>> snapshot;
+            {
+                std::shared_lock lock{ _mScenes };
+                snapshot.reserve(packages.size());
+                for (const auto& p : packages) {
+                    YAML::Node data{};
+                    for (auto&& scene : p->scenes) {
+                        auto node = data[scene->id];
+                        scene->Save(node);
+                    }
+                    const auto filepath = std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, p->GetName().data(), p->GetHash());
+                    snapshot.emplace_back(filepath, YAML::Dump(data));
                 }
-                const auto filepath = std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, p->GetName().data(), p->GetHash());
-                std::ofstream fout(filepath);
-                fout << data;
-            });
+            }
+            // One writer, outside the registry lock; preserve synchronous save completion.
+            for (const auto& [path, bytes] : snapshot) {
+                try {
+                    Util::AtomicWrite(path, bytes);
+                } catch (const std::exception& e) {
+                    logger::error("Failed to save scene settings {}: {}", path.string(), e.what());
+                }
+            }
+            logger::info("Saved scenes");
+        } catch (const std::exception& e) {
+            logger::error("Failed to serialize scene settings: {}", e.what());
+        } catch (...) {
+            logger::error("Failed to save scene settings: unknown exception");
         }
-        for (auto&& thread : threads) {
-            thread.join();
-        }
-        logger::info("Saved scenes");
     }
 
     void Library::SaveExpressions() const noexcept
     {
-        std::shared_lock lock{ _mExpressions };
-        for (auto&& [id, expression] : expressions) {
-            expression.Save(EXPRESSION_PATH, false);
+        try {
+            std::unique_lock lock{ _mExpressions };
+            for (auto&& [id, expression] : expressions) {
+                try {
+                    expression.Save(EXPRESSION_PATH, false);
+                } catch (const std::exception& e) {
+                    logger::error("Failed to save expression {}: {}", id, e.what());
+                }
+            }
+            logger::info("Saved expressions");
+        } catch (const std::exception& e) {
+            logger::error("Failed to save expressions: {}", e.what());
+        } catch (...) {
+            logger::error("Failed to save expressions: unknown exception");
         }
-        logger::info("Saved expressions");
     }
 
     void Library::SaveVoices() const noexcept
     {
-        const auto getSavefile = [](auto path) -> YAML::Node {
-            try {
-                if (fs::exists(path))
-                    return YAML::LoadFile(path);
-            } catch (const std::exception& e) {
-                logger::error("Error while loading voice settings {}: {}. The file will be re-generated", path, e.what());
+        try {
+            const auto getSavefile = [](auto path) -> YAML::Node {
+                try {
+                    if (fs::exists(path))
+                        return YAML::LoadFile(path);
+                } catch (const std::exception& e) {
+                    logger::error("Error while loading voice settings {}: {}. The file will be re-generated", path, e.what());
+                }
+                return YAML::Node{};
+            };
+            auto settings = getSavefile(VOICE_SETTING_PATH);
+            std::shared_lock lock{ _mVoice };
+            for (auto&& [name, voice] : voices) {
+                auto voiceNode = settings[name.data()];
+                voice.Save(voiceNode);
             }
-            return YAML::Node{};
-        };
-        auto settings = getSavefile(VOICE_SETTING_PATH);
-        for (auto&& [name, voice] : voices) {
-            auto voiceNode = settings[name.data()];
-            voice.Save(voiceNode);
-        }
-        std::ofstream fout_settings(VOICE_SETTING_PATH);
-        fout_settings << settings;
+            const auto settingsBytes = YAML::Dump(settings);
 
-        auto cache = getSavefile(VOICE_SETTINGS_CACHES_PATH);
-        for (auto&& [id, voice] : savedVoices) {
-            auto form = RE::TESForm::LookupByID<RE::Actor>(id);
-            if (!form)
-                continue;
-            if (auto base = form->GetActorBase()) {
-                if (!base->IsUnique())
+            auto cache = getSavefile(VOICE_SETTINGS_CACHES_PATH);
+            for (auto&& [id, voice] : savedVoices) {
+                auto form = RE::TESForm::LookupByID<RE::Actor>(id);
+                if (!form)
                     continue;
+                if (auto base = form->GetActorBase()) {
+                    if (!base->IsUnique())
+                        continue;
+                }
+                auto str = Util::FormToString(form);
+                cache[str] = voice->GetId().data();
             }
-            auto str = Util::FormToString(form);
-            cache[str] = voice->GetId().data();
+            const auto cacheBytes = YAML::Dump(cache);
+            lock.unlock();
+            Util::AtomicWrite(VOICE_SETTING_PATH, settingsBytes);
+            Util::AtomicWrite(VOICE_SETTINGS_CACHES_PATH, cacheBytes);
+            logger::info("Saved voices");
+        } catch (const std::exception& e) {
+            logger::error("Failed to save voices: {}", e.what());
+        } catch (...) {
+            logger::error("Failed to save voices: unknown exception");
         }
-        std::ofstream fout_caches(VOICE_SETTINGS_CACHES_PATH);
-        fout_caches << cache;
-        logger::info("Saved voices");
     }
 
 }  // namespace Registry

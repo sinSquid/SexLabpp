@@ -8,29 +8,23 @@ namespace Registry
     {
         const auto tStart = std::chrono::high_resolution_clock::now();
         ActorFragment::FragmentHash hash;
-#ifndef SKYRIMVR
-        std::thread _hashbuilder{ [&]() {
-#endif
-            std::vector<ActorFragment> fragments;
-            for (auto&& position : a_actors) {
-                if (!position) {
-                    logger::warn("Warning: NULL Actor passed to LookupScenes");
-                    continue;
-                }
-                const auto submissive = std::ranges::contains(a_submissives, position);
-                fragments.emplace_back(position, submissive);
+        std::vector<ActorFragment> fragments;
+        fragments.reserve(a_actors.size());
+        for (auto&& position : a_actors) {
+            if (!position) {
+                logger::warn("Warning: NULL Actor passed to LookupScenes");
+                continue;
             }
-            hash = ActorFragment::MakeFragmentHash(fragments);
-#ifndef SKYRIMVR
-        } };
-#endif
+            const auto submissive = std::ranges::contains(a_submissives, position);
+            fragments.emplace_back(position, submissive);
+        }
+        hash = ActorFragment::MakeFragmentHash(fragments);
         TagDetails tags{ a_tags };
         const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", [&] {
             return std::accumulate(std::next(a_tags.begin()), a_tags.end(), std::string(a_tags[0]), [](std::string a, std::string_view b) {
                 return std::move(a) + ", " + b.data();
             });
         }());
-        _hashbuilder.join();
 
         const std::shared_lock lock{ _mScenes };
         const auto where = this->scenes.find(hash);
@@ -83,12 +77,8 @@ namespace Registry
     const AnimPackage* Library::GetPackageFromScene(const Scene* a_scene) const
     {
         std::shared_lock lock{ _mScenes };
-        for (auto&& package : packages) {
-            if (std::ranges::contains(package->scenes, a_scene, [](const auto& scenePtr) { return scenePtr.get(); })) {
-                return package.get();
-            }
-        }
-        return nullptr;
+        const auto where = scenePackages.find(a_scene);
+        return where != scenePackages.end() ? where->second : nullptr;
     }
 
     const Scene* Library::GetSceneById(const RE::BSFixedString& a_id) const

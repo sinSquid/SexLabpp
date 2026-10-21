@@ -471,7 +471,7 @@ namespace Registry::Statistics
 
     StatisticsData::EventResult StatisticsData::ProcessEvent(const RE::TESResetEvent* a_event, RE::BSTEventSource<RE::TESResetEvent>*)
     {
-        if (!a_event || !a_event->object || !a_event->object->IsNot(RE::FormType::ActorCharacter))
+        if (!a_event || !a_event->object || a_event->object->IsNot(RE::FormType::ActorCharacter))
             return EventResult::kContinue;
 
         DeleteStatistics(a_event->object->formID);

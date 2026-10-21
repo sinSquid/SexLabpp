@@ -11,14 +11,22 @@ namespace Thread
 {
     void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference)
     {
-        if (GetInstance(a_linkedQst)) {
-            logger::warn("Thread instance already exists for quest {:X}.", a_linkedQst->formID);
-            DispatchContinueSetup(a_linkedQst, false);
-            return;
+        std::uint64_t generation;
+        {
+            std::unique_lock lock{ _mInstances };
+            const auto matches = [a_linkedQst](const auto& instance) { return instance->linkedQst == a_linkedQst; };
+            if (std::ranges::any_of(instances, matches) || std::ranges::any_of(pendingInstances, matches)) {
+                logger::warn("Thread instance already exists for quest {:X}.", a_linkedQst->formID);
+                DispatchContinueSetup(a_linkedQst, false);
+                return;
+            }
+            generation = ++creationGenerations[a_linkedQst];
         }
         try {
             auto instance = std::make_unique<Instance>(a_linkedQst, a_submissives, a_scenes, a_furniturePreference);
             std::unique_lock lock{ _mInstances };
+            if (creationGenerations[a_linkedQst] != generation)
+                return;
             if (instance->pendingQst != nullptr) {
                 pendingInstances.emplace_back(std::move(instance));
                 // DispatchContinueSetup() called by Instance::FinalizeCenterRefSelection()
@@ -28,6 +36,9 @@ namespace Thread
             }
             return;
         } catch (const std::exception& e) {
+            std::shared_lock lock{ _mInstances };
+            if (creationGenerations.at(a_linkedQst) != generation)
+                return;
             logger::error("Failed to create thread instance: {}", e.what());
             DispatchContinueSetup(a_linkedQst, false);
             return;
@@ -39,6 +50,10 @@ namespace Thread
         Interface::SceneHUD::GetSingleton().SetSpeedControl(a_linkedQst, false);
         {
             std::unique_lock lock{ _mInstances };
+            ++creationGenerations[a_linkedQst];
+            std::erase_if(pendingInstances, [&](const auto& instance) {
+                return instance->linkedQst == a_linkedQst;
+            });
             std::erase_if(instances, [&](const auto& instance) {
                 if (instance->linkedQst != a_linkedQst) {
                     return false;
@@ -64,6 +79,15 @@ namespace Thread
             }
         }
         return nullptr;
+    }
+
+    void Instance::CancelPendingCreations()
+    {
+        std::unique_lock lock{ _mInstances };
+        for (auto& entry : creationGenerations) {
+            ++entry.second;
+        }
+        pendingInstances.clear();
     }
 
     Instance* Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)

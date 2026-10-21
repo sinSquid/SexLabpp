@@ -365,10 +365,20 @@ namespace Thread
 
     void Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst)
     {
-        std::thread([a_linkedQst]() {
+        std::uint64_t generation;
+        {
+            std::shared_lock lock{ _mInstances };
+            const auto found = creationGenerations.find(a_linkedQst);
+            if (found == creationGenerations.end())
+                return;
+            generation = found->second;
+        }
+        SKSE::GetTaskInterface()->AddTask([a_linkedQst, generation]() {
             std::unique_ptr<Instance> instance{};
             {
                 std::unique_lock lock{ _mInstances };
+                if (creationGenerations[a_linkedQst] != generation)
+                    return;
                 const auto it = std::ranges::find_if(pendingInstances, [a_linkedQst](const auto& i) { return i->linkedQst == a_linkedQst; });
                 if (it == pendingInstances.end()) {
                     logger::error("FinalizeCenterRefSelection: no pending instance found for TESQuest {:X}.", a_linkedQst->formID);
@@ -381,13 +391,18 @@ namespace Thread
             try {
                 instance->FinalizeInstanceMake();
                 std::unique_lock lock{ _mInstances };
+                if (creationGenerations[a_linkedQst] != generation)
+                    return;
                 instances.emplace_back(std::move(instance));
                 DispatchContinueSetup(a_linkedQst, true);
             } catch (const std::exception& e) {
+                std::shared_lock lock{ _mInstances };
+                if (creationGenerations.at(a_linkedQst) != generation)
+                    return;
                 logger::error("FinalizeCenterRefSelection: Failed to complete thread instance: {}", e.what());
                 DispatchContinueSetup(a_linkedQst, false);
             }
-        }).detach();
+        });
     }
 
 }  // namespace Thread

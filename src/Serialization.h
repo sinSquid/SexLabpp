@@ -3,6 +3,7 @@
 #include "Papyrus/sslLibrary/Serialize.h"
 #include "Registry/Stats.h"
 #include "Thread/Collision/CollisionHandler.h"
+#include "Thread/Thread.h"
 
 namespace Serialization
 {
@@ -72,6 +73,7 @@ namespace Serialization
 
         static void RevertCallback(SKSE::SerializationInterface* a_intfc)
         {
+            Thread::Instance::CancelPendingCreations();
             Thread::Collision::CollisionHandler::Clear();
             Registry::Statistics::StatisticsData::GetSingleton()->Revert(a_intfc);
             Papyrus::Tracking::GetSingleton()->Revert(a_intfc);
