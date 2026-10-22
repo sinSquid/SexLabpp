@@ -1,5 +1,6 @@
 #include "StageSelectMenu.h"
 #include "SceneHUD.h"
+#include <charconv>
 
 namespace Thread::Interface
 {
@@ -25,8 +26,9 @@ namespace Thread::Interface
                         const bool isIndex = !digits.empty() &&
                                              std::ranges::all_of(digits, [](char c) { return std::isdigit(static_cast<unsigned char>(c)); });
                         if (isIndex) {
-                            const size_t idx = static_cast<size_t>(std::stoul(std::string{ digits }));
-                            const RE::Actor* actor = idx < a_actors.size() ? a_actors[idx] : nullptr;
+                            size_t idx{};
+                            const auto parsed = std::from_chars(digits.data(), digits.data() + digits.size(), idx);
+                            const RE::Actor* actor = parsed.ec == std::errc{} && idx < a_actors.size() ? a_actors[idx] : nullptr;
                             out += actor ? actor->GetName() : "{}";
                             i = close + 1;
                             continue;

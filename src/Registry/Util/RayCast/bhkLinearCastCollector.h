@@ -4,6 +4,11 @@
 /* From SmoothCam */
 namespace SkyrimSE
 {
+    constexpr bool IsRaycastLayerAccepted(uint32_t flags)
+    {
+        const auto layer = flags & 0x7F;
+        return layer < 32 && ((uint32_t{ 0x40122716 } >> layer) & 1u) != 0;
+    }
     using vec2u = glm::vec<2, float, glm::highp>;
     using vec3u = glm::vec<3, float, glm::highp>;
     using vec4u = glm::vec<4, float, glm::highp>;
@@ -73,9 +78,7 @@ namespace SkyrimSE
 
             hitResult.hit = list;
             if (hitResult.hit) {
-                const uint64_t m = 1ULL << static_cast<uint64_t>(hitResult.hit->flags & 0x7F);
-                constexpr uint64_t filter = 0x40122716;  //@TODO
-                if ((m & filter) != 0) {
+                if (IsRaycastLayerAccepted(hitResult.hit->flags)) {
                     if (objectFilter.size() > 0)
                         for (const auto obj : objectFilter) {
                             typedef RE::NiAVObject* (*GetUserData)(SkyrimSE::bhkShapeList*);

@@ -167,20 +167,24 @@ namespace Registry
 
     const Voice* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)
     {
-        std::shared_lock lock{ _mVoice };
-        if (auto saved = GetSavedVoice(a_actor->GetFormID())) {
-            return saved;
-        }
+        if (!a_actor)
+            return nullptr;
+        std::unique_lock lock{ _mVoice };
+        const auto saved = savedVoices.find(a_actor->GetFormID());
+        if (saved != savedVoices.end() && saved->second)
+            return saved->second;
         const RaceKey actRace{ a_actor };
         if (!actRace.IsValid()) {
             logger::error("GetVoice: Actor {} has invalid racekey", a_actor->GetFormID());
             return nullptr;
         }
         const auto base = a_actor->GetActorBase();
+        if (!base)
+            return nullptr;
         const auto sex = base ? base->GetSex() : RE::SEXES::kMale;
         std::vector<const Voice*> ret{};
         for (auto&& [name, voice] : voices) {
-            if (!voice.enabled || voice.sex != RE::SEXES::kNone && voice.sex != sex)
+            if (!voice.enabled || (voice.sex != RE::SEXES::kNone && voice.sex != sex))
                 continue;
             if (!voice.HasRace(actRace) || !a_tags.MatchTags(voice.tags))
                 continue;
@@ -194,12 +198,12 @@ namespace Registry
                 const auto [pitch, voice] = where->second;
                 if (voice != nullptr)
                     return voice;
-                const auto w = std::remove_if(ret.begin(), ret.end(), [&](const auto& v) {
-                    return v->pitch != Pitch::Unknown && v->pitch != pitch;
+                std::vector<const Voice*> matchingPitch;
+                std::copy_if(ret.begin(), ret.end(), std::back_inserter(matchingPitch), [&](const auto& v) {
+                    return v->pitch == Pitch::Unknown || v->pitch == pitch;
                 });
-                if (w != ret.begin() && w != ret.end()) {
-                    ret.erase(w, ret.end());
-                }
+                if (!matchingPitch.empty())
+                    ret = std::move(matchingPitch);
             }
         }
         return savedVoices[a_actor->formID] = Random::draw(ret);
@@ -210,7 +214,7 @@ namespace Registry
         std::shared_lock lock{ _mVoice };
         std::vector<const Voice*> ret{};
         for (const auto& [_, voice] : voices) {
-            if (!tags.MatchTags(voice.tags))
+            if (!voice.enabled || !tags.MatchTags(voice.tags))
                 continue;
             ret.push_back(&voice);
         }
@@ -222,7 +226,7 @@ namespace Registry
         std::shared_lock lock{ _mVoice };
         std::vector<const Voice*> ret{};
         for (auto&& [_, voice] : voices) {
-            if (!voice.HasRace(a_race))
+            if (!voice.enabled || !voice.HasRace(a_race))
                 continue;
             ret.push_back(&voice);
         }
@@ -429,7 +433,7 @@ namespace Registry
         std::shared_lock lock{ _mExpressions };
         std::vector<const Expression*> ret{};
         for (auto&& [id, expression] : expressions) {
-            if (a_details.MatchTags(expression.GetTags())) {
+            if (expression.IsEnabled() && a_details.MatchTags(expression.GetTags())) {
                 ret.push_back(&expression);
             }
         }

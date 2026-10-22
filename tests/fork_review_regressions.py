@@ -26,7 +26,7 @@ def run(name, source, directory):
     cpp, binary = directory / (name + '.cpp'), directory / name
     cpp.write_text(source, encoding='utf-8')
     subprocess.run([os.environ.get('CXX', 'g++'), '-std=c++23', '-pthread',
-                    '-I', str(ROOT / 'src'), '-Wall', '-Wextra', '-Werror',
+                    '-I', str(ROOT / 'src'), '-Wall', '-Wextra', '-Werror', '-Wno-unknown-pragmas',
                     str(cpp), '-o', str(binary)], check=True)
     subprocess.run([str(binary), str(directory / name)], check=True, timeout=30)
     print('PASS:', name, flush=True)
@@ -173,8 +173,8 @@ lifecycle += r'''
 int main(){
  RE::TESQuest q{1};auto* tasks=SKSE::GetTaskInterface();
  auto create=[&](){Instance::CreateInstance(&q,{},0,0);};
- create();Instance::FinalizeCenterRefSelection(&q);assert(Instance::finalized==0);
- tasks->Drain();assert(Instance::instances.size()==1&&Instance::successes==1);
+ create();Instance::FinalizeCenterRefSelection(&q);Instance::FinalizeCenterRefSelection(&q);assert(Instance::finalized==0);
+ tasks->Drain();assert(Instance::instances.size()==1&&Instance::successes==1&&Instance::failures==0);
  Instance::DestroyInstance(&q);
  create();Instance::FinalizeCenterRefSelection(&q);Instance::DestroyInstance(&q);
  tasks->Drain();assert(Instance::instances.empty()&&Instance::pendingInstances.empty()&&Instance::successes==1);
@@ -189,7 +189,7 @@ int main(){
  create();Instance::FinalizeCenterRefSelection(&q);
  Instance::duringFinalize=[&](){Instance::DestroyInstance(&q);};tasks->Drain();Instance::duringFinalize={};
  assert(Instance::instances.empty()&&Instance::successes==2);
- create();Instance::FinalizeCenterRefSelection(&q);Instance::throwFinalize=true;tasks->Drain();
+ create();Instance::FinalizeCenterRefSelection(&q);Instance::FinalizeCenterRefSelection(&q);Instance::throwFinalize=true;tasks->Drain();
  assert(Instance::failures==1&&Instance::instances.empty());
  Instance::throwFinalize=false;create();Instance::FinalizeCenterRefSelection(&q);tasks->Drain();
  assert(Instance::instances.size()==1&&Instance::successes==3);
@@ -289,10 +289,138 @@ int main(){
 }
 '''
 
+utilities = common + r'''
+#include <barrier>
+#include <thread>
+#include <regex>
+#include <cctype>
+#include "Util/Random.h"
+#include "Util/StringUtil.h"
+#include "Util/Combinatorics.h"
+int main(){
+ int combinations=0;
+ auto visit=[&](const std::vector<std::vector<int>::const_iterator>& values){for(auto it:values)assert(*it>0);++combinations;return Combinatorics::CResult::Next;};
+ Combinatorics::ForEachCombination<int>({},visit);
+ Combinatorics::ForEachCombination<int>({{1},{}},visit);assert(combinations==0);
+ Combinatorics::ForEachCombination<int>({{1,2},{3,4,5}},visit);assert(combinations==6);
+ std::barrier gate(8);std::vector<std::thread> workers;std::vector<const void*> engines(8);
+ for(int n=0;n<8;++n)workers.emplace_back([&,n](){
+  engines[n]=&Random::eng;gate.arrive_and_wait();
+  for(int j=0;j<1000;++j){auto s=Random::generateUUID();assert(s.size()==36);
+   for(size_t i=0;i<s.size();++i){if(i==8||i==13||i==18||i==23)assert(s[i]=='-');else assert(std::string_view("0123456789abcdef").find(s[i])!=std::string_view::npos);}
+  }gate.arrive_and_wait();
+ });
+ for(auto& w:workers){w.join();}
+ for(int i=0;i<8;++i)for(int j=i+1;j<8;++j)assert(engines[i]!=engines[j]);
+ assert(Util::StringSplit("",",").empty());assert(Util::StringSplit(",,,",",").empty());
+ assert((Util::StringSplitToOwned(", a ,, b ,",",")==std::vector<std::string>{"a","b"}));
+ std::string s="AbC";s.push_back(static_cast<char>(0xFF));Util::ToLower(s);assert(s.substr(0,3)=="abc"&&static_cast<unsigned char>(s.back())==255);
+}
+'''
+
+async_io = common + r'''
+#include <chrono>
+#include <condition_variable>
+#include <deque>
+#include <thread>
+#include <atomic>
+using namespace std::chrono_literals;
+'''
+async_io += function('src/Util/AsyncIO.cpp', 'class TaskConsumer final') + ';'
+async_io += r'''
+int main(){
+ std::atomic<int> completed=0;
+ {TaskConsumer queue;
+  queue.Submit([](){throw std::runtime_error("test failure");});
+  for(int i=0;i<100;++i)queue.Submit([&](){++completed;});
+ }
+ assert(completed==100);
+ {TaskConsumer queue;queue.Submit([&](){++completed;});
+  std::this_thread::sleep_for(2200ms);
+  queue.Submit([&](){++completed;});
+ }
+ assert(completed==102);
+}
+'''
+expression_bounds = common + r'''
+#include <array>
+struct Expression {
+ static constexpr size_t Total=32;
+ bool has_edits=false;std::vector<std::array<float,Total>> data[2];
+ void UpdateValues(bool,int,std::vector<float>);
+};
+'''
+expression_bounds += function('src/Registry/Define/Expression.cpp', 'void Expression::UpdateValues(')
+expression_bounds += r'''
+int main(){
+ Expression e;e.UpdateValues(false,-1,std::vector<float>(32,1));
+ assert(!e.has_edits&&e.data[0].empty());
+ e.UpdateValues(false,0,std::vector<float>(31,1));assert(!e.has_edits&&e.data[0].empty());
+ e.UpdateValues(true,2,std::vector<float>(32,0.5f));assert(e.has_edits&&e.data[1].size()==3&&e.data[0].empty());
+ for(auto v:e.data[1][2])assert(v==0.5f);
+}
+'''
+
+navtext = common + r'''
+#include <charconv>
+#include <cctype>
+namespace RE {struct Actor {const char* GetName()const{return "Actor";}};}
+'''
+navtext += function('src/Thread/Interface/StageSelectMenu.cpp', 'std::string ResolveNavTextPlaceholders(')
+navtext += r'''
+int main(){
+ RE::Actor actor;std::vector<RE::Actor*> actors{&actor,nullptr};
+ assert(ResolveNavTextPlaceholders("{0}/{1}/{2}",actors)=="Actor/{}/{}");
+ assert(ResolveNavTextPlaceholders("{99999999999999999999999999999999999}",actors)=="{}");
+ assert(ResolveNavTextPlaceholders("{x} {} {0",actors)=="{x} {} {0");
+}
+'''
+
+stream_errors = common + r'''
+#include <fstream>
+void configure(std::ifstream& stream){
+'''
+stream_errors += '\n'.join(line for line in function(
+    'src/Registry/Define/Animation.cpp', 'AnimPackage::AnimPackage(').splitlines()
+    if 'stream.exceptions(' in line)
+stream_errors += r'''
+}
+int main(int argc,char** argv){
+ assert(argc==2);std::string path=std::string(argv[1])+".bin";
+ {std::ofstream file(path,std::ios::binary);file.put('X');}
+ {std::ifstream stream(path,std::ios::binary);configure(stream);char c;stream.read(&c,1);assert(c=='X');
+  bool threw=false;try{stream.read(&c,1);}catch(const std::ios_base::failure&){threw=true;}assert(threw);}
+ {std::ifstream stream(path,std::ios::binary);configure(stream);
+  bool threw=false;try{stream.setstate(std::ios::badbit);}catch(const std::ios_base::failure&){threw=true;}assert(threw);}
+}
+'''
+
+console_output = common + r'''
+#include <cstdarg>
+namespace RE {struct ConsoleLog {
+ std::vector<std::string> lines;
+ static ConsoleLog* GetSingleton(){static ConsoleLog c;return &c;}
+ void Print(const char* format,...){assert(std::string(format)=="%s");va_list args;va_start(args,format);lines.emplace_back(va_arg(args,const char*));va_end(args);}
+};}
+'''
+console_output += function('src/Util/Misc.h', 'inline void PrintConsole(')
+console_output += r'''
+int main(){
+ auto& lines=RE::ConsoleLog::GetSingleton()->lines;
+ PrintConsole("100% %s %n");assert(lines[0]=="100% %s %n");lines.clear();
+ std::string large(3500,'X');PrintConsole(large);std::string joined;
+ for(auto line:lines){assert(line.size()<=951);assert(line.back()=='\n');line.pop_back();joined+=line;}
+ assert(joined==large);
+}
+'''
+
 if __name__ == '__main__':
     with tempfile.TemporaryDirectory(prefix='sexlab-fork-review-') as tmp:
         directory = Path(tmp)
         for name, code in [('annotations_and_package_index', ui), ('actor_reset_filter', reset),
                            ('pending_instance_cancellation', lifecycle), ('atomic_config_files', atomic),
-                           ('save_snapshot_failures', save)]:
+                           ('save_snapshot_failures', save), ('random_and_strings', utilities),
+                           ('async_shutdown_and_restart', async_io), ('expression_input_bounds', expression_bounds),
+                           ('menu_placeholder_overflow', navtext), ('stream_error_flags', stream_errors),
+                           ('console_format_and_chunks', console_output)]:
             run(name, code, directory)

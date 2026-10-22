@@ -1,12 +1,20 @@
 #include "Settings.h"
 
 #include <SimpleIni.h>
+#include "Util/AtomicWrite.h"
 
 void Settings::Initialize()
 {
-    InitializeYAML();
-    InitializeINI();
-    InitializeData();
+    const auto load = [](auto operation, const char* name) {
+        try {
+            operation();
+        } catch (const std::exception& e) {
+            logger::error("Unable to initialize {}: {}", name, e.what());
+        }
+    };
+    load(InitializeYAML, "YAML settings");
+    load(InitializeINI, "INI settings");
+    load(InitializeData, "supplemental data");
 }
 
 template <typename T>
@@ -19,6 +27,7 @@ struct is_vector<std::vector<T, Alloc>> : std::true_type
 
 void Settings::InitializeYAML()
 {
+    std::lock_guard lock{ saveMutex };
     if (!fs::exists(YAMLPATH)) {
         logger::error("No Settings file (yaml) in {}", YAMLPATH);
         return;
@@ -76,11 +85,19 @@ void Settings::InitializeINI()
 #include "config.def"
 #undef INI_SETTING
 
-    if (fPercentageHetero + fPercentageHomo > 100) {
+    if (!std::isfinite(fPercentageHetero) || fPercentageHetero < 0.0f)
+        fPercentageHetero = 80.0f;
+    if (!std::isfinite(fPercentageHomo) || fPercentageHomo < 0.0f)
+        fPercentageHomo = 9.0f;
+    if (!std::isfinite(fFurnitureSquareStepSize) || fFurnitureSquareStepSize <= 0.0f)
+        fFurnitureSquareStepSize = 8.0f;
+    if (!std::isfinite(fFurnitureSquare) || fFurnitureSquare < 0.0f)
+        fFurnitureSquare = 32.0f;
+    const double total = static_cast<double>(fPercentageHetero) + fPercentageHomo;
+    if (total > 100.0) {
         logger::error("Sexuality Percentage Settings must be at most 100.0");
-        const auto total = fPercentageHetero + fPercentageHomo;
-        fPercentageHetero = (fPercentageHetero / total) * 100;
-        fPercentageHomo = (fPercentageHomo / total) * 100;
+        fPercentageHetero = static_cast<float>((fPercentageHetero / total) * 100.0);
+        fPercentageHomo = std::min(static_cast<float>((fPercentageHomo / total) * 100.0), 100.0f - fPercentageHetero);
         logger::info("Adjusted fPercentageHetero to {} and fPercentageHomo to {}", fPercentageHetero, fPercentageHomo);
     }
     logger::info("Finished loading .ini settings");
@@ -90,6 +107,7 @@ void Settings::InitializeData()
 {
     const auto& handler = RE::TESDataHandler::GetSingleton();
     const auto root = YAML::LoadFile(SCHLONGPATH);
+    std::vector<RE::FormID> loaded;
     for (auto&& i : root["Blacklist"]) {
         const auto esp = i["ESP"].as<std::string>();
         logger::info("Looking for non-schlongs in esp {}", esp);
@@ -100,7 +118,7 @@ void Settings::InitializeData()
                 const auto fac = handler->LookupFormID(formid, esp);
                 if (fac) {
                     logger::info("Adding {} / {}", esp, formid);
-                    SOS_ExcludeFactions.push_back(fac);
+                    loaded.push_back(fac);
                 }
             }
         } else {  // no sequence, simple entry
@@ -108,26 +126,33 @@ void Settings::InitializeData()
             const auto fac = handler->LookupFormID(formid, esp);
             if (fac) {
                 logger::info("Adding {} / {}", esp, formid);
-                SOS_ExcludeFactions.push_back(fac);
+                loaded.push_back(fac);
             }
         }
     }
+    SOS_ExcludeFactions = std::move(loaded);
 }
 
 void Settings::Save()
 {
-    YAML::Node settings{};
+    try {
+        YAML::Node settings{};
+        {
+            std::lock_guard lock{ saveMutex };
 #define MCM_SETTING(STR, DEFAULT) settings[#STR] = STR;
 #include "mcm.def"
 #undef MCM_SETTING
-
-    std::ofstream fout{ YAMLPATH };
-    fout << settings;
-    logger::info("Finished saving user settings");
+        }
+        Util::AtomicWrite(YAMLPATH, YAML::Dump(settings));
+        logger::info("Finished saving user settings");
+    } catch (const std::exception& e) {
+        logger::error("Unable to save user settings: {}", e.what());
+    }
 }
 
 Settings::KeyType Settings::GetKeyType(uint32_t a_keyCode)
 {
+    std::lock_guard lock{ saveMutex };
     const auto get = [](uint32_t key) {
         return key >= SKSE::InputMap::kMacro_GamepadOffset ? SKSE::InputMap::GamepadKeycodeToMask(key) : key;
     };
@@ -162,6 +187,7 @@ Settings::KeyType Settings::GetKeyType(uint32_t a_keyCode)
 
 uint32_t Settings::GetKeyCode(KeyType a_keyType)
 {
+    std::lock_guard lock{ saveMutex };
     const auto get = [](uint32_t key) {
         return key >= SKSE::InputMap::kMacro_GamepadOffset ? SKSE::InputMap::GamepadKeycodeToMask(key) : key;
     };

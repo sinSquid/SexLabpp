@@ -1,8 +1,8 @@
 #include "Theme.h"
 
 #include "Util/AsyncIO.h"
+#include "Util/AtomicWrite.h"
 
-#include <fstream>
 #include <optional>
 
 namespace Thread::Interface::UI::Theme
@@ -73,11 +73,10 @@ namespace Thread::Interface::UI::Theme
                 return;
             }
 
-            std::ofstream output{ path, std::ios::binary | std::ios::trunc };
-            output.write(buffer.data(), static_cast<std::streamsize>(buffer.size()));
-            output.close();
-            if (!output) {
-                logger::error("Unable to write UI theme to {}", THEME_PATH);
+            try {
+                Util::AtomicWrite(path, buffer);
+            } catch (const std::exception& error) {
+                logger::error("Unable to write UI theme to {}: {}", THEME_PATH, error.what());
                 return;
             }
             logger::info("Saved UI theme to {}", THEME_PATH);

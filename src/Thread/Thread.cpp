@@ -120,7 +120,7 @@ namespace Thread
     {
         assert(activeScene && activeScene->GetStageNodeType(a_nextStage) != Registry::Scene::NodeType::None);
         if (!HasInstanceNiSurface()) {
-            Interaction::NiSurface::Manager::Register(linkedQst->formID, *activeAssignment, activeScene);
+            ownedNiSurface = Interaction::NiSurface::Manager::Register(linkedQst->formID, *activeAssignment, activeScene);
         }
         fixedLengthTimer.state = FixedLengthTimer::State::Stopped;
         activeStage = a_nextStage;

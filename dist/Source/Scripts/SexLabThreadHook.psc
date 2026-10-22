@@ -102,10 +102,24 @@ bool[] _m
 
 ; Return if the calling thread is locked or not
 bool Function IsLocked(SexLabThread akThread)
-  return _m[akThread.GetThreadID()]
+  If (!akThread)
+    return true
+  EndIf
+  int id = akThread.GetThreadID()
+  If (id < 0 || id >= _m.Length)
+    return true
+  EndIf
+  return _m[id]
 EndFunction
 
 ; Set the locked state of this specific thread
 Function SetLocked(SexLabThread akThread, bool abLocked)
-  _m[akThread.GetThreadID()] = abLocked
+  If (!akThread)
+    return
+  EndIf
+  int id = akThread.GetThreadID()
+  If (id < 0 || id >= _m.Length)
+    return
+  EndIf
+  _m[id] = abLocked
 EndFunction

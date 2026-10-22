@@ -52,7 +52,7 @@ rule("spriggit")
             local meta = spriggit.load_meta(v)
             if meta then
                 target:add("installfiles", path.join(target:targetdir(), meta.ModKey))
-                target:add("files", srcdir, {rule = "spriggit", always_added = true})
+                target:add("files", v, {rule = "spriggit", always_added = true})
             end
         end
     end)

@@ -29,7 +29,7 @@ bool Function _GetEnabled()
 	return _enabled
 EndFunction
 Function _SetEnabled(bool aSet)
-	_enabled
+	_enabled = aSet
 EndFunction
 
 String _registryID
@@ -80,11 +80,11 @@ string[] function GetTags()
 endFunction
 
 bool Function HasTag(string Tag)
-	return Tag && !Tags.Length || Tags.Find(Tag) != -1
+	return Tag != "" && Tags.Find(Tag) != -1
 EndFunction
 
 bool function AddTag(string Tag)
-	if Tag != "" && !Tags.Length || Tags.Find(Tag) == -1
+	if Tag != "" && Tags.Find(Tag) == -1
 		Tags = PapyrusUtil.PushString(Tags, Tag)
 		return true
 	endIf
@@ -92,7 +92,7 @@ bool function AddTag(string Tag)
 endFunction
 
 bool function RemoveTag(string Tag)
-	if Tag != "" && !Tags.Length || Tags.Find(Tag) != -1
+	if Tag != "" && Tags.Find(Tag) != -1
 		Tags = PapyrusUtil.RemoveString(Tags, Tag)
 		return true
 	endIf

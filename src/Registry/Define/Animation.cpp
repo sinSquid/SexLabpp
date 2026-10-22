@@ -12,9 +12,8 @@ namespace Registry
     {
         std::ifstream stream(a_file, std::ios::binary);
         stream.unsetf(std::ios::skipws);
-        stream.exceptions(std::fstream::eofbit);
-        stream.exceptions(std::fstream::badbit);
-        stream.exceptions(std::fstream::failbit);
+        stream.exceptions(std::fstream::eofbit | std::fstream::badbit | std::fstream::failbit);
+        Decode::InputBounds bounds(stream);
 
         uint8_t version;
         constexpr uint8_t MIN_VERSION = 1;
@@ -31,6 +30,7 @@ namespace Registry
 
         uint64_t scene_count;
         Decode::Read(stream, scene_count);
+        Decode::CheckCount(stream, scene_count, Decode::ID_SIZE);
         scenes.reserve(scene_count);
         for (size_t i = 0; i < scene_count; i++) {
             scenes.push_back(std::make_unique<Scene>(stream, hash, version));
@@ -49,6 +49,8 @@ namespace Registry
         // --- Position Infos
         uint64_t info_count;
         Decode::Read(a_stream, info_count);
+        if (info_count == 0 || info_count > ActorFragment::MAX_ACTOR_COUNT)
+            throw std::runtime_error("Invalid scene position count");
         positions.reserve(info_count);
         for (size_t i = 0; i < info_count; i++) {
             positions.emplace_back(a_stream, a_version);
@@ -101,10 +103,13 @@ namespace Registry
         }
         uint64_t stage_count;
         Decode::Read(a_stream, stage_count);
+        Decode::CheckCount(a_stream, stage_count, Decode::ID_SIZE);
         stages.reserve(stage_count);
         for (size_t i = 0; i < stage_count; i++) {
             const auto& stage = stages.emplace_back(
                 std::make_unique<Stage>(a_stream, a_version));
+            if (stage->positions.size() != positions.size())
+                throw std::runtime_error("Stage position count differs from scene");
 
             tags.AddTag(stage->tags);
             if (stage->id == startstage) {
@@ -136,6 +141,7 @@ namespace Registry
             std::vector<const Stage*> edges{};
             uint64_t edge_count;
             Decode::Read(a_stream, edge_count);
+            Decode::CheckCount(a_stream, edge_count, Decode::ID_SIZE);
             std::string edgeid(Decode::ID_SIZE, 'X');
             for (size_t n = 0; n < edge_count; n++) {
                 a_stream.read(edgeid.data(), Decode::ID_SIZE);
@@ -146,7 +152,8 @@ namespace Registry
                 }
                 edges.push_back(edge);
             }
-            graph.insert(std::make_pair(vertex, edges));
+            if (!graph.emplace(vertex, std::move(edges)).second)
+                throw std::runtime_error("Duplicate graph vertex in package");
         }
         // --- Misc
         Decode::Read(a_stream, *reinterpret_cast<uint32_t*>(&furnitureTypes));
@@ -177,6 +184,7 @@ namespace Registry
         if (a_version > 1 && a_version < 4) {
             uint64_t extra_custom;
             Decode::Read(a_stream, extra_custom);
+            Decode::CheckCount(a_stream, extra_custom, sizeof(uint64_t));
             annotations.reserve(extra_custom);
             for (size_t j = 0; j < extra_custom; j++) {
                 RE::BSFixedString tag;
@@ -195,6 +203,8 @@ namespace Registry
 
         uint64_t position_count;
         Decode::Read(a_stream, position_count);
+        if (position_count == 0 || position_count > ActorFragment::MAX_ACTOR_COUNT)
+            throw std::runtime_error("Invalid stage position count");
         positions.reserve(position_count);
         for (size_t i = 0; i < position_count; i++) {
             positions.emplace_back(a_stream, a_version);
@@ -216,6 +226,7 @@ namespace Registry
         if (a_version >= 4) {
             uint64_t extra_custom;
             Decode::Read(a_stream, extra_custom);
+            Decode::CheckCount(a_stream, extra_custom, sizeof(uint64_t));
             tags.reserve(extra_custom);
             for (size_t j = 0; j < extra_custom; j++) {
                 RE::BSFixedString tag;
@@ -637,34 +648,99 @@ namespace Registry
         return where->second.size() == 0 ? NodeType::Sink : NodeType::Default;
     }
 
-    std::vector<const Stage*> Scene::GetLongestPath(const Stage* a_src) const
+std::vector<const Stage*> Scene::GetLongestPath(const Stage* a_src) const
     {
+        if (!a_src || !graph.contains(a_src))
+            return {};
         if (GetStageNodeType(a_src) == NodeType::Sink)
             return { a_src };
 
-        std::set<const Stage*> visited{};
-        std::function<std::vector<const Stage*>(const Stage*)> DFS = [&](const Stage* src) -> std::vector<const Stage*> {
-            if (visited.contains(src))
-                return {};
-            visited.insert(src);
-
-            std::vector<const Stage*> longest_path{ src };
-            const auto& neighbours = this->graph.find(src);
-            assert(neighbours != this->graph.end());
-            for (auto&& n : neighbours->second) {
-                const auto cmp = DFS(n);
-                if (cmp.size() + 1 > longest_path.size()) {
-                    longest_path.assign(cmp.begin(), cmp.end());
-                    longest_path.insert(longest_path.begin(), src);
-                }
+        // Find the reachable graph and topological order without recursion or
+        // per-node path copies. Parallel edges are counted and removed equally.
+        std::vector<const Stage*> reachable{ a_src };
+        std::map<const Stage*, size_t> indegree{ { a_src, 0 } };
+        for (size_t i = 0; i < reachable.size(); ++i) {
+            for (const auto* next : graph.at(reachable[i])) {
+                auto [entry, inserted] = indegree.try_emplace(next, 0);
+                if (inserted)
+                    reachable.push_back(next);
+                ++entry->second;
             }
-            return longest_path;
-        };
-        return DFS(a_src);
+        }
+        std::queue<const Stage*> ready;
+        for (const auto* node : reachable)
+            if (!indegree.at(node))
+                ready.push(node);
+        std::vector<const Stage*> order;
+        while (!ready.empty()) {
+            const auto* node = ready.front();
+            ready.pop();
+            order.push_back(node);
+            for (const auto* next : graph.at(node))
+                if (--indegree.at(next) == 0)
+                    ready.push(next);
+        }
+        if (order.size() == reachable.size()) {
+            struct Route
+            {
+                size_t length{ 1 };
+                const Stage* next{ nullptr };
+            };
+            std::map<const Stage*, Route> routes;
+            for (auto node = order.rbegin(); node != order.rend(); ++node) {
+                Route best;
+                for (const auto* next : graph.at(*node)) {
+                    const auto length = routes.at(next).length + 1;
+                    if (length > best.length)
+                        best = { length, next };
+                }
+                routes.emplace(*node, best);
+            }
+            std::vector<const Stage*> path;
+            path.reserve(routes.at(a_src).length);
+            for (auto* node = a_src; node; node = routes.at(node).next) path.push_back(node);
+            return path;
+        }
+
+        constexpr size_t searchBudget = 100000;
+        size_t remaining = searchBudget;
+        bool exhausted = false;
+        std::set<const Stage*> visited{ a_src };
+        std::vector<const Stage*> current{ a_src }, best{ a_src };
+        // An explicit traversal stack avoids recursive path copies. Every edge
+        // examined consumes budget, including edges back into the current path.
+        std::vector<size_t> nextEdge{ 0 };
+        while (!current.empty()) {
+            const auto& edges = graph.at(current.back());
+            if (nextEdge.back() == edges.size()) {
+                visited.erase(current.back());
+                current.pop_back();
+                nextEdge.pop_back();
+                continue;
+            }
+            if (!remaining) {
+                exhausted = true;
+                break;
+            }
+            --remaining;
+            const auto* next = edges[nextEdge.back()++];
+            if (visited.contains(next))
+                continue;
+            visited.insert(next);
+            current.push_back(next);
+            nextEdge.push_back(0);
+            if (current.size() > best.size())
+                best = current;
+        }
+        if (exhausted)
+            logger::warn("Cyclic longest-path search exhausted {} edge visits; returning best discovered simple path", searchBudget);
+        return best;
     }
 
-    std::vector<const Stage*> Scene::GetShortestPath(const Stage* a_src) const
+std::vector<const Stage*> Scene::GetShortestPath(const Stage* a_src) const
     {
+        if (!a_src || !graph.contains(a_src))
+            return {};
         if (GetStageNodeType(a_src) == NodeType::Sink)
             return { a_src };
 
@@ -680,8 +756,8 @@ namespace Registry
                     if (visited.contains(n))
                         continue;
                     if (GetStageNodeType(n) == NodeType::Sink) {
-                        std::vector<const Stage*> ret{};
-                        auto p = pred.at(it);
+                        std::vector<const Stage*> ret{ n };
+                        auto p = it;
                         while (p != nullptr) {
                             ret.push_back(p);
                             p = pred.at(p);

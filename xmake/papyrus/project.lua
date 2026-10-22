@@ -29,17 +29,22 @@ function main()
 
     local file = assert(io.open(path.join(outdir, filename), "w"), "failed to open output file")
 
+    local function xml(value)
+        return tostring(value):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")
+            :gsub('"', "&quot;"):gsub("'", "&apos;")
+    end
+
     file:print("<?xml version='1.0'?>")
     file:print('<PapyrusProject xmlns="PapyrusProject.xsd"')
-    file:print('    Flags="%s"', papyrus.flags)
-    file:print('    Game="%s"', papyrus.game)
-    file:print('    Output="%s"', _rel_path(target:targetdir()))
+    file:print('    Flags="%s"', xml(papyrus.flags))
+    file:print('    Game="%s"', xml(papyrus.game))
+    file:print('    Output="%s"', xml(_rel_path(target:targetdir())))
     file:print('    Optimize="%s"', papyrus.optimize and "true" or "false")
     file:print('    Anonymize="%s"', papyrus.anonymize and "true" or "false")
     file:print('    Zip="false">')
     file:print('    <Imports>')
     for _, v in ipairs(target:get("includedirs")) do
-        file:print('        <Import>%s</Import>', _rel_path(v))
+        file:print('        <Import>%s</Import>', xml(_rel_path(v)))
     end
     file:print('    </Imports>')
 
@@ -50,7 +55,7 @@ function main()
     for _, v in ipairs(target:get("files")) do
         if v:endswith("*.psc") then
             v = _rel_path(path.directory(v))
-            file:print('        <Folder>%s</Folder>', v)
+            file:print('        <Folder>%s</Folder>', xml(v))
         end
     end
     file:print('    </Folders>')

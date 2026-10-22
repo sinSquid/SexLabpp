@@ -32,9 +32,9 @@ namespace Papyrus::SexLabUtil
             return 0;
         }
         size_t w = 0;
-        int m = 0;
+        int m = arr.front();
         for (size_t i = 0; i < arr.size(); i++) {
-            if (findHighestValue && arr[i] > m || !findHighestValue && arr[i] < m) {
+            if ((findHighestValue && arr[i] > m) || (!findHighestValue && arr[i] < m)) {
                 w = i;
                 m = arr[i];
             }
@@ -56,9 +56,9 @@ namespace Papyrus::SexLabUtil
             return 0;
         }
         size_t w = 0;
-        float m = 0;
+        float m = arr.front();
         for (size_t i = 0; i < arr.size(); i++) {
-            if (findHighestValue && arr[i] > m || !findHighestValue && arr[i] < m) {
+            if ((findHighestValue && arr[i] > m) || (!findHighestValue && arr[i] < m)) {
                 w = i;
                 m = arr[i];
             }

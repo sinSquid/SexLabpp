@@ -22,10 +22,8 @@ namespace Papyrus::ActorStats
             return { RE::PlayerCharacter::GetSingleton() };
         }
         std::ranges::sort(tracked, [](RE::Actor* a, RE::Actor* b) {
-            if (a->IsPlayerRef())
-                return true;
-            if (b->IsPlayerRef())
-                return false;
+            if (a->IsPlayerRef() != b->IsPlayerRef())
+                return a->IsPlayerRef();
             return std::strcmp(a->GetDisplayFullName(), b->GetDisplayFullName()) < 0;
         });
         return tracked;
@@ -42,7 +40,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Invalid Stat ID", a_stackID);
             return;
         }
-        Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).SetStatistic(StatID(id), a_value);
+        Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor)->SetStatistic(StatID(id), a_value);
     }
 
     float GetStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id)
@@ -56,7 +54,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Invalid Stat ID", a_stackID);
             return 0;
         }
-        return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).GetStatistic(StatID(id));
+        return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor)->GetStatistic(StatID(id));
     }
 
     int GetSexuality(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
@@ -65,7 +63,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return 0;
         }
-        const auto& stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+        const auto stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatisticsSnapshot(a_actor);
         const auto value = stats.GetStatistic(stats.Sexuality);
         return MapSexuality(nullptr, value);
     }
@@ -76,7 +74,8 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return;
         }
-        auto& stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+        auto lockedStats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+        auto& stats = *lockedStats;
         switch (mapping) {
         case 0:
             {
@@ -121,7 +120,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return {};
         }
-        return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).GetEveryCustomID();
+        return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor)->GetEveryCustomID();
     }
 
     bool HasCustomStat(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat)
@@ -130,7 +129,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return false;
         }
-        return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).HasCustom(a_stat);
+        return Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor)->HasCustom(a_stat);
     }
 
     void SetCustomStatFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, float a_value)
@@ -139,7 +138,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return;
         }
-        Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).SetCustomFlt(a_stat, a_value);
+        Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor)->SetCustomFlt(a_stat, a_value);
     }
 
     void SetCustomStatStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, RE::BSFixedString a_value)
@@ -148,7 +147,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return;
         }
-        Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).SetCustomStr(a_stat, a_value);
+        Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor)->SetCustomStr(a_stat, a_value);
     }
 
     float GetCustomStatFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_stat, float a_default)
@@ -157,7 +156,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return a_default;
         }
-        const auto ret = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).GetCustomFlt(a_stat);
+        const auto ret = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor)->GetCustomFlt(a_stat);
         return ret ? *ret : a_default;
     }
 
@@ -167,7 +166,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return a_default;
         }
-        const auto ret = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).GetCustomStr(a_stat);
+        const auto ret = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor)->GetCustomStr(a_stat);
         return ret ? *ret : a_default;
     }
 
@@ -177,7 +176,7 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return;
         }
-        Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor).RemoveCustomStat(a_stat);
+        Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor)->RemoveCustomStat(a_stat);
     }
 
     std::vector<RE::Actor*> GetAllEncounters(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
@@ -345,14 +344,9 @@ namespace Papyrus::ActorStats
         return ret;
     }
 
-    float GetLegacyStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id)
+    float GetLegacyStatisticFromSnapshot(VM* a_vm, StackID a_stackID, RE::Actor* a_actor, int id, const Registry::Statistics::ActorStats& stats)
     {
-        if (!a_actor) {
-            a_vm->TraceStack("Actor is none", a_stackID);
-            return 0.0;
-        }
         const auto statdata = Registry::Statistics::StatisticsData::GetSingleton();
-        const auto& stats = statdata->GetStatistics(a_actor);
         switch (LegacyStatistics(id)) {
         case LegacyStatistics::L_Foreplay:
             {
@@ -404,6 +398,10 @@ namespace Papyrus::ActorStats
                 auto ret = stats.GetStatistic(stats.Sexuality);
                 constexpr auto rHomo = 35.0f, rBi = 30.0f, rHetero = 35.0f;
                 const auto f = [&](float start, float range, float range_legacy) {
+                    // A zero-width final range can still contain the endpoint
+                    // 100. Use its upper endpoint instead of dividing by zero.
+                    if (range <= 0.0f)
+                        return start + range_legacy;
                     float perc = ret / range;
                     float value = start + perc * range_legacy;
                     return value;
@@ -413,7 +411,7 @@ namespace Papyrus::ActorStats
                 }
                 ret -= Settings::fPercentageHomo;
                 const auto rangeBi = 100.0f - Settings::fPercentageHetero - Settings::fPercentageHomo;
-                if (ret < rBi) {
+                if (ret < rangeBi) {
                     return f(rHomo, rangeBi, rBi);
                 }
                 ret -= rangeBi;
@@ -445,6 +443,16 @@ namespace Papyrus::ActorStats
         }
     }
 
+    float GetLegacyStatistic(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, int id)
+    {
+        if (!a_actor) {
+            a_vm->TraceStack("Actor is none", a_stackID);
+            return 0.0;
+        }
+        const auto stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatisticsSnapshot(a_actor);
+        return GetLegacyStatisticFromSnapshot(a_vm, a_stackID, a_actor, id, stats);
+    }
+
     std::vector<float> GetAllLegycSkills(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor)
     {
         constexpr auto count = static_cast<int>(LegacyStatistics::Total);
@@ -452,10 +460,11 @@ namespace Papyrus::ActorStats
             a_vm->TraceStack("Actor is none", a_stackID);
             return std::vector<float>(count);
         }
+        const auto stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatisticsSnapshot(a_actor);
         std::vector<float> ret{};
         ret.reserve(count);
         for (int i = 0; i < count; i++) {
-            ret.push_back(GetLegacyStatistic(a_vm, a_stackID, nullptr, a_actor, i));
+            ret.push_back(GetLegacyStatisticFromSnapshot(a_vm, a_stackID, a_actor, i, stats));
         }
         return ret;
     }
@@ -467,7 +476,8 @@ namespace Papyrus::ActorStats
             return;
         }
         const auto statdata = Registry::Statistics::StatisticsData::GetSingleton();
-        auto& stats = statdata->GetStatistics(a_actor);
+        auto lockedStats = statdata->GetStatistics(a_actor);
+        auto& stats = *lockedStats;
         switch (LegacyStatistics(id)) {
         case LegacyStatistics::L_Foreplay:
             stats.SetCustomFlt(Foreplay, a_value);

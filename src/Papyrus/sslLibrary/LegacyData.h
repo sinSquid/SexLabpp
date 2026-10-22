@@ -24,7 +24,7 @@ namespace Papyrus
             return creature ? CrtMale : Male;
         case Registry::Sex::Female:
         case Registry::Sex::Futa:
-            return creature ? (Settings::bCreatureGender ? CrtFemale : CrtMale) : Female;
+            return creature ? (Settings::ReadMCM(Settings::bCreatureGender) ? CrtFemale : CrtMale) : Female;
         }
         return LegacySex::Male;
     }

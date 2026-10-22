@@ -77,6 +77,7 @@ namespace Registry
     {
         uint64_t tag_count;
         Decode::Read(a_stream, tag_count);
+        Decode::CheckCount(a_stream, tag_count, sizeof(uint64_t));
         for (size_t j = 0; j < tag_count; j++) {
             RE::BSFixedString tag;
             Decode::Read(a_stream, tag);
@@ -120,6 +121,10 @@ namespace Registry
     void TagData::RemoveTag(const TagData& a_tag)
     {
         _basetags.reset(a_tag._basetags.get());
+        if (this == &a_tag) {
+            _extratags.clear();
+            return;
+        }
         for (auto&& tag : a_tag._extratags) {
             RemoveExtraTag(tag);
         }
@@ -137,7 +142,7 @@ namespace Registry
 
     void TagData::IntersectTags(const TagData& a_tags)
     {
-        _basetags.set((_basetags & a_tags._basetags).get());
+        _basetags = _basetags & a_tags._basetags;
         std::erase_if(_extratags, [&](const auto& tag) { return !a_tags.HasTag(tag); });
         std::erase_if(_annotations, [&](const auto& tag) { return !a_tags.HasTag(tag); });
     }

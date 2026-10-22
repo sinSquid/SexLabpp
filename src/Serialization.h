@@ -14,7 +14,7 @@ namespace Serialization
         ret.resize(size);
         const char* it = reinterpret_cast<char*>(&a_type);
         for (size_t i = 0, j = size - 1; i < size; i++, j--)
-            ret[j] = std::isprint(it[i]) ? it[i] : '_';
+            ret[j] = std::isprint(static_cast<unsigned char>(it[i])) ? it[i] : '_';
 
         return ret;
     }
@@ -26,6 +26,7 @@ namespace Serialization
         enum : std::uint32_t
         {
             _Version = 1,
+            _StatisticsVersion = 2,
 
             _Statistics = 'stcs',
             _Tracking = 'trcn'
@@ -34,7 +35,7 @@ namespace Serialization
         static void SaveCallback(SKSE::SerializationInterface* a_intfc)
         {
 #define SAVE(type, func)                                   \
-    if (!a_intfc->OpenRecord(type, _Version)) {            \
+    if (!a_intfc->OpenRecord(type, type == _Statistics ? _StatisticsVersion : _Version)) { \
         std::string insert = #type##s;                     \
         logger::error("Failed to open record {}", insert); \
     } else {                                               \
@@ -51,17 +52,17 @@ namespace Serialization
             const auto v = static_cast<uint32_t>(_Version);
             uint32_t type, version, length;
             while (a_intfc->GetNextRecordInfo(type, version, length)) {
-                if (version != v) {
+                if ((type == _Statistics && version != 1 && version != _StatisticsVersion) || (type != _Statistics && version != v)) {
                     logger::info("Invalid Version for loaded Data of Type = {}. Expected = {}; Got = {}", GetTypeName(type), v, version);
                     continue;
                 }
                 logger::info("Loading record {}", GetTypeName(type));
                 switch (type) {
                 case _Statistics:
-                    Registry::Statistics::StatisticsData::GetSingleton()->Load(a_intfc);
+                    Registry::Statistics::StatisticsData::GetSingleton()->Load(a_intfc, version, length);
                     break;
                 case _Tracking:
-                    Papyrus::Tracking::GetSingleton()->Load(a_intfc);
+                    Papyrus::Tracking::GetSingleton()->Load(a_intfc, length);
                     break;
                 default:
                     break;

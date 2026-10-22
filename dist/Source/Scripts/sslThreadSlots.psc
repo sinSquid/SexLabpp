@@ -168,10 +168,14 @@ State Locked
   EndFunction
 
   sslThreadModel Function PickModel(float TimeOut = 5.0)
+    float started = Utility.GetCurrentRealTime()
     While (GetState() == "Locked")
+      If (Utility.GetCurrentRealTime() - started >= TimeOut)
+        return none
+      EndIf
       Utility.WaitMenuMode(0.1)
     EndWhile
-    PickModel()
+    return PickModel(TimeOut - (Utility.GetCurrentRealTime() - started))
   EndFunction
 EndState
 

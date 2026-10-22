@@ -32,7 +32,7 @@ namespace Thread::Interaction::NiSurface
 
         static std::shared_ptr<Scene> Get(RE::FormID a_id);
         static std::shared_ptr<Scene> Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Registry::Scene* a_scene) noexcept;
-        static void Unregister(RE::FormID a_id) noexcept;
+        static void Unregister(RE::FormID a_id, const Scene* a_expected = nullptr) noexcept;
 
       private:
         static inline std::mutex _mutex{};

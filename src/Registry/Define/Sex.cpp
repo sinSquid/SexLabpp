@@ -44,7 +44,7 @@ namespace Registry
             return Sex::Male;
         case RE::SEXES::kFemale:
             if (!a_actor->IsHumanoid()) {
-                return Settings::bCreatureGender ? Sex::Female : Sex::Male;
+                return Settings::ReadMCM(Settings::bCreatureGender) ? Sex::Female : Sex::Male;
             }
             return IsFuta(a_actor) ? Sex::Futa : Sex::Female;
         }

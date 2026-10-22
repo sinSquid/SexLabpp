@@ -16,16 +16,17 @@ namespace Papyrus::ThreadLibrary
         if (!a_center) {
             a_vm->TraceStack("Cannot find refs from a none center", a_stackID);
             return {};
-        } else if (a_radius < 0.0f) {
+        } else if (!std::isfinite(a_radius) || !std::isfinite(a_radiusZ) || a_radius < 0.0f) {
             a_vm->TraceStack("Cannot find refs within a negative radius", a_stackID);
             return {};
         }
         const auto center = a_center->GetPosition();
         std::vector<RE::TESObjectREFR*> ret{};
         Util::ForEachObjectInRange(a_center, a_radius, [&](RE::TESObjectREFR* ref) {
-            if (!ref || !ref->GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusZ > 0.0f ? (std::fabs(center.z - ref->GetPosition().z) <= a_radiusZ) : true)
-                if (Registry::FurnitureType::IsBedType(ref))
-                    ret.push_back(ref);
+            if (!ref || (a_radiusZ > 0.0f && std::fabs(center.z - ref->GetPosition().z) > a_radiusZ))
+                return RE::BSContainer::ForEachResult::kContinue;
+            if (Registry::FurnitureType::IsBedType(ref))
+                ret.push_back(ref);
             return RE::BSContainer::ForEachResult::kContinue;
         });
         std::sort(ret.begin(), ret.end(), [&](RE::TESObjectREFR* a_refA, RE::TESObjectREFR* a_refB) {
@@ -69,7 +70,7 @@ namespace Papyrus::ThreadLibrary
         const Registry::RaceKey targetrace{ a_targetrace.empty() ? "Human" : a_targetrace };
         const auto targetsex = [&]() {
             if (a_targetsex >= LegacySex::CrtMale || !targetrace.Is(Registry::RaceKey::Human)) {
-                if (!Settings::bCreatureGender || a_targetsex == LegacySex::Male || a_targetsex == LegacySex::CrtMale) {
+                if (!Settings::ReadMCM(Settings::bCreatureGender) || a_targetsex == LegacySex::Male || a_targetsex == LegacySex::CrtMale) {
                     return LegacySex::CrtMale;
                 } else if (a_targetsex == LegacySex::Female) {
                     return LegacySex::CrtFemale;
@@ -280,7 +281,7 @@ namespace Papyrus::ThreadLibrary
             return true;
         }
         const auto data = Tracking::GetSingleton();
-        if (data->_actors.contains(a_actor->formID)) {
+        if (data->Contains(data->_actors, a_actor->formID)) {
             return true;
         }
 
@@ -289,7 +290,7 @@ namespace Papyrus::ThreadLibrary
             if (!fac || rank < 0)
                 return false;
 
-            if (data->_factions.contains(fac->formID)) {
+            if (data->Contains(data->_factions, fac->formID)) {
                 ret = true;
                 return true;
             }
@@ -338,21 +339,14 @@ namespace Papyrus::ThreadLibrary
         if (a_actor->IsPlayerRef()) {
             ret.push_back(std::format("PlayerTrack{}", suffix));
         }
-        const auto where = data->_actors.find(a_actor->formID);
-        if (where != data->_actors.end()) {
-            for (auto&& event : where->second) {
-                ret.push_back(std::format("{}{}", event, suffix));
-            }
+        for (const auto& event : data->Callbacks(data->_actors, a_actor->formID)) {
+            ret.push_back(std::format("{}{}", event, suffix));
         }
         a_actor->VisitFactions([&](auto fac, auto rank) {
             if (!fac || rank < 0)
                 return false;
 
-            const auto it = data->_factions.find(fac->formID);
-            if (it == data->_factions.end())
-                return false;
-
-            for (auto&& event : it->second) {
+            for (const auto& event : data->Callbacks(data->_factions, fac->formID)) {
                 ret.push_back(std::format("{}{}", event, suffix));
             }
             return false;

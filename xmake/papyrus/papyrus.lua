@@ -87,9 +87,9 @@ function on_config(target)
 
     local batch = target:sourcebatches().papyrus
     local sourcefiles = batch and batch.sourcefiles or {}
+    target:add("installfiles", sourcefiles, {prefixdir = "Source/Scripts"})
     for _, v in ipairs(sourcefiles) do
         local objectfile = _objectfile(target, v)
-        target:add("installfiles", sourcefiles, {prefixdir = "Source/Scripts"})
         target:add("installfiles", objectfile, {prefixdir = "Scripts"})
     end
 
@@ -133,6 +133,7 @@ function on_build_file(target, sourcefile, opt)
     table.insert(target:objectfiles(), objectfile)
 
     depend.on_changed(function()
+        os.mkdir(outdir)
         local args = {
             sourcefile,
             "-f=" .. papyrus.flags,
@@ -159,6 +160,6 @@ function on_build_file(target, sourcefile, opt)
             papyrus.optimize and "optimize" or nil,
             papyrus.anonymize and "anonymize" or nil
         },
-        changed = target:is_rebuilt(),
+        changed = target:is_rebuilt() or not os.isfile(objectfile),
     })
 end

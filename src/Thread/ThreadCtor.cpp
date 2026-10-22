@@ -216,7 +216,7 @@ namespace Thread
         const auto player = RE::PlayerCharacter::GetSingleton();
         const auto position = GetPosition(player);
         if (!position) {
-            switch (Settings::FurnitureSlection(Settings::iNPCBed)) {
+            switch (Settings::FurnitureSlection(Settings::ReadMCM(Settings::iNPCBed))) {
             case Settings::FurnitureSlection::Never:
                 return CenterSelection::Actor;
             case Settings::FurnitureSlection::Always:
@@ -224,11 +224,11 @@ namespace Thread
             case Settings::FurnitureSlection::Sometimes:
                 return pickRandom();
             default:
-                logger::error("Invalid furniture selection setting (npc): {}", Settings::iNPCBed);
+                logger::error("Invalid furniture selection setting (npc): {}", Settings::ReadMCM(Settings::iNPCBed));
                 return CenterSelection::Actor;
             }
         } else {
-            switch (Settings::FurnitureSlection(Settings::iAskBed)) {
+            switch (Settings::FurnitureSlection(Settings::ReadMCM(Settings::iAskBed))) {
             case Settings::FurnitureSlection::Never:
                 return CenterSelection::Actor;
             case Settings::FurnitureSlection::Always:
@@ -243,7 +243,7 @@ namespace Thread
             case Settings::FurnitureSlection::Sometimes:
                 return pickRandom();
             default:
-                logger::error("Invalid furniture selection setting (player): {}", Settings::iAskBed);
+                logger::error("Invalid furniture selection setting (player): {}", Settings::ReadMCM(Settings::iAskBed));
                 return CenterSelection::Actor;
             }
         }
@@ -382,7 +382,8 @@ namespace Thread
                 const auto it = std::ranges::find_if(pendingInstances, [a_linkedQst](const auto& i) { return i->linkedQst == a_linkedQst; });
                 if (it == pendingInstances.end()) {
                     logger::error("FinalizeCenterRefSelection: no pending instance found for TESQuest {:X}.", a_linkedQst->formID);
-                    DispatchContinueSetup(a_linkedQst, false);
+                    // Another completion may already own or have published this request.
+                    // Only the task that takes the pending instance may report its result.
                     return;
                 }
                 instance = std::move(*it);

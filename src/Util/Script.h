@@ -19,6 +19,8 @@ namespace Script
 
     inline ObjectPtr GetScriptObject(const RE::TESForm* a_form, const char* a_class, bool a_create = false)
     {
+        if (!a_form)
+            return nullptr;
         auto vm = VM::GetSingleton();
         auto handle = GetHandle(a_form);
 
@@ -35,15 +37,22 @@ namespace Script
     template <class T>
     inline T GetProperty(ObjectPtr a_obj, const RE::BSFixedString& a_prop)
     {
+        if (!a_obj)
+            return T{};
         auto var = a_obj->GetProperty(a_prop);
-        assert(var);
+        if (!var)
+            return T{};
         return RE::BSScript::UnpackValue<T>(var);
     }
 
     template <class T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_floating_point_v<T>>>
     inline T GetTrivialProperty(ObjectPtr a_obj, const RE::BSFixedString& a_prop)
     {
+        if (!a_obj)
+            return T{};
         const auto var = a_obj->GetProperty(a_prop);
+        if (!var)
+            return T{};
         const auto type = var->GetType().GetRawType();
         switch (type) {
         case RawType::kBool:
@@ -62,8 +71,11 @@ namespace Script
     template <class T>
     inline void SetProperty(ObjectPtr a_obj, const RE::BSFixedString& a_prop, T a_val)
     {
+        if (!a_obj)
+            return;
         auto var = a_obj->GetProperty(a_prop);
-        assert(var);
+        if (!var)
+            return;
         RE::BSScript::PackValue(var, a_val);
     }
 

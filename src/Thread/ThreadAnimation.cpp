@@ -807,6 +807,10 @@ namespace Thread
 
     void Instance::SetAnimationPlaybackSpeed(float playbackSpeed)
     {
+        if (!std::isfinite(playbackSpeed)) {
+            logger::warn("Ignoring non-finite animation playback speed");
+            return;
+        }
         if (animationPlaybackSpeed == playbackSpeed) {
             return;
         }
@@ -833,6 +837,8 @@ namespace Thread
         for (auto& [graphMgr, lock] : lockedGraphs) {
             auto& runtime = graphMgr->GetRuntimeData();
             auto activeGraph = runtime.activeGraph;
+            if (activeGraph >= graphMgr->graphs.size())
+                continue;
 
             RE::BShkbAnimationGraph* animationGraph = graphMgr->graphs[activeGraph].get();
             if (!animationGraph || !animationGraph->behaviorGraph) {

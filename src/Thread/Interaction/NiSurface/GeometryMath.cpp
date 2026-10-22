@@ -29,10 +29,16 @@ namespace Thread::Interaction::NiSurface::GeometryMath
             const auto determinant = lhsLengthSq * rhsLengthSq - vectorsDot * vectorsDot;
             if (determinant < FLT_EPSILON * lhsLengthSq * rhsLengthSq) {
                 lhsFactor = std::clamp(lhsOffset / lhsLengthSq, 0.0f, 1.0f);
-                rhsFactor = 0.0f;
             } else {
                 lhsFactor = std::clamp((lhsOffset * rhsLengthSq - rhsOffset * vectorsDot) / determinant, 0.0f, 1.0f);
-                rhsFactor = std::clamp((lhsOffset + lhsFactor * vectorsDot) / rhsLengthSq, 0.0f, 1.0f);
+            }
+            rhsFactor = (lhsFactor * vectorsDot - rhsOffset) / rhsLengthSq;
+            if (rhsFactor < 0.0f) {
+                rhsFactor = 0.0f;
+                lhsFactor = std::clamp(lhsOffset / lhsLengthSq, 0.0f, 1.0f);
+            } else if (rhsFactor > 1.0f) {
+                rhsFactor = 1.0f;
+                lhsFactor = std::clamp((lhsOffset + vectorsDot) / lhsLengthSq, 0.0f, 1.0f);
             }
         }
 

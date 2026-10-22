@@ -255,13 +255,16 @@ namespace Thread::Interaction::NiSurface
         }
     }
 
-    void Manager::Unregister(RE::FormID a_id) noexcept
+    void Manager::Unregister(RE::FormID a_id, const Scene* a_expected) noexcept
     {
+        // Release the last scene owner only after the registry lock is released.
+        std::shared_ptr<Scene> releaseAfterUnlock;
         std::scoped_lock lock{ _mutex };
         const auto where = std::ranges::find(scenes, a_id, [](const auto& a_entry) { return a_entry.first; });
-        if (where == scenes.end()) {
+        if (where == scenes.end() || (a_expected && where->second.get() != a_expected)) {
             return;
         }
+        releaseAfterUnlock = std::move(where->second);
         scenes.erase(where);
     }
 

@@ -496,7 +496,8 @@ namespace Papyrus::ThreadModel
             if (!p)
                 continue;
 
-            auto& stats = statdata->GetStatistics(p);
+            auto lockedStats = statdata->GetStatistics(p);
+            auto& stats = *lockedStats;
             stats.AddStatistic(stats.XP_Vaginal, vaginal * 1.25f);
             stats.AddStatistic(stats.XP_Anal, anal * 1.25f);
             stats.AddStatistic(stats.XP_Oral, oral * 1.25f);
@@ -517,7 +518,8 @@ namespace Papyrus::ThreadModel
             a_vm->TraceStack("Position cound does not match scene position count", a_stackID);
             return;
         }
-        auto& stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+        auto lockedStats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+        auto& stats = *lockedStats;
         stats.SetStatistic(stats.LastUpdate_GameTime, RE::Calendar::GetSingleton()->GetCurrentGameTime());
         stats.AddStatistic(stats.SecondsInScene, a_time);
         stats.AddStatistic(stats.TimesTotal, 1);

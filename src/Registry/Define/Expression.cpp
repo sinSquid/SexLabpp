@@ -196,6 +196,12 @@ namespace Registry
 
     std::array<float, Expression::ValueType::Total> Expression::GetData(RE::SEXES::SEX a_sex, float a_strength) const
     {
+        if (a_sex != RE::SEXES::kMale && a_sex != RE::SEXES::kFemale) {
+            auto ret = std::array<float, Total>{};
+            ret[MoodType] = 7;
+            return ret;
+        }
+        a_strength = std::isfinite(a_strength) ? std::clamp(a_strength, 0.0f, 100.0f) : 0.0f;
         if (version < 1) {
             if (data[a_sex].empty()) {
                 logger::error("Invalid Expression Profile, {}: No data found", id);
@@ -205,7 +211,7 @@ namespace Registry
             }
             const auto max = static_cast<float>(data[a_sex].size()) - 1;
             const auto idx = static_cast<size_t>(std::floor((max * a_strength) / 100));
-            assert(idx < data[a_sex].size() && idx >= 0);
+            assert(idx < data[a_sex].size());
             return data[a_sex][idx];
         } else if (data[a_sex].size() != 2) {
             logger::error("Invalid Expression Profile, {}: {}/2 Profiles present", id, data[a_sex].size());
@@ -216,6 +222,7 @@ namespace Registry
         float multiplier;
         switch (scaling) {
         case Scaling::Linear:
+        default:
             multiplier = a_strength / 100.0f;
             break;
         case Scaling::Square:
@@ -278,9 +285,11 @@ namespace Registry
 
     void Expression::UpdateValues(bool a_female, int a_level, std::vector<float> a_values)
     {
+        if (a_level < 0 || a_values.size() != Total)
+            return;
         has_edits = true;
         auto& dataEntry = data[a_female];
-        while (dataEntry.size() <= a_level) {
+        while (dataEntry.size() <= static_cast<size_t>(a_level)) {
             dataEntry.emplace_back();
         }
         std::copy_n(a_values.begin(), dataEntry[a_level].size(), dataEntry[a_level].begin());

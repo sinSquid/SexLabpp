@@ -1,0 +1,40 @@
+fork/origin 全仓库逐文件审查进度
+日期：2026-10-22～23
+状态：未完成。不得将已有编译/回归结果表述为全仓库逻辑审查完成。
+停止检查后交接（2026-10-23）：用户要求记录剩余范围并提交推送；不继续审查。逐文件待审名单以AUDIT_COVERAGE.tsv中“尚未闭环”行为准，包含尚未审查及仅完成局部检查的文件。
+主要剩余：大部分Papyrus脚本；Papyrus原生接口；注册库加载及数据定义；线程生命周期；碰撞/几何；多数HUD面板；配置和工具的残余逻辑；ML及部分构建/测试脚本。VR不在本次范围，Validation.cpp与锁文件的原有改动不纳入提交。
+
+2026-10-23继续轮：本轮基线备份为C:\Users\admin\AppData\Local\Temp\SexLabpp-review-baseline-482d883c51ec4d5484ea6ed8d254a3cb。
+新增修复：RingBuffer容量/转换；Spriggit重复源目录；Tracking有界读取和并发快照；标签位交集、自移除和数量边界；射线层位移边界、SIMD非对齐写及空节点；实例注销所有权；Papyrus基础对象setter/标签条件、Hook索引；主题完整文件替换。
+新增回归：ring_buffer、tracking_records、tag_sets、raycast_boundaries、scene_registration_owner、papyrus_base_contracts、theme_save、spriggit_rule均通过。既有完整可移植回归通过；新增生命周期后调速回归再次通过。
+受影响8个不同CPP完成实际MSVC /Zs检查（main重复验证）；保留既有CommonLib宏重定义警告。2个修改PSC真实编译成功，输出C:\Users\admin\AppData\Local\Temp\SexLabpp-review-psc-86470e903b4e4372b8fd4bdac224c130。
+下文DLL属于上一轮产物，不含本继续轮新增修复；本轮尚未重新链接、部署或提交。
+本轮另外已阅读但仍待闭环：Library_SaveLoad.cpp的异常初始化/过多线程与部分发布；CollisionHandler.cpp原物理参数/IK恢复；Thread.cpp/.h的解锁裸指针；Theme.cpp/.h的跨线程数据访问；部分Papyrus兼容代理/阶段索引。大段输出截断的文件未标完成。
+
+范围：src、dist/Source/Scripts、scripts、xmake、tests、.github及根构建配置。
+VR专项排除；用户原有Validation.cpp及xmake-requires.lock不改动。
+
+本轮新增已确认问题：
+1. Util/Misc.h：控制台文本被当作格式串；分块substr长度随位置增长。已修复并补真实函数替身回归。
+2. Registry/Stats.cpp：已迁入持锁访问对象和只读快照，调用方配套修改；并发4000次累加、删除后的历史快照回归通过。
+3. Registry/Stats.cpp：已初始化计数并采用饱和累加；300次更新/存读回归通过。
+4. Registry/Stats.cpp与Serialization.h：已引入有界RecordReader、统计版本2写出、版本1旧variant读取；旧数据迁移、截断拒绝和往返回归通过。版本1读取针对原有MSVC x64格式。
+5. Registry/Stats.cpp：已先消费完整对象再ResolveFormID；失效首条后正常读取下一条的回归通过。
+6. Registry/Stats.cpp：Revert同时清除相遇记录；采用稳定旋转维护最近顺序，补齐角色对反向映射；回归通过。
+7. Papyrus/sslActorStats.cpp：已修正排序自比较；已完成实际MSVC编译及链接。
+8. UserData/StripData.cpp：已重建已加载插件条目并保留缺失插件配置，加入并发锁与原子替换；真实yaml-cpp的删除/全清/坏文件重载回归通过。
+9. UserData/Settings.cpp及main.cpp：已补初始化异常保护、MCM访问/保存快照锁和完整文件替换；保存入口转入已有单一I/O队列。保护文件Validation.cpp内的原有读点按要求未改；引擎退出时序仍需游戏验证。
+
+新增已完成：最短/最长路径检索修复与1024个DAG、4096个四节点有向图验证；GetVoice缓存锁与并发访问；整数/浮点最值输入边界；FormID严格解析；脚本属性空对象/缺失属性保护；最近线段数学修复；Papyrus锁等待超时；XML转义与安装清单重复项修复。
+逐文件清单见AUDIT_COVERAGE.tsv，未闭环文件明确保留未完成状态。不得将本轮描述为全仓库逐行审核已完成。
+原生验证产物：E:\code-lib\SexLabpp-audit-20261022\verify-objects\SexLabUtil.dll
+最终本轮DLL SHA256：AAD2DADE3D96E80DCCA239F72181AEB47622B699906BBF5BE87A3E5405249975
+该独立构建使用已提交Validation.cpp，未纳入用户原有修改；本体工作区始终保留原有修改。
+本轮计时起点：2026-10-22 15:35:49 UTC（北京时间23:35:49）。用户将最短时长追加至35分钟，并要求其后再连续开启至少20分钟一轮。
+第一轮结束：2026-10-22 16:11:04 UTC；追加20分钟轮次从此刻起算，最早结束时间16:31:04 UTC。
+追加轮结束：2026-10-22 16:31:29 UTC（北京时间2026-10-23 00:31:29）；追加轮20分25秒，两轮累计55分40秒。此为计时轮次完成，不代表全仓库逻辑审查完成。
+最后补充：自动选择语音/表情排除已禁用项，回归通过，受影响编译单元重新编译及DLL重新链接成功。
+追加轮完成的验证：配置读写并发、非有限配置、动画图边界、表情采样、床位查询、二进制流长度/截断、真实文件/YAML；全部通过。独立MSVC全项目编译链接成功，标准xmake的本地依赖仓库自动配置仍有环境问题。
+
+进度说明：本轮已阅读统计头文件/实现、部分统计原生入口、序列化入口/Tracking，通用FormLookup/Misc/RingBuffer/Script/Singleton，StripData及Settings、main。大文件输出有截断的部分须重新读取后才能标已读；不能据此将这些模块全标审核通过。其余文件尚未完成逐文件逻辑审查。
+既有55个CPP语法检查、47份PSC编译及现有回归结果仅为验证证据，不代替逻辑审查。

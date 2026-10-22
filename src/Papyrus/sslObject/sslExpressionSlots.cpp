@@ -163,6 +163,10 @@ namespace Papyrus::ExpressionSlots
 
         void SetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
         {
+            if (a_level < 0) {
+                a_vm->TraceStack("Invalid negative expression level", a_stackID);
+                return;
+            }
             if (a_values.size() != Registry::Expression::Total) {
                 a_vm->TraceStack("Invalid Value Size", a_stackID);
                 return;

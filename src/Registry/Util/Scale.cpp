@@ -21,11 +21,11 @@ namespace Registry
     void Scale::SetScale(RE::Actor* a_actor, RaceKey a_racekey, float a_absolutescale)
     {
         assert(a_actor && a_absolutescale > 0.0f);
-        if (Settings::bDisableScale) {
+        if (Settings::ReadMCM(Settings::bDisableScale)) {
             return;
         } else if (!transformInterface) {
             logger::error("Missing interface, scaling disabled");
-            Settings::bDisableScale = true;
+            Settings::WriteMCM(Settings::bDisableScale, true);
             return;
         }
         switch (a_racekey) {
@@ -110,11 +110,11 @@ namespace Registry
     void Scale::RemoveScale(RE::Actor* a_actor)
     {
         assert(a_actor);
-        if (Settings::bDisableScale) {
+        if (Settings::ReadMCM(Settings::bDisableScale)) {
             return;
         } else if (!transformInterface) {
             logger::error("Missing interface, scaling disabled");
-            Settings::bDisableScale = true;
+            Settings::WriteMCM(Settings::bDisableScale, true);
             return;
         }
 

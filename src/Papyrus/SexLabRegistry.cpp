@@ -172,11 +172,11 @@ namespace Papyrus::SexLabRegistry
             return humanoid ? 0 : 3;
         case Registry::Sex::Female:
             return humanoid                  ? 1 :
-                   Settings::bCreatureGender ? 4 :
+                   Settings::ReadMCM(Settings::bCreatureGender) ? 4 :
                                                3;
         case Registry::Sex::Futa:
             return humanoid                  ? 2 :
-                   Settings::bCreatureGender ? 4 :
+                   Settings::ReadMCM(Settings::bCreatureGender) ? 4 :
                                                3;
         default:
             return 0;

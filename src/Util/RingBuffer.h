@@ -1,6 +1,10 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
+#include <stdexcept>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace Util
@@ -8,12 +12,15 @@ namespace Util
     template <typename T, size_t N>
     struct RingBuffer
     {
+        static_assert(N > 0, "RingBuffer capacity must be positive");
       public:
         RingBuffer()
         {
             _buffer.reserve(N);
         }
         template <typename... Args>
+            requires(sizeof...(Args) > 0 && sizeof...(Args) <= N &&
+                     (std::is_constructible_v<T, Args&&> && ...))
         RingBuffer(Args&&... args) :
           _head{ sizeof...(Args) % N }, _size{ sizeof...(Args) }
         {
@@ -46,17 +53,17 @@ namespace Util
         template <typename K>
         K to() const
         {
-            K result;
-            if constexpr (requires { result[0]; result.size(); }) {
-                if constexpr (result.size() != N) {
-                    static_assert(sizeof(K) == 0, "Type K must have size() equal to N");
+            K result{};
+            if constexpr (requires { result.push_back(std::declval<T>()); }) {
+                for (size_t i = 0; i < _size; ++i) {
+                    result.push_back((*this)[i]);
+                }
+            } else if constexpr (requires { result[0]; result.size(); }) {
+                if (result.size() != N) {
+                    throw std::length_error("Type K must have size() equal to N");
                 }
                 for (size_t i = 0; i < _size; ++i) {
                     result[i] = (*this)[i];
-                }
-            } else if constexpr (requires { result.push_back(std::declval<T>()); }) {
-                for (size_t i = 0; i < _size; ++i) {
-                    result.push_back((*this)[i]);
                 }
             } else {
                 static_assert(sizeof(K) == 0, "Type K must support either operator[] with size() or push_back()");

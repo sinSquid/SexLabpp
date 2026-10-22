@@ -75,7 +75,10 @@ namespace Thread
         std::shared_ptr<Interaction::NiSurface::Scene> GetInstanceNiSurface() const { return Interaction::NiSurface::Manager::Get(linkedQst->GetFormID()); }
         void UnregisterInstanceNiSurface()
         {
-            Interaction::NiSurface::Manager::Unregister(linkedQst->GetFormID());
+            if (const auto owned = ownedNiSurface.lock()) {
+                Interaction::NiSurface::Manager::Unregister(linkedQst->GetFormID(), owned.get());
+            }
+            ownedNiSurface.reset();
         }
 
         void AdvanceScene(const Registry::Stage* a_nextStage);
@@ -187,6 +190,7 @@ namespace Thread
         };
 
         RE::TESQuest* linkedQst;
+        std::weak_ptr<Interaction::NiSurface::Scene> ownedNiSurface;
 
         Center center;
         std::vector<Position> positions;

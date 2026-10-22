@@ -1,4 +1,5 @@
 #pragma once
+#include <mutex>
 
 struct StringCmp
 {
@@ -7,6 +8,17 @@ struct StringCmp
 
 struct Settings
 {
+    static inline std::recursive_mutex saveMutex;
+    template<class T> static T ReadMCM(const T& value)
+    {
+        std::lock_guard lock{ saveMutex };
+        return value;
+    }
+    template<class T> static void WriteMCM(T& target, T value)
+    {
+        std::lock_guard lock{ saveMutex };
+        target = std::move(value);
+    }
     static void Initialize();
     static void Save();
 
