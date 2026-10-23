@@ -4,8 +4,40 @@
 
 namespace Registry
 {
+    Library::SceneAccess Library::ReadScene(const RE::BSFixedString& a_id) const
+    {
+        std::shared_lock lock{ _mScenes };
+        const auto it = sceneMap.find(a_id);
+        return { std::move(lock), it == sceneMap.end() ? nullptr : it->second };
+    }
+
+    std::optional<Voice> Library::GetVoiceSnapshot(RE::BSFixedString a_voice) const
+    {
+        std::shared_lock lock{ _mVoice };
+        const auto it = voices.find(a_voice);
+        return it == voices.end() ? std::nullopt : std::optional<Voice>{ it->second };
+    }
+
+    std::optional<Expression> Library::GetExpressionSnapshot(const RE::BSFixedString& a_id) const
+    {
+        std::shared_lock lock{ _mExpressions };
+        const auto it = expressions.find(a_id);
+        return it == expressions.end() ? std::nullopt : std::optional<Expression>{ it->second };
+    }
+
+    bool Library::MarkExpressionDirty(const RE::BSFixedString& a_id)
+    {
+        std::unique_lock lock{ _mExpressions };
+        const auto it = expressions.find(a_id);
+        if (it == expressions.end())
+            return false;
+        it->second.has_edits = true;
+        return true;
+    }
     std::vector<const Scene*> Library::LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
     {
+        if (a_actors.empty() || a_actors.size() > ActorFragment::MAX_ACTOR_COUNT || std::ranges::contains(a_actors, nullptr))
+            return {};
         const auto tStart = std::chrono::high_resolution_clock::now();
         ActorFragment::FragmentHash hash;
         std::vector<ActorFragment> fragments;
@@ -22,7 +54,9 @@ namespace Registry
         TagDetails tags{ a_tags };
         const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", [&] {
             return std::accumulate(std::next(a_tags.begin()), a_tags.end(), std::string(a_tags[0]), [](std::string a, std::string_view b) {
-                return std::move(a) + ", " + b.data();
+                a.append(", ");
+                a.append(b);
+                return a;
             });
         }());
 
@@ -253,12 +287,16 @@ namespace Registry
 
     void Library::WriteVoiceToFile(RE::BSFixedString a_voice) const
     {
-        auto voice = GetVoiceById(a_voice);
+        try {
+        auto voice = GetVoiceSnapshot(a_voice);
         if (!voice) {
             logger::error("Voice {} not found", a_voice);
             return;
         }
         voice->SaveToFile(VOICE_PATH);
+        } catch (const std::exception& error) {
+            logger::error("Unable to export voice {}: {}", a_voice, error.what());
+        }
     }
 
     std::vector<RE::Actor*> Library::GetSavedActors() const
@@ -462,15 +500,20 @@ namespace Registry
         return true;
     }
 
-    void Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
+    bool Library::UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values)
     {
-        std::unique_lock lock{ _mExpressions };
-        auto w = expressions.find(a_id);
-        if (w == expressions.end()) {
-            logger::error("Expression {} not found", a_id);
-            return;
+        try {
+            std::unique_lock lock{ _mExpressions };
+            auto w = expressions.find(a_id);
+            if (w == expressions.end()) {
+                logger::error("Expression {} not found", a_id);
+                return false;
+            }
+            return w->second.UpdateValues(a_female, a_level, std::move(a_values));
+        } catch (const std::exception& error) {
+            logger::error("Unable to update expression {}: {}", a_id, error.what());
+            return false;
         }
-        w->second.UpdateValues(a_female, a_level, a_values);
     }
 
     void Library::UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags)

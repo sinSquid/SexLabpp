@@ -11,6 +11,7 @@ namespace Thread::Interaction::NiSurface::Geometry
         std::optional<OpeningShape> Update();
 
       private:
+        bool RefreshBinding();
         struct Influence
         {
             std::uint16_t bone;
@@ -39,6 +40,14 @@ namespace Thread::Interaction::NiSurface::Geometry
         RE::NiPointer<RE::BSGeometry> geometry;
         // Careful with this borrowed pointer; validate the geometry attachment and current skin instance before trusting it.
         RE::NiSkinInstance* skinInstance{ nullptr };
+        RE::NiPointer<RE::NiSkinData> boundSkinData;
+        RE::NiPointer<RE::NiSkinPartition> boundPartition;
+        uint32_t boundVertexCount{0};
+        uint32_t boundDynamicSize{0};
+        bool usesDynamicBuffer{false};
+        std::string boundModelPath;
+        std::string boundShapeName;
+        std::array<RE::NiPointer<RE::NiAVObject>, 2> boundTargets;
         RE::NiPointer<RE::NiAVObject> deep;
         std::array<Landmark, 2> landmarks;
         std::vector<Bone> bones;

@@ -203,7 +203,8 @@ namespace Registry
 
     ActorFragment::FragmentHash ActorFragment::MakeFragmentHash(std::vector<ActorFragment> a_fragments)
     {
-        assert(a_fragments.size() <= MAX_ACTOR_COUNT);
+        if (a_fragments.empty() || a_fragments.size() > MAX_ACTOR_COUNT)
+            return {};
         std::sort(a_fragments.begin(), a_fragments.end());
         FragmentHash ret = a_fragments.front().value.underlying();
         for (size_t i = 1; i < MAX_ACTOR_COUNT; i++) {

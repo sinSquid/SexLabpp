@@ -36,7 +36,7 @@ namespace Thread
             }
             return;
         } catch (const std::exception& e) {
-            std::shared_lock lock{ _mInstances };
+            std::unique_lock lock{ _mInstances };
             if (creationGenerations.at(a_linkedQst) != generation)
                 return;
             logger::error("Failed to create thread instance: {}", e.what());
@@ -70,15 +70,15 @@ namespace Thread
         }
     }
 
-    Instance* Instance::GetInstance(RE::TESQuest* a_linkedQst)
+    Instance::Access Instance::GetInstance(RE::TESQuest* a_linkedQst)
     {
-        std::shared_lock lock{ _mInstances };
+        std::unique_lock lock{ _mInstances };
         for (auto&& instance : instances) {
             if (instance->linkedQst == a_linkedQst) {
-                return instance.get();
+                return { std::move(lock), instance.get() };
             }
         }
-        return nullptr;
+        return { std::move(lock), nullptr };
     }
 
     void Instance::CancelPendingCreations()
@@ -90,15 +90,15 @@ namespace Thread
         pendingInstances.clear();
     }
 
-    Instance* Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)
+    Instance::Access Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)
     {
-        std::shared_lock lock{ _mInstances };
+        std::unique_lock lock{ _mInstances };
         for (auto&& instance : pendingInstances) {
             if (instance->linkedQst == a_linkedQst) {
-                return instance.get();
+                return { std::move(lock), instance.get() };
             }
         }
-        return nullptr;
+        return { std::move(lock), nullptr };
     }
 
     void Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result)
@@ -266,7 +266,7 @@ namespace Thread
             return false;
         }
         const auto centerStr = center.offset.type.ToString();
-        const auto& details = center.details = Registry::Library::GetSingleton()->GetFurnitureDetails(center.GetRef());
+        const auto* details = Registry::Library::GetSingleton()->GetFurnitureDetails(a_ref);
         if (!details) {
             if (!center.offset.type.IsNone()) {
                 constexpr auto nonStr = Registry::FurnitureType::ToString<Registry::FurnitureType::None>();

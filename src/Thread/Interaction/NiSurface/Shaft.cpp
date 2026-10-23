@@ -315,6 +315,9 @@ namespace Thread::Interaction::NiSurface::Geometry
         SkinnedSurface result;
         result.geometry.reset(a_geometry);
         result.skinInstance = skin;
+        result.boundSkinData.reset(skinData);
+        result.boundPartition.reset(skinPartition);
+        result.boundVertexCount = skinPartition->vertexCount;
         const auto makeSample = [&](const CachedSample& a_cachedSample) {
             Sample sample{ a_cachedSample.vertex, {}, {} };
             sample.influences.reserve(a_cachedSample.influences.size());
@@ -359,6 +362,9 @@ namespace Thread::Interaction::NiSurface::Geometry
         if (auto* dynamicShape = netimmerse_cast<RE::BSDynamicTriShape*>(a_geometry); dynamicShape && dynamicShape->GetDynamicTrishapeRuntimeData().dynamicData) {
             auto& dynamicData = dynamicShape->GetDynamicTrishapeRuntimeData();
             RE::BSSpinLockGuard lock(dynamicData.lock);
+            if (!dynamicData.dynamicData) return false;
+            result.boundDynamicSize = dynamicData.dataSize;
+            result.usesDynamicBuffer = true;
             const auto* vertices = static_cast<const DirectX::XMVECTOR*>(dynamicData.dynamicData);
             setLocalPositions([&](std::uint16_t a_vertex) {
                 DirectX::XMFLOAT3 position;
@@ -432,15 +438,24 @@ namespace Thread::Interaction::NiSurface::Geometry
             }
         }
         auto* skinData = surface->skinInstance->skinData.get();
-        if (!skinData || !surface->skinInstance->bones) {
+        auto* partition = surface->skinInstance->skinPartition.get();
+        if (!skinData || !surface->skinInstance->bones || skinData != surface->boundSkinData.get() ||
+            !partition || partition != surface->boundPartition.get() || partition->vertexCount != surface->boundVertexCount || !partition->numPartitions) {
+            surface.reset();
+            surfaceSearchPending = true;
+            stableEquipmentFrames = 0;
             collisionShape.reset();
             return;
         }
 
         if (auto* dynamicShape = netimmerse_cast<RE::BSDynamicTriShape*>(surface->geometry.get())) {
             auto& dynamicData = dynamicShape->GetDynamicTrishapeRuntimeData();
-            if (dynamicData.dynamicData) {
+            bool changed;
+            {
                 RE::BSSpinLockGuard lock(dynamicData.lock);
+                changed = surface->usesDynamicBuffer != (dynamicData.dynamicData != nullptr) ||
+                    (surface->usesDynamicBuffer && dynamicData.dataSize != surface->boundDynamicSize);
+                if (!changed && dynamicData.dynamicData) {
                 const auto* vertices = static_cast<const DirectX::XMVECTOR*>(dynamicData.dynamicData);
                 const auto updateSamples = [&](SampleRing& a_ring) {
                     for (auto& sample : a_ring.samples) {
@@ -453,6 +468,14 @@ namespace Thread::Interaction::NiSurface::Geometry
                     updateSamples(ring);
                 }
                 updateSamples(surface->tip);
+                }
+            }
+            if (changed) {
+                surface.reset();
+                collisionShape.reset();
+                surfaceSearchPending = true;
+                stableEquipmentFrames = 0;
+                return;
             }
         }
 

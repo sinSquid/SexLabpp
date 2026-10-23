@@ -27,10 +27,10 @@ namespace Misc::Math
     glm::vec3 RotMatrixToEuler(RE::NiMatrix3 matrixIn)
     {
         auto ent = matrixIn.entry;
-        auto rotMat = glm::mat4(
+        auto rotMat = glm::mat4(glm::mat3(
             { ent[0][0], ent[1][0], ent[2][0],
                 ent[0][1], ent[1][1], ent[2][1],
-                ent[0][2], ent[1][2], ent[2][2] });
+                ent[0][2], ent[1][2], ent[2][2] }));
 
         glm::vec3 rotOut;
         glm::extractEulerAngleXYZ(rotMat, rotOut.x, rotOut.y, rotOut.z);

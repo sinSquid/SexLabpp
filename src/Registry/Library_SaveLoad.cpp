@@ -3,9 +3,20 @@
 #include "Util/Combinatorics.h"
 #include "Util/StringUtil.h"
 #include "Util/AtomicWrite.h"
+#include "Util/FileWork.h"
+#include "Util/PublishPackage.h"
 
 namespace Registry
 {
+    namespace {
+        auto RegistryFiles(const char* path, bool recursive)
+        {
+            auto listing = Util::ListFiles(path, recursive);
+            if (listing.error)
+                logger::error("Unable to enumerate {}: {}", path, listing.error.message());
+            return std::move(listing.files);
+        }
+    }
     struct CumFxTextureSource
     {
         std::string type;
@@ -24,15 +35,15 @@ namespace Registry
         logger::info("Loading Library");
         const auto tStart = std::chrono::high_resolution_clock::now();
 #ifndef SKYRIMVR
-        std::array threads{
-            std::thread{ [this]() { InitializeScenes(); } },
-            std::thread{ [this]() { InitializeVoice(); } },
-            std::thread{ [this]() { InitializeExpressions(); } },
-            std::thread{ [this]() { InitializeFurnitures(); } },
-            std::thread{ [this]() { InitializeCumFx(); } }
+        const std::array<void (Library::*)(), 5> jobs{
+            &Library::InitializeScenes, &Library::InitializeVoice,
+            &Library::InitializeExpressions, &Library::InitializeFurnitures,
+            &Library::InitializeCumFx
         };
-        for (auto& thread : threads) {
-            thread.join();
+        try {
+            Util::ForEachBounded(jobs.size(), [&](size_t i) { (this->*jobs[i])(); });
+        } catch (const std::exception& error) {
+            logger::error("Library initialization failed: {}", error.what());
         }
 #else
         InitializeScenes();
@@ -76,69 +87,53 @@ namespace Registry
         return true;
     }
 
-    void Library::InitializeScenes() noexcept
+    void Library::InitializeScenes()
     {
         if (!FolderExists(SCENE_PATH, true))
             return;
-#ifndef SKYRIMVR
-        std::vector<std::thread> threads;
-#endif
-        for (auto& file : fs::recursive_directory_iterator{ SCENE_PATH }) {
-            if (file.path().extension() != ".slr")
-                continue;
-#ifndef SKYRIMVR
-            threads.emplace_back([this, file]() {
-#endif
-                const auto filename = file.path().filename().string();
+        try {
+            auto files = RegistryFiles(SCENE_PATH, true);
+            std::erase_if(files, [](const auto& file) { return file.path().extension() != ".slr"; });
+            const auto load = [&](size_t index) {
                 try {
-                    auto package = std::make_unique<AnimPackage>(file);
-                    for (auto&& scene : package->scenes) {
-                        auto positionFragments = std::ranges::fold_left(scene->positions, std::vector<std::vector<ActorFragment>>{}, [](auto acc, const auto& pos) {
-                            acc.push_back(pos.data.Split());
-                            return std::move(acc);
-                        });
-                        Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
-                            std::vector<ActorFragment> argFragment{};
-                            argFragment.reserve(it.size());
-                            for (auto&& itF : it) {
-                                argFragment.emplace_back(*itF);
-                            }
-                            const auto key = ActorFragment::MakeFragmentHash(argFragment);
-                            const std::unique_lock lock{ _mScenes };
-                            auto& vec = scenes[key];
-                            if (!std::ranges::contains(vec, scene.get())) {
-                                vec.push_back(scene.get());
-                            }
+                    auto package = std::make_unique<AnimPackage>(files[index]);
+                    std::vector<std::pair<ActorFragment::FragmentHash, Scene*>> pendingIndex;
+                    for (const auto& scene : package->scenes) {
+                        std::vector<std::vector<ActorFragment>> fragments;
+                        fragments.reserve(scene->positions.size());
+                        for (const auto& position : scene->positions)
+                            fragments.push_back(position.data.Split());
+                        Combinatorics::ForEachCombination<ActorFragment>(fragments, [&](const auto& iterators) {
+                            std::vector<ActorFragment> positions;
+                            positions.reserve(iterators.size());
+                            for (const auto& it : iterators) positions.push_back(*it);
+                            pendingIndex.emplace_back(ActorFragment::MakeFragmentHash(positions), scene.get());
                             return Combinatorics::CResult::Next;
                         });
                     }
-                    logger::info("InitializeScenes: Finished parsing file {}", filename);
                     const std::unique_lock lock{ _mScenes };
-                    packages.push_back(std::move(package));
-                    const auto* loaded = packages.back().get();
-                    for (const auto& scene : loaded->scenes) {
-                        sceneMap[scene->id] = scene.get();
-                        scenePackages.emplace(scene.get(), loaded);
-                    }
-                } catch (const std::exception& e) {
-                    logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
+                    Util::PublishPackage(package, packages, sceneMap, scenePackages, scenes, pendingIndex);
+                } catch (const std::exception& error) {
+                    logger::error("InitializeScenes: package {} failed: {}", index, error.what());
                 }
+            };
 #ifndef SKYRIMVR
-            });
-        }
-        for (auto& thread : threads) {
-            thread.join();
+            Util::ForEachBounded(files.size(), load);
+#else
+            for (size_t i = 0; i < files.size(); ++i) load(i);
 #endif
+        } catch (const std::exception& error) {
+            logger::error("InitializeScenes failed: {}", error.what());
         }
         InitializeSceneSettings();
     }
 
-    void Library::InitializeSceneSettings() noexcept
+    void Library::InitializeSceneSettings()
     {
         if (!FolderExists(SCENE_USER_CONFIG, false))
             return;
         std::unique_lock lock{ _mScenes };
-        for (auto& file : fs::directory_iterator{ SCENE_USER_CONFIG }) {
+        for (auto& file : RegistryFiles(SCENE_USER_CONFIG, false)) {
             if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
                 continue;
             const auto filename = file.path().filename().string();
@@ -157,12 +152,12 @@ namespace Registry
         }
     }
 
-    void Library::InitializeFurnitures() noexcept
+    void Library::InitializeFurnitures()
     {
         if (!FolderExists(FURNITURE_PATH, false))
             return;
         const std::unique_lock lock{ _mFurniture };
-        for (auto& file : fs::recursive_directory_iterator{ FURNITURE_PATH }) {
+        for (auto& file : RegistryFiles(FURNITURE_PATH, true)) {
             if (auto ext = file.path().extension(); ext != ".yml" && ext != ".yaml") {
                 continue;
             }
@@ -181,7 +176,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeExpressions() noexcept
+    void Library::InitializeExpressions()
     {
         std::unique_lock lock{ _mExpressions };
         // NOTE: Intialization happens in stages, beginning with default (P+) expressions, then legacy & default.
@@ -199,11 +194,11 @@ namespace Registry
         }
     }
 
-    void Library::InitializeExpressionsImpl() noexcept
+    void Library::InitializeExpressionsImpl()
     {
         if (!FolderExists(EXPRESSION_PATH, false))
             return;
-        for (auto& file : fs::recursive_directory_iterator{ EXPRESSION_PATH }) {
+        for (auto& file : RegistryFiles(EXPRESSION_PATH, true)) {
             const auto extension = file.path().extension();
             if (extension != ".yaml" && extension != ".yml")
                 continue;
@@ -222,11 +217,11 @@ namespace Registry
         }
     }
 
-    void Library::InitializeExpressionsLegacy() noexcept
+    void Library::InitializeExpressionsLegacy()
     {
         if (!FolderExists(EXPRESSION_LEGACY_CONFIG, false))
             return;
-        for (auto& file : fs::directory_iterator{ EXPRESSION_LEGACY_CONFIG }) {
+        for (auto& file : RegistryFiles(EXPRESSION_LEGACY_CONFIG, false)) {
             auto filename = file.path().filename().string();
             Util::ToLower(filename);
             if (!filename.starts_with("expression"))
@@ -244,7 +239,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeVoice() noexcept
+    void Library::InitializeVoice()
     {
         std::unique_lock lock{ _mVoice };
         InitializeVoiceImpl();
@@ -253,11 +248,11 @@ namespace Registry
         InitializeVoiceCache();
     }
 
-    void Library::InitializeVoiceImpl() noexcept
+    void Library::InitializeVoiceImpl()
     {
         if (!FolderExists(VOICE_PATH, true))
             return;
-        for (auto& file : fs::recursive_directory_iterator{ VOICE_PATH }) {
+        for (auto& file : RegistryFiles(VOICE_PATH, true)) {
             if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
                 continue;
             const auto filename = file.path().filename().string();
@@ -275,11 +270,11 @@ namespace Registry
         }
     }
 
-    void Library::InitializeVoicePitches() noexcept
+    void Library::InitializeVoicePitches()
     {
         if (!FolderExists(VOICE_PATH_PITCH, false))
             return;
-        for (auto& file : fs::recursive_directory_iterator{ VOICE_PATH_PITCH }) {
+        for (auto& file : RegistryFiles(VOICE_PATH_PITCH, true)) {
             if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
                 continue;
             const auto filename = file.path().filename().string();
@@ -312,7 +307,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeVoiceSettings() noexcept
+    void Library::InitializeVoiceSettings()
     {
         if (!FolderExists(VOICE_SETTING_PATH, false))
             return;
@@ -333,7 +328,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeVoiceCache() noexcept
+    void Library::InitializeVoiceCache()
     {
         if (!FolderExists(VOICE_SETTINGS_CACHES_PATH, false))
             return;
@@ -364,7 +359,7 @@ namespace Registry
         if (!FolderExists(CUM_FX_CONFIG_PATH, true))
             return;
         try {
-            for (const auto& file : fs::directory_iterator{ CUM_FX_CONFIG_PATH }) {
+            for (const auto& file : RegistryFiles(CUM_FX_CONFIG_PATH, false)) {
                 if (!file.is_regular_file() || file.path().extension() != ".json") {
                     continue;
                 }
@@ -573,7 +568,13 @@ namespace Registry
             }
             const auto settingsBytes = YAML::Dump(settings);
 
-            auto cache = getSavefile(VOICE_SETTINGS_CACHES_PATH);
+            const auto oldCache = getSavefile(VOICE_SETTINGS_CACHES_PATH);
+            YAML::Node cache{ YAML::NodeType::Map };
+            for (const auto& entry : oldCache) {
+                const auto key = entry.first.as<std::string>();
+                if (!Util::FormFromString<RE::Actor>(key))
+                    cache[key] = entry.second;
+            }
             for (auto&& [id, voice] : savedVoices) {
                 auto form = RE::TESForm::LookupByID<RE::Actor>(id);
                 if (!form)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Registry/Library.h"
+#include "Util/LockedAccess.h"
 #include "Thread/Interaction/NiSurface/CollisionManager.h"
 
 namespace Thread
@@ -64,8 +65,9 @@ namespace Thread
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
         static void CancelPendingCreations();
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
-        static Instance* GetInstance(RE::TESQuest* a_linkedQst);
-        static Instance* GetPendingInstance(RE::TESQuest* a_linkedQst);
+        using Access = Util::LockedAccess<Instance, std::unique_lock<std::recursive_mutex>>;
+        static Access GetInstance(RE::TESQuest* a_linkedQst);
+        static Access GetPendingInstance(RE::TESQuest* a_linkedQst);
         static void FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst);
         static void DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result);
         static void UpdateAnimations(float a_delta);
@@ -247,7 +249,7 @@ namespace Thread
         static void RestorePreparedActors(RE::TESQuest* a_linkedQst);
 
       private:
-        static inline std::shared_mutex _mInstances{};
+        static inline std::recursive_mutex _mInstances{};
         static inline std::vector<std::unique_ptr<Instance>> instances{};
         static inline std::vector<std::unique_ptr<Instance>> pendingInstances{};
         // Protected by _mInstances; invalidates queued construction/finalization work.

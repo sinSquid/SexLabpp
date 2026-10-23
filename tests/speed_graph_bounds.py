@@ -12,6 +12,7 @@ namespace RE {
  struct Node {virtual ~Node()=default;};
  struct Control {float playbackSpeed=1;};
  struct hkbClipGenerator:Node {float playbackSpeed=1;Control* animationControl=nullptr;};
+ struct BSSynchronizedClipGenerator:Node {hkbClipGenerator* clipGenerator=nullptr;};
  struct hkbNodeInfo {Node* nodeClone;};
  template<class T>using hkArray=std::vector<T>;
  struct Behavior {hkArray<hkbNodeInfo>* activeNodes=nullptr;};
@@ -23,7 +24,7 @@ namespace RE {
  };
  using BSAnimationGraphManagerPtr=std::shared_ptr<Manager>;
  struct Actor {BSAnimationGraphManagerPtr graph;bool GetAnimationGraphManager(BSAnimationGraphManagerPtr& out)const{out=graph;return bool(out);}};
- struct BSSpinLockGuard {explicit BSSpinLockGuard(int&) {}};
+ struct BSSpinLockGuard {int& lock; explicit BSSpinLockGuard(int& value):lock(value){assert(lock==0);lock=1;} ~BSSpinLockGuard(){lock=0;}};
 }
 template<class T,class U>T skyrim_cast(U* value){return dynamic_cast<T>(value);}
 struct Position {struct Data {RE::Actor* actor;RE::Actor* GetActor(){return actor;}} data;};
@@ -48,6 +49,12 @@ int main(){
  actor.graph->runtime.activeGraph=20;instance.SetAnimationPlaybackSpeed(3);assert(clip.playbackSpeed==1);
  actor.graph->runtime.activeGraph=0;instance.SetAnimationPlaybackSpeed(0.5f);assert(clip.playbackSpeed==0.5f&&control.playbackSpeed==0.5f);
  instance.pendingAnimations.push_back({true,&clip});instance.SetAnimationPlaybackSpeed(1);assert(clip.playbackSpeed==0&&control.playbackSpeed==0);
+ instance.pendingAnimations.clear();
+ RE::BSSynchronizedClipGenerator wrapper; wrapper.clipGenerator=&clip;
+ nodes={{&wrapper},{nullptr}};
+ instance.positions.push_back({{&actor}});
+ instance.SetAnimationPlaybackSpeed(2.5f);assert(clip.playbackSpeed==2.5f&&control.playbackSpeed==2.5f);
+ wrapper.clipGenerator=nullptr;instance.SetAnimationPlaybackSpeed(1.5f);assert(clip.playbackSpeed==2.5f);
 }
 '''
 if __name__=='__main__':run('speed_graph_bounds',code)

@@ -346,11 +346,12 @@ expression_bounds = common + r'''
 #include <array>
 struct Expression {
  static constexpr size_t Total=32;
+ static constexpr size_t MAX_AUTOMATIC_LEVELS=4096;
  bool has_edits=false;std::vector<std::array<float,Total>> data[2];
- void UpdateValues(bool,int,std::vector<float>);
+ bool UpdateValues(bool,int,std::vector<float>);
 };
 '''
-expression_bounds += function('src/Registry/Define/Expression.cpp', 'void Expression::UpdateValues(')
+expression_bounds += function('src/Registry/Define/Expression.cpp', 'bool Expression::UpdateValues(')
 expression_bounds += r'''
 int main(){
  Expression e;e.UpdateValues(false,-1,std::vector<float>(32,1));

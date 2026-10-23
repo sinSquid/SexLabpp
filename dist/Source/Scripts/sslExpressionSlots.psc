@@ -105,7 +105,7 @@ sslBaseExpression function PickByStatus(Actor ActorRef, bool IsVictim = false, b
 	If (!ret.Length)
 		return none
 	EndIf
-	return ret[Utility.RandomInt(0, ret.length)]
+	return ret[Utility.RandomInt(0, ret.length - 1)]
 endFunction
 
 sslBaseExpression[] function GetByStatus(Actor ActorRef, bool IsVictim = false, bool IsAggressor = false)
@@ -125,7 +125,7 @@ sslBaseExpression function RandomByTag(string Tag, bool ForFemale = true)
 	If (!ret.Length)
 		return none
 	EndIf
-	return ret[Utility.RandomInt(0, ret.length)]
+	return ret[Utility.RandomInt(0, ret.length - 1)]
 endFunction
 
 sslBaseExpression[] function GetByTag(string Tag, bool ForFemale = true)
@@ -177,11 +177,15 @@ sslBaseExpression[] function GetList(bool[] Valid)
 	Alias[] aliases = GetAliases()
 	int i = 0
 	int ii = 0
-	While (i < aliases.Length && ii < Output.Length)
+	int registeredIndex = 0
+	While (i < aliases.Length && ii < Output.Length && registeredIndex < Valid.Length)
 		sslBaseExpression it = aliases[i] as sslBaseExpression
-		If (it && it.Registered && Valid[ii])
-			Output[ii] = it
-			ii += 1
+		If (it && it.Registered)
+			If (Valid[registeredIndex])
+				Output[ii] = it
+				ii += 1
+			EndIf
+			registeredIndex += 1
 		EndIf
 		i += 1
 	EndWhile

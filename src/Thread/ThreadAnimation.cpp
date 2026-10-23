@@ -329,7 +329,7 @@ namespace Thread
     bool Instance::StartFixedLengthTimer()
     {
         fixedLengthTimer.state = FixedLengthTimer::State::Stopped;
-        if (!activeStage || activeStage->fixedlength == 0.0f) {
+        if (!activeStage || !std::isfinite(activeStage->fixedlength) || activeStage->fixedlength <= 0.0f) {
             return false;
         }
         const auto duration = activeStage->fixedlength / 1000.0f;
@@ -352,7 +352,8 @@ namespace Thread
 
     bool Instance::AdjustFixedLengthTimer(float a_delta)
     {
-        if (fixedLengthTimer.state == FixedLengthTimer::State::Stopped) {
+        if (fixedLengthTimer.state == FixedLengthTimer::State::Stopped ||
+            !std::isfinite(a_delta) || !std::isfinite(fixedLengthTimer.remaining + a_delta)) {
             return false;
         }
         fixedLengthTimer.remaining += a_delta;
@@ -399,7 +400,7 @@ namespace Thread
     void Instance::UpdateAnimations(float a_delta)
     {
         const auto timeoutDelta = Util::IsGamePausedOrFrozen() ? 0.0f : a_delta;
-        std::shared_lock lock{ _mInstances };
+        std::unique_lock lock{ _mInstances };
         for (auto&& instance : instances) {
             instance->UpdateFixedLengthTimer(timeoutDelta);
             instance->UpdatePendingAnimations(timeoutDelta);
@@ -828,6 +829,8 @@ namespace Thread
                 continue;
             }
 
+            if (std::ranges::any_of(lockedGraphs, [&](const auto& entry) { return entry.first == graphMgr; }))
+                continue;
             auto& runtime = graphMgr->GetRuntimeData();
             lockedGraphs.emplace_back(
                 graphMgr,
@@ -855,7 +858,12 @@ namespace Thread
                 if (!activeNode.nodeClone) {
                     continue;
                 }
-                if (auto* clip = skyrim_cast<RE::hkbClipGenerator*>(activeNode.nodeClone)) {
+                auto* clip = skyrim_cast<RE::hkbClipGenerator*>(activeNode.nodeClone);
+                if (!clip) {
+                    if (const auto* synchronizedClip = skyrim_cast<RE::BSSynchronizedClipGenerator*>(activeNode.nodeClone))
+                        clip = synchronizedClip->clipGenerator;
+                }
+                if (clip) {
                     const bool held = std::ranges::any_of(pendingAnimations, [&](const auto& pending) {
                         return pending.playbackHeld && pending.observedGenerator == clip;
                     });

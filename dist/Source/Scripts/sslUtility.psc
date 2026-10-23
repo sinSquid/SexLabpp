@@ -53,20 +53,13 @@ sslBaseAnimation[] function EmptyAnimationArray() global
 endFunction
 
 sslBaseAnimation[] function MergeAnimationLists(sslBaseAnimation[] List1, sslBaseAnimation[] List2) global
-	int Count = List2.Length
-	int i = List2.Length
-	while i
-		i -= 1
-		Count -= ((List1.Find(List2[i]) != -1) as int)
-	endWhile
-	sslBaseAnimation[] Output = sslUtility.IncreaseAnimation(Count, List1)
-	i = List2.Length
-	while i && Count
-		i -= 1
-		if List1.Find(List2[i]) == -1
-			Count -= 1
-			Output[Count] = List2[i]
+	sslBaseAnimation[] Output = List1
+	int i = 0
+	while i < List2.Length && Output.Length < 128
+		if Output.Find(List2[i]) == -1
+			Output = PushAnimation(List2[i], Output)
 		endIf
+		i += 1
 	endWhile
 	return Output
 endFunction
@@ -331,13 +324,18 @@ int function IndexTravel(int CurrentIndex, int ArrayLength, bool Reverse = false
 endFunction
 
 string function Trim(string var) global
-	if StringUtil.GetNthChar(var, 0) == " "
-		var = StringUtil.SubString(var, 1)
-	endIf
-	if StringUtil.GetNthChar(var, (StringUtil.GetLength(var) - 1)) == " "
-		var = StringUtil.SubString(var, (StringUtil.GetLength(var) - 2))
-	endIf
-	return var
+	int first = 0
+	int last = StringUtil.GetLength(var)
+	While (first < last && StringUtil.GetNthChar(var, first) == " ")
+		first += 1
+	EndWhile
+	While (last > first && StringUtil.GetNthChar(var, last - 1) == " ")
+		last -= 1
+	EndWhile
+	If (first == last)
+		return ""
+	EndIf
+	return StringUtil.SubString(var, first, last - first)
 endFunction
 
 string function RemoveString(string str, string toRemove, int startindex = 0) global

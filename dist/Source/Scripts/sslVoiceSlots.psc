@@ -250,7 +250,7 @@ sslBaseVoice function PickByRaceKey(string RaceKey)
 endFunction
 
 int function FindSaved(Actor ActorRef)
-	return FindByRegistrar(GetSaved(ActorRef))
+	return FindByRegistrar(GetSavedVoice(ActorRef))
 endFunction
 
 sslBaseVoice function GetSaved(Actor ActorRef)

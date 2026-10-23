@@ -89,9 +89,11 @@ namespace Registry
                 return field != source.integers->end() && field->second == 1;
             };
             expression.enabled = get("enabled");
-            for (auto&& tag : { "aggressor", "normal", "victim " })
+            for (auto&& tag : { "aggressor", "normal" })
                 if (get(tag))
                     expression.tags.AddTag(tag);
+            if (get("victim") || get("victim "))
+                expression.tags.AddTag("Victim");
         }
         return expression;
     }
@@ -283,16 +285,20 @@ namespace Registry
         has_edits = false;
     }
 
-    void Expression::UpdateValues(bool a_female, int a_level, std::vector<float> a_values)
+    bool Expression::UpdateValues(bool a_female, int a_level, std::vector<float> a_values)
     {
         if (a_level < 0 || a_values.size() != Total)
-            return;
-        has_edits = true;
+            return false;
         auto& dataEntry = data[a_female];
-        while (dataEntry.size() <= static_cast<size_t>(a_level)) {
-            dataEntry.emplace_back();
+        const auto level = static_cast<size_t>(a_level);
+        if (level >= dataEntry.size()) {
+            if (level >= MAX_AUTOMATIC_LEVELS)
+                return false;
+            dataEntry.resize(level + 1);
         }
-        std::copy_n(a_values.begin(), dataEntry[a_level].size(), dataEntry[a_level].begin());
+        std::copy_n(a_values.begin(), dataEntry[level].size(), dataEntry[level].begin());
+        has_edits = true;
+        return true;
     }
 
     void Expression::UpdateTags(const TagData& a_newtags)

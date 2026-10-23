@@ -206,7 +206,6 @@ namespace Thread::Interaction::NiSurface
 
     void Manager::OnFrameUpdate(float a_delta)
     {
-        std::scoped_lock lock{ _mutex };
         static std::uint32_t frame = 0;
         //const bool logTiming = frame++ % TIMING_LOG_INTERVAL == 1;
         const auto start = std::chrono::high_resolution_clock::now();
@@ -214,8 +213,17 @@ namespace Thread::Interaction::NiSurface
         hud.DebugNodeDrawBeginFrame();
         const auto* linkedThread = hud.GetLinkedThread();
         const bool drawNodes = hud.IsDebugNodeDrawEnabled();
-        for (auto&& [id, scene] : scenes) {
+        decltype(scenes) snapshot;
+        {
+            std::scoped_lock lock{ _mutex };
+            snapshot = scenes;
+        }
+        // A frame that already owns a snapshot may finish after unregister.
+        {
+        std::scoped_lock geometryLock{ _geometryMutex };
+        for (auto&& [id, scene] : snapshot) {
             scene->UpdateInteractions(a_delta, drawNodes && linkedThread && id == linkedThread->GetFormID());
+        }
         }
         hud.DebugNodeDrawPublish();
         //if (logTiming && !scenes.empty()) {
@@ -234,15 +242,17 @@ namespace Thread::Interaction::NiSurface
     std::shared_ptr<Scene> Manager::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Registry::Scene* a_scene) noexcept
     {
         try {
+            std::shared_ptr<Scene> process;
+            std::unique_lock geometryLock{ _geometryMutex };
+            const auto start = std::chrono::high_resolution_clock::now();
+            process = std::make_shared<Scene>(a_positions, a_scene);
             std::scoped_lock lock{ _mutex };
             const auto where = std::ranges::find(scenes, a_id, [](const auto& a_entry) { return a_entry.first; });
             if (where != scenes.end()) {
                 logger::info("NiSurface Interaction: Object with ID {:X} already registered; resetting NiSurface for scene", a_id);
-                std::swap(*where, scenes.back());
-                scenes.pop_back();
+                where->second.swap(process);
+                return where->second;
             }
-            const auto start = std::chrono::high_resolution_clock::now();
-            auto process = std::make_shared<Scene>(a_positions, a_scene);
             const auto elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start);
             logger::info("NiSurface Interaction: Initialization -> {:.2f}ms", elapsed.count());
             return scenes.emplace_back(a_id, std::move(process)).second;

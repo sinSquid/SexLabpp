@@ -239,11 +239,14 @@ Function PickRandomScene(String asNewScene)
 EndFunction
 
 Function MoveScene()
+	int requestRevision = LifecycleRevision
+	If (!IsCurrentSceneRequest(requestRevision))
+		return
+	EndIf
 	If (!SexLabRegistry.IsCompatibleCenter(GetActiveScene(), Game.GetPlayer()))
 		Debug.Notification("This scene does not support repositioning")
 		return
 	EndIf
-	UnregisterForUpdate()
 	bool abClosedSceneHUD = false
 	If (_bOpenedSceneHUD)
 		ToggleVisibilitySceneHUD(-1)
@@ -253,6 +256,9 @@ Function MoveScene()
 	If (StorageUtil.GetIntValue(none, "SEXLAB_REPOSITIONMSG_INFO", 0) == 0)
 		; "You have 30 secs to position yourself to a new center location.\nHold down the 'Move Scene' hotkey to relocate the center instantly to your current position"
 		int choice = RepositionInfoMsg.Show()
+		If (!IsCurrentSceneRequest(requestRevision))
+			return
+		EndIf
 		If (choice == 1)
 			If (abClosedSceneHUD)
 				ToggleVisibilitySceneHUD(1)
@@ -263,6 +269,7 @@ Function MoveScene()
 			StorageUtil.SetIntValue(none, "SEXLAB_REPOSITIONMSG_INFO", 1)
 		EndIf
 	EndIf
+	UnregisterForUpdate()
 	int n = 0
 	While(n < Positions.Length)
 		ActorAlias[n].GoToState(ActorAlias[n].STATE_PAUSED)
@@ -271,30 +278,56 @@ Function MoveScene()
 		EndIf
 		n += 1
 	EndWhile
+	If (!IsCurrentSceneRequest(requestRevision))
+		return
+	EndIf
 	SexLabUtil.SetActorMovement(PlayerRef, 1) ;MOVEMENT_UNLOCK
 	Utility.Wait(1)
+	If (!IsCurrentSceneRequest(requestRevision))
+		return
+	EndIf
 	int t = 0
 	While(t < 60 && !Input.IsKeyPressed(Config.MoveScene))
 		Utility.Wait(0.5)
+		If (!IsCurrentSceneRequest(requestRevision))
+			return
+		EndIf
 		t += 1
 	EndWhile
+	If (!IsCurrentSceneRequest(requestRevision))
+		return
+	EndIf
 	SexLabUtil.SetActorMovement(PlayerRef, 2)	; MOVEMENT_LOCK... make sure player isnt moving before resync
 	float x = PlayerRef.X
 	float y = PlayerRef.Y
 	float z = PlayerRef.Z
 	Utility.Wait(0.5)							; wait for momentum to stop
-	While(x != PlayerRef.X || y != PlayerRef.Y || z != PlayerRef.Z)
+	If (!IsCurrentSceneRequest(requestRevision))
+		return
+	EndIf
+	int settleChecks = 0
+	While(settleChecks < 20 && (x != PlayerRef.X || y != PlayerRef.Y || z != PlayerRef.Z))
 		x = PlayerRef.X
 		y = PlayerRef.Y
 		z = PlayerRef.Z
 		Utility.Wait(0.5)
+		If (!IsCurrentSceneRequest(requestRevision))
+			return
+		EndIf
+		settleChecks += 1
 	EndWhile
 	int j = 0
 	While(j < Positions.Length)
 		ActorAlias[j].TryLockAndUnpause()
 		j += 1
 	EndWhile
+	If (!IsCurrentSceneRequest(requestRevision))
+		return
+	EndIf
 	CenterOnObject(PlayerRef)
+	If (!IsCurrentSceneRequest(requestRevision))
+		return
+	EndIf
 	_bFocusedSceneHUD = false ; allows hotkeys/gestures
 	If (!HasPlayer)
 		MoveActorsAwayFromPlayer(true)

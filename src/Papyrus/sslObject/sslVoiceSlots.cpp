@@ -9,7 +9,7 @@ namespace Papyrus::VoiceSlots
         bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
             const auto vs = Registry::Library::GetSingleton();
-            auto it = vs->GetVoiceById(a_id);
+            auto it = vs->GetVoiceSnapshot(a_id);
             if (!it) {
                 a_vm->TraceStack("Invalid voice form", a_stackID);
                 return false;
@@ -26,7 +26,7 @@ namespace Papyrus::VoiceSlots
         std::vector<RE::BSFixedString> GetVoiceTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
             const auto vs = Registry::Library::GetSingleton();
-            auto it = vs->GetVoiceById(a_id);
+            auto it = vs->GetVoiceSnapshot(a_id);
             if (!it) {
                 a_vm->TraceStack("Invalid voice form", a_stackID);
                 return {};
@@ -37,7 +37,7 @@ namespace Papyrus::VoiceSlots
         int GetCompatibleSex(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
             const auto vs = Registry::Library::GetSingleton();
-            auto it = vs->GetVoiceById(a_id);
+            auto it = vs->GetVoiceSnapshot(a_id);
             if (!it) {
                 a_vm->TraceStack("Invalid voice form", a_stackID);
                 return {};
@@ -48,7 +48,7 @@ namespace Papyrus::VoiceSlots
         std::vector<RE::BSFixedString> GetCompatibleRaces(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
             const auto vs = Registry::Library::GetSingleton();
-            auto it = vs->GetVoiceById(a_id);
+            auto it = vs->GetVoiceSnapshot(a_id);
             if (!it) {
                 a_vm->TraceStack("Invalid voice form", a_stackID);
                 return {};
@@ -116,7 +116,7 @@ namespace Papyrus::VoiceSlots
         RE::BSFixedString GetDisplayName(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
             const auto vs = Registry::Library::GetSingleton();
-            auto it = vs->GetVoiceById(a_id);
+            auto it = vs->GetVoiceSnapshot(a_id);
             if (!it) {
                 a_vm->TraceStack("Invalid voice form", a_stackID);
                 return "";
@@ -231,7 +231,7 @@ namespace Papyrus::VoiceSlots
         });
         std::vector<RE::Actor*> ret{ RE::PlayerCharacter::GetSingleton() };
         if (auto base = a_sndprio ? a_sndprio->GetActorBase() : nullptr) {
-            if (base->IsUnique())
+            if (base->IsUnique() && a_sndprio != RE::PlayerCharacter::GetSingleton())
                 ret.push_back(a_sndprio);
         }
         ret.insert_range(ret.end(), saved);

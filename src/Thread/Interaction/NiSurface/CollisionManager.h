@@ -36,6 +36,7 @@ namespace Thread::Interaction::NiSurface
 
       private:
         static inline std::mutex _mutex{};
+        static inline std::mutex _geometryMutex{};
         static inline std::vector<std::pair<RE::FormID, std::shared_ptr<Scene>>> scenes;
     };
 

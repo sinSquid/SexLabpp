@@ -169,6 +169,7 @@ namespace Thread::Interface::UI::Theme
     inline auto& FontSize = data.fontSize;
 
     void Load();
+    void Sanitize(Data& values);
     void Save();
     [[nodiscard]] bool IsLoaded();
 

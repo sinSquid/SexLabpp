@@ -124,12 +124,18 @@ std::optional<ObjectBound> ObjectBound::MakeBoundingBox(RE::NiNode* a_niobj)
     auto glmBodyPosition = glm::vec3(bodyPosition[0], bodyPosition[1], bodyPosition[2]) * scaleInverse;
 
     // take what would be the local origin location of the BB and rotate it with the body
-    auto boundMinRotated_origin = Misc::Math::RotateVector(bound.rotation, bound.boundMin + glmLocalTRotated);
-    auto boundMaxRotated_origin = Misc::Math::RotateVector(bound.rotation, bound.boundMax + glmLocalTRotated);
-
-    // global origin location
-    bound.worldBoundMin = glmBodyPosition + boundMinRotated_origin;
-    bound.worldBoundMax = glmBodyPosition + boundMaxRotated_origin;
+    bound.worldBoundMin = glm::vec3((std::numeric_limits<float>::max)());
+    bound.worldBoundMax = glm::vec3((std::numeric_limits<float>::lowest)());
+    for (unsigned corner = 0; corner < 8; ++corner) {
+        const glm::vec3 local{
+            corner & 1 ? bound.boundMax.x : bound.boundMin.x,
+            corner & 2 ? bound.boundMax.y : bound.boundMin.y,
+            corner & 4 ? bound.boundMax.z : bound.boundMin.z
+        };
+        const auto world = glmBodyPosition + Misc::Math::RotateVector(bound.rotation, local + glmLocalTRotated);
+        bound.worldBoundMin = glm::min(bound.worldBoundMin, world);
+        bound.worldBoundMax = glm::max(bound.worldBoundMax, world);
+    }
 
     return bound;
 }

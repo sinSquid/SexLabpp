@@ -53,7 +53,7 @@ namespace Papyrus::ExpressionSlots
 
         int GetVersion(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            auto profile = Registry::Library::GetSingleton()->GetExpressionById(a_id);
+            auto profile = Registry::Library::GetSingleton()->GetExpressionSnapshot(a_id);
             if (!profile) {
                 a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
                 return {};
@@ -63,7 +63,7 @@ namespace Papyrus::ExpressionSlots
 
         std::vector<RE::BSFixedString> GetExpressionTags(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            auto profile = Registry::Library::GetSingleton()->GetExpressionById(a_id);
+            auto profile = Registry::Library::GetSingleton()->GetExpressionSnapshot(a_id);
             if (!profile) {
                 a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
                 return {};
@@ -83,7 +83,7 @@ namespace Papyrus::ExpressionSlots
 
         bool GetEnabled(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            auto profile = Registry::Library::GetSingleton()->GetExpressionById(a_id);
+            auto profile = Registry::Library::GetSingleton()->GetExpressionSnapshot(a_id);
             if (!profile) {
                 a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
                 return false;
@@ -103,7 +103,7 @@ namespace Papyrus::ExpressionSlots
 
         int GetExpressionScaleMode(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            auto profile = Registry::Library::GetSingleton()->GetExpressionById(a_id);
+            auto profile = Registry::Library::GetSingleton()->GetExpressionSnapshot(a_id);
             if (!profile) {
                 a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
                 return false;
@@ -127,7 +127,7 @@ namespace Papyrus::ExpressionSlots
 
         std::vector<int32_t> GetLevelCounts(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            auto profile = Registry::Library::GetSingleton()->GetExpressionById(a_id);
+            auto profile = Registry::Library::GetSingleton()->GetExpressionSnapshot(a_id);
             if (!profile) {
                 a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
                 return { 0, 0 };
@@ -137,7 +137,7 @@ namespace Papyrus::ExpressionSlots
 
         std::vector<float> GetNthValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, int n)
         {
-            auto profile = Registry::Library::GetSingleton()->GetExpressionById(a_id);
+            auto profile = Registry::Library::GetSingleton()->GetExpressionSnapshot(a_id);
             if (!profile) {
                 a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
                 return std::vector<float>(Registry::Expression::Total);
@@ -152,7 +152,7 @@ namespace Papyrus::ExpressionSlots
 
         std::vector<float> GetValues(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id, bool a_female, float a_strength)
         {
-            auto profile = Registry::Library::GetSingleton()->GetExpressionById(a_id);
+            auto profile = Registry::Library::GetSingleton()->GetExpressionSnapshot(a_id);
             if (!profile) {
                 a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
                 return std::vector<float>(Registry::Expression::Total);
@@ -176,7 +176,8 @@ namespace Papyrus::ExpressionSlots
                 a_vm->TraceStack("Invalid Expression Profile ID", a_stackID);
                 return;
             }
-            expr->UpdateExpressionValues(a_id, a_female, a_level, a_values);
+            if (!expr->UpdateExpressionValues(a_id, a_female, a_level, std::move(a_values)))
+                a_vm->TraceStack("Expression update failed or exceeds the automatic growth limit", a_stackID);
         }
 
         bool CreateEmptyProfile(RE::StaticFunctionTag*, RE::BSFixedString a_id)
@@ -186,12 +187,10 @@ namespace Papyrus::ExpressionSlots
 
         void SaveExpression(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::BSFixedString a_id)
         {
-            auto p = Registry::Library::GetSingleton()->GetExpressionById(a_id);
-            if (!p) {
+            if (!Registry::Library::GetSingleton()->MarkExpressionDirty(a_id)) {
                 a_vm->TraceStack("Invalid Profile", a_stackID);
                 return;
             }
-            p->has_edits = true;
         }
     }  // namespace BaseExpression
 

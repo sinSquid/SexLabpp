@@ -1,6 +1,7 @@
 #include "Voice.h"
 
 #include "Util/StringUtil.h"
+#include "Util/AtomicWrite.h"
 
 namespace Registry
 {
@@ -119,8 +120,7 @@ namespace Registry
         for (auto&& e : extrasets) {
             root["Extra"].push_back(e.AsYaml());
         }
-        std::ofstream fout{ path };
-        fout << root;
+        Util::AtomicWrite(path, YAML::Dump(root), false);
     }
 
     void Voice::Save(YAML::Node& a_node) const

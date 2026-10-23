@@ -22,7 +22,8 @@ namespace Util
                 float yMinus = center_coords.y - a_radius;
                 float xPlus = center_coords.x + a_radius;
                 float xMinus = center_coords.x - a_radius;
-                for (uint32_t x = 0, y = 0; (x < gridLength && y < gridLength); x++, y++) {
+                for (uint32_t x = 0; x < gridLength; ++x) {
+                  for (uint32_t y = 0; y < gridLength; ++y) {
                     const auto gridcell = grids->GetCell(x, y);
                     if (gridcell && gridcell->IsAttached()) {
                         auto cellCoords = gridcell->GetCoordinates();
@@ -34,6 +35,7 @@ namespace Util
                             gridcell->ForEachReferenceInRange(center_coords, a_radius, a_forEachFunc);
                         }
                     }
+                  }
                 }
             }
         }

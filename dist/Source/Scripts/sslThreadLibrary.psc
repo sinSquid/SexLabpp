@@ -34,10 +34,10 @@ bool Function IsBedRoll(ObjectReference BedRef)
   return GetBedType(BedRef) == BedType_BedRoll
 EndFunction
 bool function IsDoubleBed(ObjectReference BedRef)
-  return GetBedType(BedRef) == BedType_Single
+  return GetBedType(BedRef) == BedType_Double
 endFunction
 bool function IsSingleBed(ObjectReference BedRef)
-  return GetBedType(BedRef) == BedType_Double
+  return GetBedType(BedRef) == BedType_Single
 endFunction
 
 bool Function IsBedAvailable(ObjectReference BedRef)
@@ -58,7 +58,7 @@ ObjectReference Function FindBed(ObjectReference CenterRef, float Radius = 1000.
   ObjectReference[] beds = FindBeds(CenterRef, Radius)
   int i = 0
   While(i < beds.Length)
-    If(beds[i] != IgnoreRef1 && beds[i] != IgnoreRef2 && (IgnoreUsed || IsBedAvailable(beds[i])))
+    If(beds[i] != IgnoreRef1 && beds[i] != IgnoreRef2 && (!IgnoreUsed || IsBedAvailable(beds[i])))
       return beds[i]
     EndIf
     i += 1

@@ -815,7 +815,7 @@ int Property HOOKID_STAGEEND    = 2 AutoReadOnly
 int Property HOOKID_END         = 3 AutoReadOnly
 
 bool Function AddHook(SexLabThreadHook akHook)
-  If (!akHook || _Hooks.Find(akHook) > -1)
+  If (!akHook || _Hooks.Find(akHook) > -1 || _Hooks.Length >= 128)
     return false
   EndIf
   Log("Adding new hook " + akHook)
@@ -839,19 +839,20 @@ bool Function IsHooked(SexLabThreadHook akHook)
 EndFUnction
 
 Function RunHook(int aiHookID, SexLabThread akThread)
-  Log("Running HookID " + aiHookID + " from thread " + akThread + ", " + _Hooks.Length + " hooks registered")
+  SexLabThreadHook[] hooks = _Hooks
+  Log("Running HookID " + aiHookID + " from thread " + akThread + ", " + hooks.Length + " hooks registered")
   int i = 0
-  While (i < _Hooks.Length)
-    If (!_Hooks[i])
+  While (i < hooks.Length)
+    If (!hooks[i])
       Log("Hook " + i + " is empty"); Unlikely to occur. Empty hooks are cleared from array.
     ElseIf (aiHookID == HOOKID_STAGESTART)
-      _Hooks[i].OnStageStart(akThread)
+      hooks[i].OnStageStart(akThread)
     ElseIf (aiHookID == HOOKID_STAGEEND)
-      _Hooks[i].OnStageEnd(akThread)
+      hooks[i].OnStageEnd(akThread)
     ElseIf (aiHookID == HOOKID_STARTING)
-      _Hooks[i].OnAnimationStarting(akThread)
+      hooks[i].OnAnimationStarting(akThread)
     ElseIf (aiHookID == HOOKID_END)
-      _Hooks[i].OnAnimationEnd(akThread)
+      hooks[i].OnAnimationEnd(akThread)
     EndIf
     i += 1
   EndWhile

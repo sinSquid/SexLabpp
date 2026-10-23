@@ -28,7 +28,7 @@ namespace Thread::Interface
     void OffsetAdjustPanel::Open(SceneHUD& a_hud)
     {
         Close();
-        auto* instance = a_hud.GetThreadInstance();
+        auto instance = a_hud.GetThreadInstance();
         if (!instance)
             return;
 
@@ -50,7 +50,7 @@ namespace Thread::Interface
     void OffsetAdjustPanel::RefreshTargets(SceneHUD& a_hud)
     {
         _targets.clear();
-        auto* instance = a_hud.GetThreadInstance();
+        auto instance = a_hud.GetThreadInstance();
         if (!instance)
             return;
 
@@ -83,7 +83,7 @@ namespace Thread::Interface
 
     void OffsetAdjustPanel::RefreshValues(SceneHUD& a_hud, TargetItem& a_target)
     {
-        auto* instance = a_hud.GetThreadInstance();
+        auto instance = a_hud.GetThreadInstance();
         if (!instance)
             return;
         const auto* scene = instance->GetActiveScene();
@@ -94,8 +94,14 @@ namespace Thread::Interface
         const Registry::Coordinate* offset = nullptr;
         if (a_target.isCenter) {
             offset = &scene->furnitureOffset.GetOffset();
-        } else if (a_target.positionIndex < stage->positions.size()) {
-            offset = &stage->positions[a_target.positionIndex].offset.GetOffset();
+        } else {
+            const auto& actors = instance->GetActors();
+            const auto found = std::ranges::find(actors, a_target.actor);
+            if (found == actors.end())
+                return;
+            a_target.positionIndex = static_cast<size_t>(std::distance(actors.begin(), found));
+            if (a_target.positionIndex < stage->positions.size())
+                offset = &stage->positions[a_target.positionIndex].offset.GetOffset();
         }
         if (!offset)
             return;
@@ -123,13 +129,13 @@ namespace Thread::Interface
 
     void OffsetAdjustPanel::OnSetOffset(SceneHUD& a_hud, Registry::CoordinateType a_axis, std::uint32_t a_targetId, float a_value)
     {
-        if (auto* instance = a_hud.GetThreadInstance())
+        if (auto instance = a_hud.GetThreadInstance())
             instance->OffsetAdjustSet(a_targetId, a_axis, a_value);
     }
 
     void OffsetAdjustPanel::OnResetOffsets(SceneHUD& a_hud)
     {
-        auto* instance = a_hud.GetThreadInstance();
+        auto instance = a_hud.GetThreadInstance();
         if (!instance)
             return;
         instance->OffsetAdjustReset(_hasFurnitureCenter);
@@ -143,7 +149,7 @@ namespace Thread::Interface
     void OffsetAdjustPanel::OnSetAdjustStageOnly(SceneHUD& a_hud, bool a_state)
     {
         _adjustStageOnly = a_state;
-        if (auto* instance = a_hud.GetThreadInstance())
+        if (auto instance = a_hud.GetThreadInstance())
             instance->SetThreadProperty<bool>("VarUI_AdjustStage", a_state);
     }
 

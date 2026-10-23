@@ -64,7 +64,7 @@ namespace Thread::Interface
     void SceneSelectPanel::RebuildEntries(SceneHUD& a_hud)
     {
         _entries.clear();
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         const auto* active = inst->GetActiveScene();
@@ -241,6 +241,7 @@ namespace Thread::Interface
 
         ImGuiMCP::SetWindowFontScale(1.0f);
         ImGuiMCP::Dummy(ImGuiMCP::ImVec2{ 0.0f, scale.Px(4.0f) });
+        const bool isHoveringList = ImGuiMCP::IsWindowHovered(ImGuiMCP::ImGuiHoveredFlags_RootAndChildWindows);
         ImGuiMCP::End();
 
         // ── Info card, retained while hovering it or editing annotations
@@ -326,7 +327,6 @@ namespace Thread::Interface
             }
             ImGuiMCP::End();
         }
-        bool isHoveringList = ImGuiMCP::IsWindowHovered(ImGuiMCP::ImGuiHoveredFlags_RootAndChildWindows);
         if (!keepInfoCardOpen && !isHoveringList) {
             _hoveredIndex = -1;
         }

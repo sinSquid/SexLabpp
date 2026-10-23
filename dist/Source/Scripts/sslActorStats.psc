@@ -561,10 +561,11 @@ Actor function MostUsedPlayerSexPartner2()
 	return MostUsedPlayerSexPartner()	; Original code was 1:1 the same as above
 endFunction
 Actor[] function MostUsedPlayerSexPartners(int MaxActors = 5)
-	Actor[] act = SexLabStatistics.GetAllEncounters(Game.GetPlayer())
-	If (act.Length >= MaxActors)
-		return act
+	If (MaxActors <= 0)
+		return PapyrusUtil.ActorArray(0)
 	EndIf
+	Actor[] act = SexLabStatistics.GetAllEncounters(Game.GetPlayer())
+	MaxActors = PapyrusUtil.ClampInt(MaxActors, 0, act.Length)
 	int[] timesmet = Utility.CreateIntArray(act.Length)
 	int k = 0
 	While (k < act.Length)
@@ -976,7 +977,7 @@ function SetInt(Actor ActorRef, string Stat, int Value)
 endFunction
 function SetFloat(Actor ActorRef, string Stat, float Value)
 	if SkillNames().Find(Stat) != -1
-		SetLegacyStatistic(ActorRef, SkillNames().Find(Stat), 0.0)
+		SetLegacyStatistic(ActorRef, SkillNames().Find(Stat), Value)
 	else
 		SetStat(ActorRef, Stat, Value)
 	endIf

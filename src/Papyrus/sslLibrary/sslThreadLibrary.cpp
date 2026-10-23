@@ -8,6 +8,8 @@
 #include "Registry/Validation.h"
 #include "Serialize.h"
 #include "Util/World.h"
+#include "Util/Assignment.h"
+#include <unordered_set>
 
 namespace Papyrus::ThreadLibrary
 {
@@ -63,7 +65,7 @@ namespace Papyrus::ThreadLibrary
             const auto err = std::format("Invalid target sex. Argument should be in [{}; {}]", std::to_underlying(LegacySex::None), std::to_underlying(LegacySex::CrtFemale));
             a_vm->TraceStack(err.c_str(), a_stackID);
             return {};
-        } else if (a_radius < 0) {
+        } else if (!std::isfinite(a_radius) || a_radius < 0) {
             a_vm->TraceStack("Cannot find actor in negative radius", a_stackID);
             return {};
         }
@@ -89,6 +91,9 @@ namespace Papyrus::ThreadLibrary
                 actor.get() == ignore_ref04)
                 continue;
 
+            const auto distance = a_center->GetPosition().GetDistance(actor->GetPosition());
+            if (!std::isfinite(distance) || distance > a_radius)
+                continue;
             if (!targetrace.IsCompatibleWith(actor.get()))
                 continue;
             if (targetsex != LegacySex::None && GetLegacySex(actor.get()) != targetsex)
@@ -157,6 +162,10 @@ namespace Papyrus::ThreadLibrary
     std::vector<RE::Actor*> FindAvailablePartners(VM* a_vm, StackID a_stackID, RE::TESQuest*,
         std::vector<RE::Actor*> a_positions, int a_total, int a_males, int a_females, float a_radius)
     {
+        if (std::ranges::contains(a_positions, nullptr)) {
+            a_vm->TraceStack("Position array contains none", a_stackID);
+            return {};
+        }
         if (a_positions.size() >= a_total) {
             return a_positions;
         }
@@ -199,12 +208,25 @@ namespace Papyrus::ThreadLibrary
     std::vector<RE::Actor*> FindAnimationPartnersImpl(VM* a_vm, StackID a_stackID, RE::TESQuest*,
         RE::BSFixedString a_sceneid, RE::TESObjectREFR* a_center, float a_radius, std::vector<RE::Actor*> a_includes)
     {
-        const auto scene = Registry::Library::GetSingleton()->GetSceneById(a_sceneid);
-        if (!scene) {
-            a_vm->TraceStack("Cannot find actors for a none scene", a_stackID);
+        if (!a_center || !std::isfinite(a_radius) || a_radius < 0.0f) {
+            a_vm->TraceStack("Invalid center or search radius", a_stackID);
             return {};
         }
-        std::vector<RE::Actor*> ret{};
+        std::vector<RE::Actor*> candidates;
+        std::unordered_set<RE::Actor*> seen;
+        const auto eligible = [](RE::Actor* actor) {
+            return actor && actor->IsHumanoid() && !actor->IsChild() && Registry::IsValidActor(actor);
+        };
+        for (auto* actor : a_includes) {
+            if (!eligible(actor)) {
+                a_vm->TraceStack("Included actor is not eligible", a_stackID);
+                return {};
+            }
+            if (seen.insert(actor).second) candidates.push_back(actor);
+        }
+        const auto requiredCount = candidates.size();
+        if (requiredCount > Registry::ActorFragment::MAX_ACTOR_COUNT)
+            return {};
         auto valids = FindAvailableActors(a_vm, a_stackID, nullptr,
             a_center,
             a_radius,
@@ -215,29 +237,37 @@ namespace Papyrus::ThreadLibrary
             a_includes.size() > 3 ? a_includes[3] : nullptr,
             "");
 
-        for (auto&& position : scene->positions) {
-            RE::Actor* fill = nullptr;
-            for (auto& include : a_includes) {
-                if (include && position.CanFillPosition(include)) {
-                    include = nullptr;
-                    fill = include;
-                    break;
+        for (auto* actor : valids) {
+            if (eligible(actor) && seen.insert(actor).second) candidates.push_back(actor);
+        }
+        std::vector<std::optional<Registry::ActorFragment>> fragments(candidates.size());
+        for (size_t candidate = 0; candidate < candidates.size(); ++candidate) {
+            try {
+                fragments[candidate].emplace(candidates[candidate], false);
+            } catch (const std::exception&) {
+                if (candidate < requiredCount) {
+                    a_vm->TraceStack("Included actor has invalid position data", a_stackID);
+                    return {};
                 }
-            }
-            if (fill) {
-                continue;
-            }
-            for (auto& valid : valids) {
-                if (valid && position.CanFillPosition(valid)) {
-                    valid = nullptr;
-                    fill = valid;
-                    break;
-                }
-            }
-            if (!fill) {
-                return {};
             }
         }
+        const auto scene = Registry::Library::GetSingleton()->ReadScene(a_sceneid);
+        if (!scene) {
+            a_vm->TraceStack("Cannot find actors for a none scene", a_stackID);
+            return {};
+        }
+        // This compatibility entry point searches eligible adult humanoids only.
+        if (scene->HasCreatures() || scene->positions.empty() || scene->positions.size() > Registry::ActorFragment::MAX_ACTOR_COUNT)
+            return {};
+        std::vector<uint32_t> masks(candidates.size(), 0);
+        for (size_t candidate = 0; candidate < candidates.size(); ++candidate)
+            for (size_t slot = 0; slot < scene->positions.size(); ++slot)
+                if (fragments[candidate] && scene->positions[slot].CanFillPosition(*fragments[candidate]))
+                    masks[candidate] |= uint32_t{1} << slot;
+        const auto assignment = Util::MatchRequiredSlots(scene->positions.size(), masks, requiredCount);
+        std::vector<RE::Actor*> ret;
+        ret.reserve(assignment.size());
+        for (auto candidate : assignment) ret.push_back(candidates[candidate]);
         return ret;
     }
 

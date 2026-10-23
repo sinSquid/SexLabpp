@@ -1,6 +1,7 @@
 #pragma once
 
 #include <shared_mutex>
+#include "Util/LockedAccess.h"
 
 #include "Define/Animation.h"
 #include "Define/Expression.h"
@@ -56,6 +57,8 @@ namespace Registry
 
         _NODISCARD const AnimPackage* GetPackageFromScene(const Scene* a_scene) const;
         _NODISCARD const Scene* GetSceneById(const RE::BSFixedString& a_id) const;
+        using SceneAccess = Util::LockedAccess<const Scene, std::shared_lock<std::shared_mutex>>;
+        SceneAccess ReadScene(const RE::BSFixedString& a_id) const;
         _NODISCARD const Scene* GetSceneByName(const RE::BSFixedString& a_id) const;
         _NODISCARD size_t GetSceneCount() const;
 
@@ -71,6 +74,7 @@ namespace Registry
         const Voice* GetVoice(const TagDetails& a_tags) const;
         const Voice* GetVoice(RaceKey a_race) const;
         const Voice* GetVoiceById(RE::BSFixedString a_voice) const;
+        std::optional<Voice> GetVoiceSnapshot(RE::BSFixedString a_voice) const;
         bool CreateVoice(RE::BSFixedString a_voice);
         void WriteVoiceToFile(RE::BSFixedString a_voice) const;
 
@@ -91,11 +95,13 @@ namespace Registry
 
       public:
         _NODISCARD const Expression* GetExpressionById(const RE::BSFixedString& a_id) const;
+        std::optional<Expression> GetExpressionSnapshot(const RE::BSFixedString& a_id) const;
+        bool MarkExpressionDirty(const RE::BSFixedString& a_id);
         _NODISCARD const Expression* GetExpression(const TagDetails& a_details) const;
         bool ForEachExpression(std::function<bool(const Expression&)> a_visitor) const;
         bool CreateExpression(const RE::BSFixedString& a_id);
 
-        void UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values);
+        bool UpdateExpressionValues(RE::BSFixedString a_id, bool a_female, int a_level, std::vector<float> a_values);
         void UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags);
         void SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling);
         void SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled);
@@ -113,17 +119,17 @@ namespace Registry
 
       private:
         bool FolderExists(const char* path, bool notifyUser) const noexcept;
-        void InitializeScenes() noexcept;
-        void InitializeSceneSettings() noexcept;
-        void InitializeFurnitures() noexcept;
-        void InitializeExpressions() noexcept;
-        void InitializeExpressionsImpl() noexcept;
-        void InitializeExpressionsLegacy() noexcept;
-        void InitializeVoice() noexcept;
-        void InitializeVoiceImpl() noexcept;
-        void InitializeVoicePitches() noexcept;
-        void InitializeVoiceSettings() noexcept;
-        void InitializeVoiceCache() noexcept;
+        void InitializeScenes();
+        void InitializeSceneSettings();
+        void InitializeFurnitures();
+        void InitializeExpressions();
+        void InitializeExpressionsImpl();
+        void InitializeExpressionsLegacy();
+        void InitializeVoice();
+        void InitializeVoiceImpl();
+        void InitializeVoicePitches();
+        void InitializeVoiceSettings();
+        void InitializeVoiceCache();
         void InitializeCumFx() noexcept;
         uint8_t InitializeCumFxType(const fs::path& a_typePath) const;
 

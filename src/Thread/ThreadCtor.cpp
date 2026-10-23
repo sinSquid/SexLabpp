@@ -42,7 +42,7 @@ namespace Thread
             const auto removed = std::erase_if(sceneArr, [&](const auto& scene) {
                 return !scene->IsCompatibleFurniture(centerTy);
             });
-            if (sceneArr.begin() == priorityScenes.begin()) {
+            if (&sceneArr == &priorityScenes) {
                 if (sceneArr.empty())
                     throw std::runtime_error("No compatible scenes found for thread.");
                 const auto centerName = center.GetRef()->GetDisplayFullName();
@@ -59,7 +59,8 @@ namespace Thread
     RE::Actor* Instance::InitializeReferences(const std::vector<RE::Actor*>& a_submissives)
     {
         RE::Actor* centerAct{ nullptr };
-        linkedQst->aliasAccessLock.LockForRead();
+        {
+        RE::BSReadLockGuard aliasLock{ linkedQst->aliasAccessLock };
         for (auto&& alias : linkedQst->aliases) {
             const auto aliasref = alias ? skyrim_cast<RE::BGSRefAlias*>(alias) : nullptr;
             if (!aliasref)
@@ -73,7 +74,9 @@ namespace Thread
                 }
             }
         }
-        linkedQst->aliasAccessLock.UnlockForRead();
+        }
+        if (!center.alias || !centerAct)
+            throw std::runtime_error("Thread requires a center alias and at least one actor.");
         const auto centerId = center.GetRef() ? center.GetRef()->GetFormID() : 0;
         const auto centerName = center.GetRef() ? center.GetRef()->GetDisplayFullName() : "None";
         logger::info("Thread initialized. Center: {}, {:X}, Actors: {}.", centerName, centerId, positions.size());
@@ -156,6 +159,11 @@ namespace Thread
                 }
             } catch (const std::exception& e) {
                 logger::error("Thread initialization failed: {}", e.what());
+                promise.set_exception(std::current_exception());
+                return;
+            } catch (...) {
+                promise.set_exception(std::current_exception());
+                return;
             }
             promise.set_value(true);
         });
@@ -367,7 +375,7 @@ namespace Thread
     {
         std::uint64_t generation;
         {
-            std::shared_lock lock{ _mInstances };
+            std::unique_lock lock{ _mInstances };
             const auto found = creationGenerations.find(a_linkedQst);
             if (found == creationGenerations.end())
                 return;
@@ -397,7 +405,7 @@ namespace Thread
                 instances.emplace_back(std::move(instance));
                 DispatchContinueSetup(a_linkedQst, true);
             } catch (const std::exception& e) {
-                std::shared_lock lock{ _mInstances };
+                std::unique_lock lock{ _mInstances };
                 if (creationGenerations.at(a_linkedQst) != generation)
                     return;
                 logger::error("FinalizeCenterRefSelection: Failed to complete thread instance: {}", e.what());

@@ -57,7 +57,7 @@ namespace Thread::Interface
 
     void EnjBarsOverlay::UpdateSlider(RE::Actor* a_actor, float a_enjoyment, RE::BSFixedString a_interactions)
     {
-        if (!a_actor)
+        if (!a_actor || !std::isfinite(a_enjoyment))
             return;
         const uint32_t actorID = a_actor->GetFormID();
 
@@ -97,7 +97,7 @@ namespace Thread::Interface
 
     void EnjBarsOverlay::RegisterRaiseEnjAttempt(SceneHUD& a_hud, RE::Actor* a_actor, float a_nextTimeCycle)
     {
-        if (!a_actor)
+        if (!a_actor || !std::isfinite(a_nextTimeCycle))
             return;
         const uint32_t actorID = a_actor->GetFormID();
 
@@ -174,7 +174,7 @@ namespace Thread::Interface
 
         Layout layout;
         auto& L = layout;
-        L.zoneW = std::clamp(a_scale.Px(260.0f), dw * 0.15f, a_scale.Px(360.0f));
+        L.zoneW = std::clamp(a_scale.Px(260.0f), std::min(dw * 0.15f, a_scale.Px(360.0f)), a_scale.Px(360.0f));
         L.barGap = a_scale.Px(4.5f);
         L.innerGp = a_scale.Px(2.0f);
         L.frameH = a_scale.Px(UI::Theme::FontSize.body);
@@ -196,7 +196,7 @@ namespace Thread::Interface
     {
         if (_bars.empty())
             return;
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         auto& scale = a_hud.GetScale();

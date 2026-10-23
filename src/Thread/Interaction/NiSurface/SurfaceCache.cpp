@@ -716,9 +716,14 @@ namespace Thread::Interaction::NiSurface::Geometry
                 }
             }
         };
+        boundDynamicSize = 0;
+        usesDynamicBuffer = false;
         if (auto* dynamicShape = netimmerse_cast<RE::BSDynamicTriShape*>(a_geometry); dynamicShape && dynamicShape->GetDynamicTrishapeRuntimeData().dynamicData) {
             auto& dynamicData = dynamicShape->GetDynamicTrishapeRuntimeData();
             RE::BSSpinLockGuard lock(dynamicData.lock);
+            if (!dynamicData.dynamicData) return false;
+            boundDynamicSize = dynamicData.dataSize;
+            usesDynamicBuffer = true;
             const auto* vertices = static_cast<const DirectX::XMVECTOR*>(dynamicData.dynamicData);
             setLocalPositions([&](std::uint16_t a_vertex) {
                 DirectX::XMFLOAT3 position;
@@ -748,27 +753,59 @@ namespace Thread::Interaction::NiSurface::Geometry
 
         geometry.reset(a_geometry);
         skinInstance = skin;
+        boundSkinData.reset(skinData);
+        boundPartition.reset(skinPartition);
+        boundVertexCount = skinPartition->vertexCount;
+        boundModelPath = a_modelPath;
+        boundShapeName = a_shapeName;
+        for (size_t i = 0; i < boundTargets.size(); ++i) boundTargets[i].reset(a_targets[i]);
         deep.reset(a_deep);
         logger::info("NiSurface Interaction: {} surface topology {} for '{}' in '{}' ({:016X})", a_shapeName, cacheHit ? "cache hit" : "cached", a_geometry->name, a_modelPath, topology.fingerprint);
         return true;
     }
 
+    bool TrackedOpening::RefreshBinding()
+    {
+        auto retainedGeometry = geometry;
+        auto retainedDeep = deep;
+        auto retainedTargets = boundTargets;
+        std::array<RE::NiAVObject*, 2> targets{ retainedTargets[0].get(), retainedTargets[1].get() };
+        TrackedOpening replacement;
+        if (!replacement.Bind(retainedGeometry.get(), boundModelPath, boundShapeName, targets, retainedDeep.get()))
+            return false;
+        *this = std::move(replacement);
+        return true;
+    }
+
     std::optional<OpeningShape> TrackedOpening::Update()
     {
-        if (!geometry || !geometry->parent || !deep || geometry->GetGeometryRuntimeData().skinInstance.get() != skinInstance) {
+        if (!geometry || !geometry->parent || !deep) {
+            return std::nullopt;
+        }
+        if (geometry->GetGeometryRuntimeData().skinInstance.get() != skinInstance) {
+            RefreshBinding();
             return std::nullopt;
         }
 
         auto* skinData = skinInstance->skinData.get();
         auto* skinPartition = skinInstance->skinPartition.get();
-        if (!skinData || !skinPartition || !skinInstance->bones) {
+        if (!skinData || !skinPartition || !skinInstance->bones || skinData != boundSkinData.get() ||
+            skinPartition != boundPartition.get() || skinPartition->vertexCount != boundVertexCount || !skinPartition->numPartitions) {
+            RefreshBinding();
             return std::nullopt;
         }
+        for (const auto& landmark : landmarks)
+            if (landmark.samples.empty() || std::ranges::any_of(landmark.samples, [&](const auto& sample) { return sample.vertex >= boundVertexCount; }))
+                return std::nullopt;
 
         if (auto* dynamicShape = netimmerse_cast<RE::BSDynamicTriShape*>(geometry.get())) {
             auto& dynamicData = dynamicShape->GetDynamicTrishapeRuntimeData();
-            if (dynamicData.dynamicData) {
+            bool changed;
+            {
                 RE::BSSpinLockGuard lock(dynamicData.lock);
+                changed = usesDynamicBuffer != (dynamicData.dynamicData != nullptr) ||
+                    (usesDynamicBuffer && dynamicData.dataSize != boundDynamicSize);
+                if (!changed && dynamicData.dynamicData) {
                 const auto* vertices = static_cast<const DirectX::XMVECTOR*>(dynamicData.dynamicData);
                 for (auto& landmark : landmarks) {
                     for (auto& sample : landmark.samples) {
@@ -777,6 +814,11 @@ namespace Thread::Interaction::NiSurface::Geometry
                         sample.local = { position.x, position.y, position.z };
                     }
                 }
+                }
+            }
+            if (changed) {
+                RefreshBinding();
+                return std::nullopt;
             }
         }
 

@@ -692,13 +692,13 @@ endFunction
 ; --- Return:
 ; A String ID representing a unique voice object
 String Function SelectVoice(Actor akActor)
-  sslVoiceSlots.SelectVoice(akActor)
+  return sslVoiceSlots.SelectVoice(akActor)
 EndFunction
 String Function SelectVoiceByTags(Actor akActor, String asTags)
-  sslVoiceSlots.SelectVoiceByTags(akActor, asTags)
+  return sslVoiceSlots.SelectVoiceByTags(akActor, asTags)
 EndFunction
 String Function SelectVoiceByTagsA(Actor akActor, String[] asTags)
-  sslVoiceSlots.SelectVoiceByTagsA(akActor, asTags)
+  return sslVoiceSlots.SelectVoiceByTagsA(akActor, asTags)
 EndFunction
 
 ; Reserve a voice that this actor will prefer over a randomly selected one
@@ -887,7 +887,7 @@ endFunction
 ;/* DEPRECATED! */;
 sslBaseAnimation[] property Animations hidden
   sslBaseAnimation[] function get()
-    return AnimSlots.GetSlots(0, 128)
+    return AnimSlots.GetSlots(1, 128)
   endFunction
 endProperty
 

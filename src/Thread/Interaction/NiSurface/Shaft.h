@@ -46,6 +46,11 @@ namespace Thread::Interaction::NiSurface::Geometry
         {
             RE::NiPointer<RE::BSGeometry> geometry;
             RE::NiSkinInstance* skinInstance{ nullptr };
+            RE::NiPointer<RE::NiSkinData> boundSkinData;
+            RE::NiPointer<RE::NiSkinPartition> boundPartition;
+            uint32_t boundVertexCount{0};
+            uint32_t boundDynamicSize{0};
+            bool usesDynamicBuffer{false};
             std::vector<SampleRing> rings;
             SampleRing tip;
             std::vector<Bone> bones;

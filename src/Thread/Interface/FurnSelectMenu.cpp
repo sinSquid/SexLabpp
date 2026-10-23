@@ -36,7 +36,7 @@ namespace Thread::Interface
         _items.clear();
         if (!quest)
             return;
-        auto* inst = Instance::GetPendingInstance(quest);
+        auto inst = Instance::GetPendingInstance(quest);
         if (!inst) {
             logger::error("FurnSelectMenu::HandleSelection >> instance not found");
             return;

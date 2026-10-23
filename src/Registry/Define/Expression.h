@@ -39,6 +39,8 @@ namespace Registry
         };
 
       public:
+        // Bound new runtime allocations; editing larger profiles loaded from disk stays supported.
+        static constexpr size_t MAX_AUTOMATIC_LEVELS = 4096;
         Expression(const RE::BSFixedString& a_id) :
           id(a_id) { assert(!a_id.empty()); };
         Expression(DefaultExpression a_default);
@@ -53,7 +55,7 @@ namespace Registry
         const TagData& GetTags() const { return tags; }
         std::array<float, Total> GetData(RE::SEXES::SEX a_sex, float a_strength) const;
 
-        void UpdateValues(bool a_female, int a_level, std::vector<float> a_values);
+        bool UpdateValues(bool a_female, int a_level, std::vector<float> a_values);
         void UpdateTags(const TagData& a_newtags);
         void SetScaling(Expression::Scaling a_scaling);
         void SetEnabled(bool a_enabled);

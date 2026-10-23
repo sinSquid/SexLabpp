@@ -457,9 +457,8 @@ namespace Thread::Interaction::NiSurface
 
     bool ActorState::Frame::DetectAnimObjectFace(const Frame& a_partner)
     {
-        bool bAnimObjectLoaded;
-        a_partner.state.actor->GetGraphVariableBool("bAnimObjectLoaded", bAnimObjectLoaded);
-        if (!bAnimObjectLoaded)
+        bool bAnimObjectLoaded{};
+        if (!a_partner.state.actor->GetGraphVariableBool("bAnimObjectLoaded", bAnimObjectLoaded) || !bAnimObjectLoaded)
             return false;
         const auto pMouth = GetMouthCenter();
         if (!pMouth)

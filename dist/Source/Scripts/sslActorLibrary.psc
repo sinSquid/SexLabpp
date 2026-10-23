@@ -152,26 +152,97 @@ Form[] function StripSlots(Actor ActorRef, bool[] Strip, bool DoAnimate = false,
 	return StripActorImpl(ActorRef, sslUtility.BoolToBit(Strip), Strip[32], DoAnimate)
 EndFunction
 Form Function StripSlot(Actor ActorRef, int SlotMask)
+	If (!ActorRef)
+		return none
+	EndIf
 	Form ItemRef = ActorRef.GetWornForm(SlotMask)
 	If (ItemRef && IsStrippable(ItemRef))
+		Form right = ActorRef.GetEquippedObject(1)
+		Form left = ActorRef.GetEquippedObject(0)
 		ActorRef.UnequipItemEX(ItemRef, 0, false)
+		Form[] items = new Form[1]
+		items[0] = ItemRef
+		RememberStripItems(ActorRef, items, right, left)
 		return ItemRef
 	EndIf
 	return none
 EndFunction
 
 Function UnstripActor(Actor ActorRef, Form[] Stripped, bool IsVictim = false)
+	If (!ActorRef)
+		return
+	EndIf
 	int i = 0
 	While(i < Stripped.Length)
-		If(Stripped[i])
- 			int hand = StorageUtil.GetIntValue(Stripped[i], "Hand", 0)
- 			If(hand)
-	 			StorageUtil.UnsetIntValue(Stripped[i], "Hand")
-			EndIf
-	 		ActorRef.EquipItemEx(Stripped[i], hand, false)
+		Form item = Stripped[i]
+		If (item && Stripped.Find(item) == i)
+			RestoreStripItem(ActorRef, item)
 		EndIf
 		i += 1
 	EndWhile
+EndFunction
+
+; Actor-owned Form lists survive load-order remapping and isolate identical base forms.
+Function RememberStripItems(Actor ActorRef, Form[] Items, Form RightHand, Form LeftHand)
+	If (!ActorRef)
+		return
+	EndIf
+	Weapon twoHanded = RightHand as Weapon
+	If (twoHanded && RightHand == LeftHand)
+		int weaponType = twoHanded.GetWeaponType()
+		If (weaponType == 5 || weaponType == 6 || weaponType == 7 || weaponType == 9)
+			LeftHand = none
+		EndIf
+	EndIf
+	int i = 0
+	While (i < Items.Length)
+		Form item = Items[i]
+		If (item)
+			StorageUtil.FormListAdd(ActorRef, "SexLab.Strip.Seen", item, false)
+			StorageUtil.FormListAdd(ActorRef, "SexLab.Strip.Pending", item, false)
+			If (item == RightHand)
+				StorageUtil.FormListAdd(ActorRef, "SexLab.Strip.Right", item, false)
+			EndIf
+			If (item == LeftHand)
+				StorageUtil.FormListAdd(ActorRef, "SexLab.Strip.Left", item, false)
+			EndIf
+		EndIf
+		i += 1
+	EndWhile
+EndFunction
+
+Function RestoreStripItem(Actor ActorRef, Form item)
+	If (!ActorRef || !item)
+		return
+	EndIf
+	If (StorageUtil.FormListFind(ActorRef, "SexLab.Strip.Seen", item) >= 0)
+		If (StorageUtil.FormListRemove(ActorRef, "SexLab.Strip.Pending", item, true) == 0)
+			; Public callers may also supply items unequipped outside this library.
+			ActorRef.EquipItemEx(item, 0, false)
+			return
+		EndIf
+		bool right = StorageUtil.FormListRemove(ActorRef, "SexLab.Strip.Right", item, true) > 0
+		bool left = StorageUtil.FormListRemove(ActorRef, "SexLab.Strip.Left", item, true) > 0
+		If (right)
+			ActorRef.EquipItemEx(item, 1, false)
+		EndIf
+		If (left)
+			ActorRef.EquipItemEx(item, 2, false)
+		EndIf
+		If (!right && !left)
+			ActorRef.EquipItemEx(item, 0, false)
+		EndIf
+	Else
+		; One-time compatibility with pending equipment from older saves.
+		int hand = StorageUtil.GetIntValue(item, "Hand", 0)
+		If (hand == 1 || hand == 2)
+			StorageUtil.UnsetIntValue(item, "Hand")
+		Else
+			hand = 0
+		EndIf
+		StorageUtil.FormListAdd(ActorRef, "SexLab.Strip.Seen", item, false)
+		ActorRef.EquipItemEx(item, hand, false)
+	EndIf
 EndFunction
 
 ; ------------------------------------------------------- ;
@@ -289,27 +360,36 @@ String Function PickRandomFxSet(Actor akActor, int aiType) native global
 int Function GetFxSetCount(int asType, String asSet) native global
 
 Form[] Function StripActorImpl(Actor akActor, int aiSlots, bool abStripWeapons = true, bool abAnimate = false)
+	If (!akActor)
+		return Utility.CreateFormArray(0)
+	EndIf
 	abAnimate = abAnimate && akActor.GetWornForm(0x4)	; Body armor slot
 	If(abAnimate)
 		int Gender = akActor.GetLeveledActorBase().GetSex()
 		Debug.SendAnimationEvent(akActor, "Arrok_Undress_G" + Gender)
 		Utility.Wait(0.6)
 	EndIf
-	Form[] ret = UnequipSlots(akActor, aiSlots)
-	If(abStripWeapons)
-		Form RightHand = akActor.GetEquippedObject(1)
-		If(RightHand && IsStrippable(RightHand))
-			akActor.UnequipItemEX(RightHand, akActor.EquipSlot_RightHand, false)
-			ret = PapyrusUtil.PushForm(ret, LeftHand)
-			StorageUtil.SetIntValue(RightHand, "Hand", 1)
-		EndIf
-		Form LeftHand = akActor.GetEquippedObject(0)
-		If(LeftHand && IsStrippable(LeftHand))
-			akActor.UnequipItemEX(LeftHand, akActor.EquipSlot_LeftHand, false)
-			ret = PapyrusUtil.PushForm(ret, LeftHand)
-			StorageUtil.SetIntValue(RightHand, "Hand", 2)
+	Form RightHand = akActor.GetEquippedObject(1)
+	Form LeftHand = akActor.GetEquippedObject(0)
+	Weapon twoHanded = RightHand as Weapon
+	If (twoHanded && RightHand == LeftHand)
+		int weaponType = twoHanded.GetWeaponType()
+		If (weaponType == 5 || weaponType == 6 || weaponType == 7 || weaponType == 9)
+			LeftHand = none
 		EndIf
 	EndIf
+	Form[] ret = UnequipSlots(akActor, aiSlots)
+	If(abStripWeapons)
+		If(RightHand && !(RightHand as Spell) && IsStrippable(RightHand))
+			akActor.UnequipItemEX(RightHand, akActor.EquipSlot_RightHand, false)
+			ret = PapyrusUtil.PushForm(ret, RightHand)
+		EndIf
+		If(LeftHand && !(LeftHand as Spell) && IsStrippable(LeftHand))
+			akActor.UnequipItemEX(LeftHand, akActor.EquipSlot_LeftHand, false)
+			ret = PapyrusUtil.PushForm(ret, LeftHand)
+		EndIf
+	EndIf
+	RememberStripItems(akActor, ret, RightHand, LeftHand)
 	If(abAnimate)
 		Utility.Wait(0.4)
 	EndIf

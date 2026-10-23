@@ -9,6 +9,15 @@ namespace Thread::Interface::UI::Theme
 {
     namespace
     {
+        template<class T>
+        void VisitNumbers(T& object, const auto& visit)
+        {
+            glz::for_each_field(object, [&](auto& field) {
+                using Field = std::remove_cvref_t<decltype(field)>;
+                if constexpr (std::is_same_v<Field, float>) visit(field);
+                else if constexpr (glz::reflectable<Field>) VisitNumbers(field, visit);
+            });
+        }
         constexpr auto THEME_PATH = USER_CONFIGS("ui_theme.json");
 
         struct WriteOptions : glz::opts
@@ -18,6 +27,33 @@ namespace Thread::Interface::UI::Theme
         };
 
         bool loadComplete{ false };
+    }
+
+    void Sanitize(Data& values)
+    {
+        static const auto defaults = [] {
+            Data initial;
+            std::vector<float> result;
+            VisitNumbers(initial, [&](float value) { result.push_back(value); });
+            return result;
+        }();
+        size_t index = 0;
+        VisitNumbers(values, [&](float& value) {
+            if (!std::isfinite(value) || value < 0.0f) value = defaults[index];
+            ++index;
+        });
+        const Data initial;
+        // Font sizes and these scale/divisor fields must be strictly positive.
+        auto fontDefaults = initial.fontSize;
+        std::vector<float> fonts;
+        VisitNumbers(fontDefaults, [&](float value) { fonts.push_back(value); });
+        index = 0;
+        VisitNumbers(values.fontSize, [&](float& value) {
+            if (value <= 0.0f) value = fonts[index];
+            ++index;
+        });
+        if (values.offset.dragDistance <= 0.0f) values.offset.dragDistance = initial.offset.dragDistance;
+        if (values.geometry.nestedMenuScale <= 0.0f) values.geometry.nestedMenuScale = initial.geometry.nestedMenuScale;
     }
 
     void Load()
@@ -32,6 +68,7 @@ namespace Thread::Interface::UI::Theme
                 if (const auto error = glz::read_file_json(candidate, THEME_PATH, buffer); error) {
                     logger::error("Unable to load UI theme: {}", glz::format_error(error, buffer));
                 } else {
+                    Sanitize(candidate);
                     loadedTheme = candidate;
                     logger::info("Loaded UI theme from {}", THEME_PATH);
                 }

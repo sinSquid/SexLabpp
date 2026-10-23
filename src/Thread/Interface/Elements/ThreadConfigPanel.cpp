@@ -9,7 +9,7 @@ namespace Thread::Interface
     void ThreadConfigPanel::Open(SceneHUD& a_hud)
     {
         _actorStates.clear();
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         for (auto* actor : inst->GetActors()) {
@@ -39,7 +39,7 @@ namespace Thread::Interface
 
     void ThreadConfigPanel::OnRandomScene(SceneHUD& a_hud)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         const auto* cur = inst->GetActiveScene();
@@ -65,28 +65,28 @@ namespace Thread::Interface
 
     void ThreadConfigPanel::OnAutoPlaySet(SceneHUD& a_hud, bool state)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (inst)
             inst->SetThreadProperty<bool>("AutoAdvance", state);
     }
 
     void ThreadConfigPanel::OnNextPosition(SceneHUD& a_hud, RE::Actor* actor)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (inst && actor)
             inst->SetNextPermutation(actor);
     }
 
     void ThreadConfigPanel::OnSetExpression(SceneHUD& a_hud, RE::Actor* actor, const Registry::Expression* expr)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (inst && actor && expr)
             inst->SetExpression(actor, expr);
     }
 
     void ThreadConfigPanel::OnSetVoice(SceneHUD& a_hud, RE::Actor* actor, const Registry::Voice* voice)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (inst && actor && voice)
             inst->SetVoice(actor, voice);
     }
@@ -149,7 +149,7 @@ namespace Thread::Interface
             ImGuiMCP::PopID();
             return;
         }
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         const ImGuiMCP::ImVec2 bodyMin = ImGuiMCP::GetCursorScreenPos();
         ImGuiMCP::SetCursorScreenPos(bodyMin);
         ImGuiMCP::Dummy(ImGuiMCP::ImVec2{ 0.0f, scale.Px(UI::Theme::Spacing.xs) * nestedScale });
@@ -333,7 +333,7 @@ namespace Thread::Interface
 
     void ThreadConfigPanel::Render(SceneHUD& a_hud)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
 

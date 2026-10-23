@@ -671,8 +671,13 @@ int[] _maxphases
 int _phaseidx
 
 Function ExpressionEditor()
+	_high = Utility.CreateFloatArray(0)
+	_low = Utility.CreateFloatArray(0)
+	If (!_expression.Length)
+		return
+	EndIf
 	SetCursorFillMode(TOP_TO_BOTTOM)
-	If (_expressionIdx >= _expression.Length)
+	If (_expressionIdx < 0 || _expressionIdx >= _expression.Length)
 		_expressionIdx = 0
 	EndIf
 	int v = sslBaseExpression.GetVersion(_expression[_expressionIdx])
@@ -726,6 +731,10 @@ Function ExpressionEditor()
 			values = _high
 		EndIf
 		AddHeaderOption("$SSL_EditExpressions_" + i)
+		If (values.Length != 32)
+			values = new float[32]
+			flag = OPTION_FLAG_DISABLED
+		EndIf
 		AddMenuOptionST("expredit_" + 30 + "_" + i, "$SSL_MoodType", _moods[values[30] as int], flag)
 		AddSliderOptionST("expredit_" + 31 + "_" + i, "$SSL_MoodStrength", values[31], "{2}", flag)
 		If (i == 0)
@@ -736,7 +745,7 @@ Function ExpressionEditor()
 		int MODIFIER_COUNT = 14
 		int n = 0
 		While (n < MODIFIER_COUNT)
-			AddSliderOptionST("expredit_" + n + "_" + i, "$SSL_Modifier_" + n, values[n], "{2}", flag)
+			AddSliderOptionST("expredit_" + (16 + n) + "_" + i, "$SSL_Modifier_" + n, values[16 + n], "{2}", flag)
 			n += 1
 		EndWhile
 		If (i == 0)
@@ -747,7 +756,7 @@ Function ExpressionEditor()
 		int PHONEME_COUNT = 16
 		int k = 0
 		While (k < PHONEME_COUNT)
-			AddSliderOptionST("expredit_" + (n + k) + "_" + i, "$SSL_Phoneme_" + k, values[n + k], "{2}", flag)
+			AddSliderOptionST("expredit_" + k + "_" + i, "$SSL_Phoneme_" + k, values[k], "{2}", flag)
 			k += 1
 		EndWhile
 		If (v == 0)
@@ -1066,7 +1075,11 @@ Event OnSelectST()
 		_currentTogglePage += 1
 		ForcePageReset()
 	ElseIf (s[0] == "togglevisible")
-		String[] anims = sslAnimationSlots.CreateProxyArray(0, _toggleGroupIdx, _toggleTags, _animPack[_animPackIdx])
+		String packageName = ""
+		If (_animPackIdx > 0 && _animPackIdx < _animPack.Length)
+			packageName = _animPack[_animPackIdx]
+		EndIf
+		String[] anims = sslAnimationSlots.CreateProxyArray(0, _toggleGroupIdx, _toggleTags, packageName)
 		If (!anims.Length)
 			return
 		EndIf
@@ -1194,6 +1207,9 @@ Event OnSliderAcceptST(float value)
 			values = _low
 		Else
 			values = _high
+		EndIf
+		If (values.Length != 32 || i < 0 || i >= 32 || n < 0 || n > 1 || _expressionIdx < 0 || _expressionIdx >= _expression.Length)
+			return
 		EndIf
 		values[i] = value
 		sslBaseExpression.SetValues(_expression[_expressionIdx], _editFemale, _phaseidx + n, values)
@@ -1326,6 +1342,9 @@ Event OnMenuAcceptST(int aiIndex)
 			values = _low
 		Else
 			values = _high
+		EndIf
+		If (values.Length != 32 || i < 0 || i >= 32 || n < 0 || n > 1 || _expressionIdx < 0 || _expressionIdx >= _expression.Length)
+			return
 		EndIf
 		values[i] = aiIndex
 		sslBaseExpression.SetValues(_expression[_expressionIdx], _editFemale, _phaseidx + n, values)

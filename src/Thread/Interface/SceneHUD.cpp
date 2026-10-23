@@ -61,7 +61,7 @@ namespace Thread::Interface
 
         _linkedThread = a_quest;
         _threadScript = Script::GetScriptObject(_linkedThread, "sslThreadController");
-        auto* instance = GetThreadInstance();
+        auto instance = GetThreadInstance();
         if (!instance) {
             logger::warn("SceneHUD::Init >> thread instance is null");
             _linkedThread = nullptr;
@@ -183,7 +183,7 @@ namespace Thread::Interface
     {
         if (!_elements || !ShouldRender())
             return;
-        auto* instance = GetThreadInstance();
+        auto instance = GetThreadInstance();
         if (!instance)
             return;
 
@@ -318,7 +318,7 @@ namespace Thread::Interface
     {
         if (!_elements)
             return;
-        auto* instance = GetThreadInstance();
+        auto instance = GetThreadInstance();
         if (instance && instance->GetThreadProperty<bool>("ElementUI_EnjBars") &&
             instance->GetThreadProperty<bool>("VarUI_SeparateOrgasm")) {
             _elements->enjoymentBarsOverlay.RegisterRaiseEnjAttempt(*this, a_actor, a_nextTimeCycle);
@@ -343,7 +343,7 @@ namespace Thread::Interface
     {
         if (!_elements)
             return false;
-        auto* instance = GetThreadInstance();
+        auto instance = GetThreadInstance();
         return instance && instance->GetThreadProperty<bool>("ElementUI_DebugNodeDraw");
     }
 

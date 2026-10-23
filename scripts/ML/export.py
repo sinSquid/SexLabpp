@@ -67,11 +67,23 @@ def export_softmax_model_to_ini(model_or_path, out_path: str | Path) -> None:
     config = configparser.ConfigParser()
 
     classes = clf.classes_
+    coefficients = clf.coef_
+    intercepts = clf.intercept_
+    if len(classes) == 2 and len(coefficients) == 1:
+        # Binary logistic regression stores one decision function, not two rows.
+        if getattr(clf, "multi_class", None) == "multinomial":
+            coefficients = np.vstack((-coefficients[0], coefficients[0]))
+            intercepts = np.array([-intercepts[0], intercepts[0]])
+        else:
+            coefficients = np.vstack((np.zeros_like(coefficients[0]), coefficients[0]))
+            intercepts = np.array([0.0, intercepts[0]])
+    if len(coefficients) != len(classes) or len(intercepts) != len(classes):
+        raise ValueError("Classifier rows do not match its classes")
 
     for class_index, class_name in enumerate(classes):
 
-        w_scaled = clf.coef_[class_index]
-        b_scaled = clf.intercept_[class_index]
+        w_scaled = coefficients[class_index]
+        b_scaled = intercepts[class_index]
 
         # Convert to raw feature space
         w_raw = w_scaled / stds
@@ -110,6 +122,10 @@ def unify_ini_files(ini_path: str | Path, out_path: str | Path) -> None:
         unified_config.read(out_path)
 
     for ini_file in ini_files:
+        # The output was already loaded as the baseline. Reading it again can
+        # overwrite fresh inputs with stale values when it sorts last.
+        if ini_file.resolve() == out_path.resolve():
+            continue
         config = configparser.ConfigParser()
         config.read(ini_file)
         for section in config.sections():

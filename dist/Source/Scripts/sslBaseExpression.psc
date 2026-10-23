@@ -189,12 +189,21 @@ function Apply(Actor ActorRef, int Strength, int Gender)
 endFunction
 
 function ApplyPhase(Actor ActorRef, int Phase, int Gender)
+	If (!ActorRef || Gender < 0 || Gender > 1 || Phase < 1)
+		return
+	EndIf
 	if Phase <= PhaseCounts[Gender]
 		ApplyPresetFloats(ActorRef, GetNthValues(Registry, Gender, Phase - 1))
 	endIf
 endFunction
 
 int function PickPhase(int Strength, int Gender)
+	If (Gender < 0 || Gender > 1)
+		return 0
+	EndIf
+	If (PhaseCounts[Gender] < 1)
+		return 0
+	EndIf
 	int phase = (PapyrusUtil.ClampInt(Strength, 1, 100) * PhaseCounts[Gender]) / 100
 	return PapyrusUtil.ClampInt(phase, 1, PhaseCounts[Gender])
 endFunction
@@ -396,15 +405,18 @@ function CountPhases()
 endFunction
 
 float[] function GenderPhase(int Phase, int Gender)
-	return GetNthValues(Registry, Gender == Female, Phase)
+	return GetNthValues(Registry, Gender == Female, Phase - 1)
 endFunction
 
 function SetPhase(int Phase, int Gender, float[] Preset)
+	If (Phase < 1)
+		return
+	EndIf
 	If (Gender == -1)
-		SetValues(Registry, true, Phase, Preset)
-		SetValues(Registry, false, Phase, Preset)
+		SetValues(Registry, true, Phase - 1, Preset)
+		SetValues(Registry, false, Phase - 1, Preset)
 	Else
-		SetValues(Registry, Gender == Female, Phase, Preset)
+		SetValues(Registry, Gender == Female, Phase - 1, Preset)
 	EndIf
 endFunction
 

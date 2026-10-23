@@ -78,9 +78,7 @@ namespace Thread::Interface
                     ImGuiMCP::TextUnformatted(fieldName.data());
                     ImGuiMCP::SameLine(fieldX);
                     ImGuiMCP::SetNextItemWidth(fieldWidth);
-                    const auto thousandths = std::llround(std::abs(a_field) * 1000.0f);
-                    const char* format = thousandths % 100 == 0 ? "%.1f" : thousandths % 10 == 0 ? "%.2f" :
-                                                                                                   "%.3f";
+                    const char* format = "%.3f";
                     ImGuiMCP::InputFloat("##value", &a_field, 0.1f, 0.1f, format);
                 } else if constexpr (glz::reflectable<Field>) {
                     if (ImGuiMCP::CollapsingHeader(fieldName.data(), ImGuiMCP::ImGuiTreeNodeFlags_DefaultOpen))
@@ -94,7 +92,7 @@ namespace Thread::Interface
 
     void ElementCtrlPanel::Open(SceneHUD& a_hud)
     {
-        if (auto* inst = a_hud.GetThreadInstance()) {
+        if (auto inst = a_hud.GetThreadInstance()) {
             _scaleAdjustment = std::clamp(inst->GetThreadProperty<float>("VarUI_MenuScaleMult"), 0.5f, 2.5f);
             const float textScale = inst->GetThreadProperty<float>("VarUI_TextScaleMult");
             _textScaleAdjustment = textScale > 0.0f ? std::clamp(textScale, 0.75f, 2.0f) : 1.0f;
@@ -104,7 +102,7 @@ namespace Thread::Interface
 
     void ElementCtrlPanel::OnScaleChange(SceneHUD& a_hud, float a_value)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         const float value = std::clamp(a_value, 0.5f, 2.5f);
@@ -115,7 +113,7 @@ namespace Thread::Interface
 
     void ElementCtrlPanel::OnTextScaleChange(SceneHUD& a_hud, float a_value)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         const float value = std::clamp(a_value, 0.75f, 2.0f);
@@ -126,7 +124,7 @@ namespace Thread::Interface
 
     void ElementCtrlPanel::Render(SceneHUD& a_hud)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         auto& scale = a_hud.GetScale();
@@ -155,7 +153,7 @@ namespace Thread::Interface
         if (ImGuiMCP::IsItemDeactivatedAfterEdit())
             OnScaleChange(a_hud, _scaleAdjustment);
         ImGuiMCP::SetNextItemWidth(-1.0f);
-        ImGuiMCP::SliderFloat("##slpp_ecmTextScale", &_textScaleAdjustment, 0.5f, 2.5f, "Text Scale %.2fx");
+        ImGuiMCP::SliderFloat("##slpp_ecmTextScale", &_textScaleAdjustment, 0.75f, 2.0f, "Text Scale %.2fx");
         if (ImGuiMCP::IsItemDeactivatedAfterEdit())
             OnTextScaleChange(a_hud, _textScaleAdjustment);
 
@@ -295,6 +293,7 @@ namespace Thread::Interface
         SetWindowFontSize(fontSize);
         ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_Text, UI::Theme::ToVec4(UI::Theme::Color.textSecondary));
         DrawThemeFields(UI::Theme::data);
+        UI::Theme::Sanitize(UI::Theme::data);
         ImGuiMCP::PopStyleColor();
         ImGuiMCP::SetWindowFontScale(1.0f);
         ImGuiMCP::End();

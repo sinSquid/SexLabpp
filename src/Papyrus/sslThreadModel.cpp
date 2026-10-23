@@ -352,7 +352,12 @@ namespace Papyrus::ThreadModel
     std::vector<RE::BSFixedString> AdvanceScene(QUESTARGS, std::vector<RE::BSFixedString> a_history, RE::BSFixedString a_nextStage)
     {
         GET_INSTANCE(a_history);
-        auto stage = instance->GetActiveScene()->GetStageByID(a_nextStage);
+        const auto* activeScene = instance->GetActiveScene();
+        if (!activeScene) {
+            a_vm->TraceStack("Thread has no active scene", a_stackID);
+            return a_history;
+        }
+        auto stage = activeScene->GetStageByID(a_nextStage);
         if (!stage) {
             a_vm->TraceStack("Invalid stage id", a_stackID);
             return a_history;
@@ -535,7 +540,8 @@ namespace Papyrus::ThreadModel
                     continue;
                 if (a_positions[i] == a_actor) {
                     const auto& p = scene->GetNthPosition(i);
-                    sub = p->IsSubmissive();
+                    if (p->IsSubmissive())
+                        sub = 1;
                     continue;
                 }
                 if (sub != 1 && scene->GetNthPosition(i)->IsSubmissive()) {
@@ -597,79 +603,79 @@ namespace Papyrus::ThreadModel
     bool IsCollisionRegistered(QUESTARGS)
     {
         GET_INSTANCE(false);
-        return Thread::Interaction::IsCollisionRegistered(instance);
+        return Thread::Interaction::IsCollisionRegistered(instance.get());
     }
 
     void UnregisterCollision(QUESTARGS)
     {
         GET_INSTANCE();
-        Thread::Interaction::UnregisterCollision(instance);
+        Thread::Interaction::UnregisterCollision(instance.get());
     }
 
     std::vector<bool> GetInteractionFlagsImpl(QUESTARGS, RE::Actor* a_actor, RE::Actor* a_partner)
     {
         GET_INSTANCE(std::vector<bool>(Thread::Interaction::kInterTypeCount, false));
-        return Thread::Interaction::GetInteractionFlagsImpl(instance, a_actor, a_partner);
+        return Thread::Interaction::GetInteractionFlagsImpl(instance.get(), a_actor, a_partner);
     }
 
     std::vector<int32_t> GetActiveInterTypesImpl(QUESTARGS, RE::Actor* a_actor, RE::Actor* a_partner)
     {
         GET_INSTANCE({});
-        return Thread::Interaction::GetActiveInterTypesImpl(instance, a_actor, a_partner);
+        return Thread::Interaction::GetActiveInterTypesImpl(instance.get(), a_actor, a_partner);
     }
 
     bool HasActiveInteractionImpl(QUESTARGS, RE::Actor* a_actor, RE::Actor* a_partner, int32_t a_interType)
     {
         GET_INSTANCE(false);
-        return Thread::Interaction::HasActiveInteractionImpl(instance, a_actor, a_partner, a_interType);
+        return Thread::Interaction::HasActiveInteractionImpl(instance.get(), a_actor, a_partner, a_interType);
     }
 
     bool HasActiveInteractionAllImpl(QUESTARGS, RE::Actor* a_actor, std::vector<int32_t> a_interTypes)
     {
         GET_INSTANCE(false);
-        return Thread::Interaction::HasActiveInteractionAllImpl(instance, a_actor, a_interTypes);
+        return Thread::Interaction::HasActiveInteractionAllImpl(instance.get(), a_actor, a_interTypes);
     }
 
     bool HasActiveInteractionAnyImpl(QUESTARGS, RE::Actor* a_actor, std::vector<int32_t> a_interTypes)
     {
         GET_INSTANCE(false);
-        return Thread::Interaction::HasActiveInteractionAnyImpl(instance, a_actor, a_interTypes);
+        return Thread::Interaction::HasActiveInteractionAnyImpl(instance.get(), a_actor, a_interTypes);
     }
 
     RE::Actor* GetPartnerByInteractionTypeImpl(QUESTARGS, RE::Actor* a_actor, int32_t a_interType)
     {
         GET_INSTANCE(nullptr);
-        return Thread::Interaction::GetPartnerByInteractionTypeImpl(instance, a_actor, a_interType);
+        return Thread::Interaction::GetPartnerByInteractionTypeImpl(instance.get(), a_actor, a_interType);
     }
 
     std::vector<RE::Actor*> GetPartnersByInteractionTypeImpl(QUESTARGS, RE::Actor* a_actor, int32_t a_interType)
     {
         GET_INSTANCE({});
-        return Thread::Interaction::GetPartnersByInteractionTypeImpl(instance, a_actor, a_interType);
+        return Thread::Interaction::GetPartnersByInteractionTypeImpl(instance.get(), a_actor, a_interType);
     }
 
     float GetInteractionVelocityImpl(QUESTARGS, RE::Actor* a_actor, RE::Actor* a_partner, int32_t a_interType)
     {
         GET_INSTANCE(0.0f);
-        return Thread::Interaction::GetInteractionVelocityImpl(instance, a_actor, a_partner, a_interType);
+        return Thread::Interaction::GetInteractionVelocityImpl(instance.get(), a_actor, a_partner, a_interType);
     }
 
     RE::BSFixedString GetInteractionStringImpl(QUESTARGS, RE::Actor* a_actor)
     {
         GET_INSTANCE(RE::BSFixedString{});
-        return RE::BSFixedString{ Thread::Interaction::GetInteractionStringImpl(instance, a_actor).c_str() };
+        return RE::BSFixedString{ Thread::Interaction::GetInteractionStringImpl(instance.get(), a_actor).c_str() };
     }
 
     std::vector<RE::BSFixedString> GetInteractionStringArrayImpl(QUESTARGS, RE::Actor* a_actor)
     {
         GET_INSTANCE({});
-        return Thread::Interaction::GetInteractionStringArrayImpl(instance, a_actor);
+        return Thread::Interaction::GetInteractionStringArrayImpl(instance.get(), a_actor);
     }
 
     int GetSchlongSizeTierImpl(QUESTARGS, RE::Actor* a_actor)
     {
         GET_INSTANCE(-1);
-        return Thread::Interaction::GetSchlongSizeTierImpl(instance, a_actor);
+        return Thread::Interaction::GetSchlongSizeTierImpl(instance.get(), a_actor);
     }
 
     // ---------------------------------------------- //

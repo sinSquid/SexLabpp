@@ -552,6 +552,11 @@ ObjectReference Property CenterRef Hidden	; shorthand for CenterAlias
 EndProperty
 
 float Property StartedAt Auto Hidden
+int Property LifecycleRevision Auto Hidden
+
+bool Function IsCurrentSceneRequest(int revision)
+	return LifecycleRevision == revision && GetState() == STATE_PLAYING
+EndFunction
 float Property TotalTime Hidden
 	float Function get()
 		return SexLabUtil.GetCurrentGameRealTime() - StartedAt
@@ -576,6 +581,7 @@ String[] _Hooks
 /;
 Auto State Unlocked
 	sslThreadModel Function Make()
+		LifecycleRevision += 1
 		GoToState(STATE_SETUP)
 		return self
 	EndFunction
@@ -973,6 +979,9 @@ bool _animationSyncPending
 bool _sceneResetSyncPending
 float _nextSceneResetAt
 String _queuedSceneReset
+String _queuedStageScene
+String _queuedStageID
+int _queuedStageRevision
 
 bool _QuickResetScenes		; reinits thread without actor/center changes (e.g. to get new playing scenes)
 bool _ForceAdvance		; Force fully auto advance (set by timed stages)
@@ -1003,6 +1012,8 @@ State Animating
 		_sceneResetSyncPending = false
 		_nextSceneResetAt = 0.0
 		_queuedSceneReset = ""
+		_queuedStageScene = ""
+		_queuedStageID = ""
 		If (!_QuickResetScenes)
 			_animationSyncCount = 0
 			_animationStarted = false
@@ -1036,6 +1047,7 @@ State Animating
 	EndFunction
 
 	bool Function ResetScene(String asNewScene)
+		int requestRevision = LifecycleRevision
 		float now = SexLabUtil.GetCurrentGameRealTime()
 		If (_sceneResetSyncPending || now < _nextSceneResetAt)
 			Log("Ignoring scene reset while the previous reset is still settling", "ResetScene()")
@@ -1050,11 +1062,21 @@ State Animating
 		UnregisterForUpdate()
 		String currentScene = GetActiveScene()
 		AddExperience(_Positions, currentScene, _StageHistory)
+		If (!IsCurrentSceneRequest(requestRevision))
+			return false
+		EndIf
 		If (asNewScene != currentScene)
 			If (!SetActiveScene(asNewScene))
+				If (!IsCurrentSceneRequest(requestRevision))
+					return false
+				EndIf
 				Log("Unable to reset scene. New scene is invalid for this thread")
 				_animationSyncPending = false
 				_sceneResetSyncPending = false
+				RegisterForSingleUpdate(ANIMATING_UPDATE_INTERVAL)
+				return false
+			EndIf
+			If (!IsCurrentSceneRequest(requestRevision))
 				return false
 			EndIf
 			SortAliasesToPositions()
@@ -1065,9 +1087,15 @@ State Animating
 		int i = 0
 		While (i < _Positions.Length)
 			ActorAlias[i].TryLockAndUnpause()
+			If (!IsCurrentSceneRequest(requestRevision))
+				return false
+			EndIf
 			ActorAlias[i].ResetPosition(strips_[i], sex_[i])
 			i += 1
 		EndWhile
+		If (!IsCurrentSceneRequest(requestRevision))
+			return false
+		EndIf
 		StartStage(Utility.CreateStringArray(0), "")
 		return true
 	EndFunction
@@ -1214,6 +1242,11 @@ State Animating
 	EndFunction
 
 	float Function GetStageTimer(int maxstage)
+		If (Timers.Length == 0)
+			return 0.0
+		ElseIf (Timers.Length == 1)
+			return Timers[0]
+		EndIf
 		int[] c = SexLabRegistry.GetClimaxingActors(GetActiveScene(), GetActiveStage())
 		bool isClimaxStage = c.Length > 0
 		If (isClimaxStage)
@@ -1227,14 +1260,29 @@ State Animating
 	Endfunction
 	
 	Function AdvanceFromTimer()
+		If (_animationSyncPending || _sceneResetSyncPending || _queuedStageID != "")
+			return
+		EndIf
 		If !ThreadWaitsForOrgasm()
 			GoToStage(_StageHistory.Length + 1)
 		Else
 			string[] NewSceneStage = FindSimilarSceneStage()
-			ResetScene(NewSceneStage[0])
-			int NewStageNum = SexlabRegistry.GetAllStages(NewSceneStage[0]).Find(NewSceneStage[1])
-			GoToStage(NewStageNum)
-			Log("Skipped scene to " + SexlabRegistry.GetSceneName(NewSceneStage[0]) + " (Stage: " + NewStageNum + ")")
+			If (NewSceneStage.Length < 2 || NewSceneStage[0] == "" || NewSceneStage[1] == "")
+				ReStartTimer()
+				return
+			EndIf
+			If (SexLabUtil.GetCurrentGameRealTime() < _nextSceneResetAt)
+				ReStartTimer()
+				return
+			EndIf
+			_queuedStageScene = NewSceneStage[0]
+			_queuedStageID = NewSceneStage[1]
+			_queuedStageRevision = LifecycleRevision
+			If (!ResetScene(NewSceneStage[0]))
+				_queuedStageScene = ""
+				_queuedStageID = ""
+				return
+			EndIf
 		EndIf
 	EndFunction
 
@@ -1277,23 +1325,38 @@ State Animating
 	EndEvent
 
 	Function CenterOnObject(ObjectReference CenterOn, bool resync = true)
+		int requestRevision = LifecycleRevision
 		If (!CenterOn)
 			return
 		ElseIf (CenterOn as Actor && _Positions.Find(CenterOn as Actor) == -1)
 			Form xMarker = Game.GetForm(0x3B)
 			CenterOn = CenterOn.PlaceAtMe(xMarker, 1, false)
 		EndIf
+		If (!IsCurrentSceneRequest(requestRevision))
+			return
+		EndIf
 		SetFurnitureIgnored(false)
 		If (!ReassignCenter(CenterOn))
-			If (Config.HasThreadControl(Self) && InvalidCenterMsg.Show() == 1)
+			bool endRequested = Config.HasThreadControl(Self) && InvalidCenterMsg.Show() == 1
+			If (!IsCurrentSceneRequest(requestRevision))
+				return
+			EndIf
+			If (endRequested)
 				Log("Cannot relocate center, end scene by player choice", "CenterOnObject")
 				EndAnimation()
 				return
 			Else
 				Log("Cannot relocate center, cancel relocation", "CenterOnObject")
+				RegisterForSingleUpdate(ANIMATING_UPDATE_INTERVAL)
 			EndIf
 		Else
+			If (!IsCurrentSceneRequest(requestRevision))
+				return
+			EndIf
 			SendThreadEvent("ActorsRelocated")
+		EndIf
+		If (!IsCurrentSceneRequest(requestRevision))
+			return
 		EndIf
 		SetFurnitureIgnored(true)
 	EndFunction
@@ -1342,6 +1405,7 @@ State Animating
 		EndAnimation()
 	EndFunction
 	Function EndAnimation(bool Quickly = false)
+		LifecycleRevision += 1
 		UnregisterForUpdate()
 		If ((sslSystemConfig.GetSettingInt("iClimaxType") == Config.CLIMAXTYPE_LEGACY) && (!_QuickResetScenes))
 			SendThreadEvent("OrgasmStart")
@@ -1424,6 +1488,16 @@ State Animating
 			return
 		EndIf
 		OnStageChangedUpdateHUD()
+		String targetStage = _queuedStageID
+		bool applyQueuedStage = _queuedStageScene == GetActiveScene() && _queuedStageRevision == LifecycleRevision
+		_queuedStageScene = ""
+		_queuedStageID = ""
+		If (applyQueuedStage && targetStage != "" && targetStage != GetActiveStage())
+			If (SexLabRegistry.GetAllStages(GetActiveScene()).Find(targetStage) >= 0)
+				SkipTo(targetStage)
+				return
+			EndIf
+		EndIf
 		ConfigureStageTimer(false)
 		If (!_animationStarted)
 			_animationStarted = true
@@ -2086,6 +2160,7 @@ EndFunction
 
 ; Reset this thread to base status
 Function Initialize()
+	LifecycleRevision += 1
 	UnregisterForUpdate()
 	UnregisterForUpdateGameTime()
 	Config.DisableThreadControl(self as sslThreadController)
@@ -2111,6 +2186,8 @@ Function Initialize()
 	_sceneResetSyncPending = false
 	_nextSceneResetAt = 0.0
 	_queuedSceneReset = ""
+	_queuedStageScene = ""
+	_queuedStageID = ""
 	EnjoymentPaused = false
 	; Enter thread selection pool
 	DestroyInstance()
@@ -2263,7 +2340,13 @@ string[] Function FindSimilarSceneStage()
 			While (n < CountStages)
 				string AvailableStage = AvailableStages[n]
 				bool[] AvailableStageType = CheckSpecificStageTags(AvailableScene, AvailableStage)
-				If (AvailableStageType == PlayingStageType)
+				bool sameType = AvailableStageType.Length == PlayingStageType.Length
+				int tagIndex = 0
+				While (sameType && tagIndex < PlayingStageType.Length)
+					sameType = AvailableStageType[tagIndex] == PlayingStageType[tagIndex]
+					tagIndex += 1
+				EndWhile
+				If (sameType)
 					ret[0] = AvailableScene
 					ret[1] = AvailableStage
 					return ret
@@ -2466,7 +2549,7 @@ int Property ActorCount Hidden
 EndProperty
 Actor[] property Victims Hidden
 	Actor[] Function Get()
-		GetAllVictims()
+		return GetAllVictims()
 	EndFunction
 EndProperty
 
@@ -2559,7 +2642,7 @@ bool Property IsAggressive hidden
 		return !IsConsent()
 	endfunction
 	Function set(bool value)
-		SetConsent(value)
+		SetConsent(!value)
 	EndFunction
 EndProperty
 bool Property IsVaginal hidden
@@ -2603,6 +2686,7 @@ int[] Property BedStatus Hidden
 		int[] ret = new int[2]
 		ret[0] = _furniStatus - 1
 		ret[1] = BedTypeID
+		return ret
 	EndFunction
 	Function Set(int[] aSet)
 	EndFunction
@@ -2787,14 +2871,15 @@ endFunction
 bool Function CheckTags(String[] CheckTags, bool RequireAll = true, bool Suppress = false)
 	int i = 0
 	While (i < CheckTags.Length)
-		If (HasTag(CheckTags[i]))
-			If (!RequireAll || Suppress)
-				return !Suppress
-			EndIf
+		bool found = HasTag(CheckTags[i])
+		If (RequireAll && !found)
+			return Suppress
+		ElseIf (!RequireAll && found)
+			return !Suppress
 		EndIf
 		i += 1
 	EndWhile
-	return !Suppress
+	return (RequireAll && !Suppress) || (!RequireAll && Suppress)
 EndFunction
 String[] Function AddString(string[] ArrayValues, string ToAdd, bool RemoveDupes = true)
 	if ToAdd != ""

@@ -153,7 +153,7 @@ namespace Registry
 
     std::vector<FurnitureOffset> FurnitureDetails::GetCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter) const
     {
-        if (a_ref->GetAngleX() > Settings::fFurnitureTiltTolerance || a_ref->GetAngleY() > Settings::fFurnitureTiltTolerance) {
+        if (std::abs(a_ref->GetAngleX()) > Settings::fFurnitureTiltTolerance || std::abs(a_ref->GetAngleY()) > Settings::fFurnitureTiltTolerance) {
             logger::error("GetCoordinatesInBound: Reference {} is tilted too much. X: {}, Y: {}", a_ref->GetFormID(), a_ref->GetAngleX(), a_ref->GetAngleY());
             return {};
         }
@@ -204,13 +204,21 @@ namespace Registry
             }
             constexpr auto& radius = Settings::fFurnitureSquare;
             constexpr auto& step = Settings::fFurnitureSquareStepSize;
-            const auto offsetLocation = referenceCoordinates.ApplyReturn(offset);
+            const auto offsetLocation = offset.ApplyReturn(referenceCoordinates);
             auto raycastTarget = offsetLocation.AsVec4(0.0f), raycastStart = offsetLocation.AsVec4(0.0f);
             raycastTarget.z += Settings::fFurnitureSquareHeight;
             raycastStart.z += Settings::fFurnitureSquareFloorSkip;
             // check the place surrounding the center to see if there is anything occupying it (walls, furniture, etc)
-            for (float x = raycastStart.x - radius; x <= raycastStart.x + radius; x += step) {
-                for (float y = raycastStart.y - radius; y <= raycastStart.y + radius; y += step) {
+            const double cells = std::floor(2.0 * radius / step);
+            if (!std::isfinite(cells) || cells < 0 || cells > 256) {
+                logger::warn("Furniture scan grid exceeds safe budget");
+                continue;
+            }
+            const auto gridSteps = static_cast<uint32_t>(cells);
+            for (uint32_t ix = 0; ix <= gridSteps; ++ix) {
+                const float x = static_cast<float>(static_cast<double>(raycastStart.x) - radius + ix * static_cast<double>(step));
+                for (uint32_t iy = 0; iy <= gridSteps; ++iy) {
+                    const float y = static_cast<float>(static_cast<double>(raycastStart.y) - radius + iy * static_cast<double>(step));
                     glm::vec4 point(x, y, raycastStart.z, 0.0f);
                     if (glm::distance(point, raycastStart) > radius)
                         continue;
@@ -228,6 +236,7 @@ Next_Iteration:;
     std::vector<FurnitureOffset> FurnitureDetails::GetClosestCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter, RE::TESObjectREFR* a_center) const
     {
         const auto center = Coordinate(a_center);
+        const auto reference = Coordinate(a_ref);
         const auto valids = GetCoordinatesInBound(a_ref, a_filter);
         std::map<FurnitureType, std::vector<Coordinate>> valid_map{};
         for (auto&& [type, coordinates] : valids) {
@@ -236,7 +245,7 @@ Next_Iteration:;
         std::vector<FurnitureOffset> ret{};
         for (auto&& [type, coordinates] : valid_map) {
             const auto min = std::ranges::min_element(coordinates, [&](const Coordinate& a, const Coordinate& b) {
-                return a.GetDistance(center) < b.GetDistance(center);
+                return a.ApplyReturn(reference).GetDistance(center) < b.ApplyReturn(reference).GetDistance(center);
             });
             if (min != coordinates.end()) {
                 ret.emplace_back(type, *min);

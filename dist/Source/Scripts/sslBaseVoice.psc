@@ -117,7 +117,7 @@ function MoveLipsEx(Actor ActorRef, Sound SoundRef = none, float Strength = 1.0,
 	Else
 		Utility.Wait(MoveTime)
 	EndIf
-	sslExpressionUtil.SmoothSetPhoneme(ActorRef, 0, Phoneme, (SavedP * 100) as int)
+	sslExpressionUtil.SmoothSetPhoneme(ActorRef, Phoneme, (SavedP * 100) as int)
 	Utility.Wait(0.2)
 endFunction
 

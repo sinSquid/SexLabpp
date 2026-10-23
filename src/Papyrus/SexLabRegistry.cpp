@@ -7,7 +7,7 @@ namespace Papyrus::SexLabRegistry
 {
 #define SCENE(argRet)                                    \
     const auto lib = Registry::Library::GetSingleton();  \
-    const auto scene = lib->GetSceneById(a_id);          \
+    const auto scene = lib->ReadScene(a_id);          \
     if (!scene) {                                        \
         a_vm->TraceStack("Invalid scene id", a_stackID); \
         return argRet;                                   \
@@ -54,12 +54,17 @@ namespace Papyrus::SexLabRegistry
 
     std::vector<int32_t> GetRaceIDA(STATICARGS, RE::Actor* a_actor)
     {
-        const auto key = GetRaceID(a_vm, a_stackID, nullptr, a_actor);
-        if (key == 0) {
+        if (!a_actor) {
+            a_vm->TraceStack("Cannot get race ids of a none ref", a_stackID);
             return {};
         }
-        std::vector<int32_t> ret{ key };
-        const auto alternate = Registry::RaceKey(Registry::RaceKey::Value(key)).GetMetaRace();
+        const Registry::RaceKey racekey{ a_actor };
+        if (!racekey.IsValid()) {
+            a_vm->TraceStack("Invalid race key", a_stackID);
+            return {};
+        }
+        std::vector<int32_t> ret{ static_cast<int32_t>(racekey.value) };
+        const auto alternate = racekey.GetMetaRace();
         if (alternate.IsValid()) {
             ret.push_back(static_cast<int32_t>(alternate));
         }
@@ -68,12 +73,12 @@ namespace Papyrus::SexLabRegistry
 
     std::vector<int32_t> MapRaceKeyToIDA(STATICARGS, RE::BSFixedString a_racekey)
     {
-        const auto key = MapRaceKeyToID(a_vm, a_stackID, nullptr, a_racekey);
-        if (key == 0) {
+        const Registry::RaceKey racekey{ a_racekey };
+        if (!racekey.IsValid()) {
+            a_vm->TraceStack("Invalid race key", a_stackID);
             return {};
         }
-        std::vector<int32_t> ret{ key };
-        const Registry::RaceKey racekey{ a_racekey };
+        std::vector<int32_t> ret{ static_cast<int32_t>(racekey.value) };
         const auto alternate = racekey.GetMetaRace();
         if (alternate.IsValid()) {
             ret.push_back(static_cast<int32_t>(alternate.value));
@@ -280,7 +285,7 @@ namespace Papyrus::SexLabRegistry
         const auto tagdetail = Registry::TagDetails{ a_tags };
         const auto lib = Registry::Library::GetSingleton();
         for (auto&& sceneid : a_sceneids) {
-            const auto scene = lib->GetSceneById(sceneid);
+            const auto scene = lib->ReadScene(sceneid);
             if (!scene) {
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
                 break;
@@ -302,7 +307,7 @@ namespace Papyrus::SexLabRegistry
             return false;
         }
         const auto lib = Registry::Library::GetSingleton();
-        const auto scene = lib->GetSceneById(a_sceneid);
+        const auto scene = lib->ReadScene(a_sceneid);
         if (!scene) {
             a_vm->TraceStack("Invalid scene id ", a_stackID);
             return false;
@@ -336,7 +341,7 @@ namespace Papyrus::SexLabRegistry
             return false;
         }
         const auto lib = Registry::Library::GetSingleton();
-        const auto scene = lib->GetSceneById(a_sceneid);
+        const auto scene = lib->ReadScene(a_sceneid);
         if (!scene) {
             a_vm->TraceStack("Invalid scene id ", a_stackID);
             return false;
@@ -361,7 +366,7 @@ namespace Papyrus::SexLabRegistry
         }
         const auto lib = Registry::Library::GetSingleton();
         for (size_t i = 0; i < a_sceneids.size(); i++) {
-            const auto scene = lib->GetSceneById(a_sceneids[i]);
+            const auto scene = lib->ReadScene(a_sceneids[i]);
             if (!scene) {
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
                 break;
@@ -392,7 +397,7 @@ namespace Papyrus::SexLabRegistry
         }
         const auto lib = Registry::Library::GetSingleton();
         for (size_t i = 0; i < a_sceneids.size(); i++) {
-            const auto scene = lib->GetSceneById(a_sceneids[i]);
+            const auto scene = lib->ReadScene(a_sceneids[i]);
             if (!scene) {
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
                 break;
@@ -542,7 +547,7 @@ namespace Papyrus::SexLabRegistry
         bool first = true;
         Registry::TagData ret{};
         for (auto&& sceneid : a_ids) {
-            const auto scene = lib->GetSceneById(sceneid);
+            const auto scene = lib->ReadScene(sceneid);
             if (!scene) {
                 a_vm->TraceStack("Invalid scene id", a_stackID);
                 break;
@@ -691,7 +696,7 @@ namespace Papyrus::SexLabRegistry
     std::vector<RE::BSFixedString> GetClimaxStages(STATICARGS, RE::BSFixedString a_id, int32_t n)
     {
         SCENE({});
-        if (n >= scene->positions.size()) {
+        if (n < -1 || (n >= 0 && static_cast<size_t>(n) >= scene->positions.size())) {
             a_vm->TraceStack("Invalid position idx", a_stackID);
             return {};
         }
@@ -920,7 +925,7 @@ namespace Papyrus::SexLabRegistry
 
     void ResetStageOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
     {
-        bool foundScene = !Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+        bool foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
             const auto stage = scene->GetStageByID(a_stage);
             if (!stage) {
                 a_vm->TraceStack("Invalid stage id", a_stackID);
