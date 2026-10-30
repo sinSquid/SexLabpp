@@ -557,6 +557,29 @@ int Property LifecycleRevision Auto Hidden
 bool Function IsCurrentSceneRequest(int revision)
 	return LifecycleRevision == revision && GetState() == STATE_PLAYING
 EndFunction
+
+bool Function IsActorControlRequestCurrent(Actor akActor, int aiRevision)
+	return LifecycleRevision == aiRevision && HasActor(akActor) && (GetState() == STATE_SETUP_M || GetState() == STATE_PLAYING)
+EndFunction
+
+bool Function CanReleaseActorControl(Actor akActor)
+	sslThreadModel owner = Config.ThreadSlots.GetThreadByActor(akActor) as sslThreadModel
+	If (owner && owner != Self)
+		return false
+	EndIf
+	If (akActor == PlayerRef && Config.GetThreadControlled() && Config.GetThreadControlled() != Self)
+		return false
+	EndIf
+	return true
+EndFunction
+
+Function ReleaseActorControl(Actor akActor)
+	If (akActor && CanReleaseActorControl(akActor))
+		akActor.SetFactionRank(Config.AnimatingFaction, -1)
+		SexLabUtil.SetActorMovement(akActor, 0) ;MOVEMENT_RELEASE, independent of camera/lock flag
+		akActor.EvaluatePackage()
+	EndIf
+EndFunction
 float Property TotalTime Hidden
 	float Function get()
 		return SexLabUtil.GetCurrentGameRealTime() - StartedAt
@@ -821,6 +844,7 @@ State Making_M
 
 	; Invoked n times by Aliases and once by StartThread, then continue to next state
 	Function PrepareDone()
+		int requestRevision = LifecycleRevision
 		_prepareAsyncCount += 1
 		Log("PrepareDone() called " + _prepareAsyncCount + "/" + (_Positions.Length + 1) + " times")
 		If (_prepareAsyncCount < (_Positions.Length + 1))
@@ -835,10 +859,14 @@ State Making_M
 				playerAlias.NativeActorLockApplied()
 			EndIf
 		EndIf
+		If (LifecycleRevision != requestRevision || GetState() != STATE_SETUP_M)
+			return
+		EndIf
 		FinishPreparation()
 	EndFunction
 
 	Function OnPlayerSheatheComplete(bool abSucceeded)
+		int requestRevision = LifecycleRevision
 		If (!abSucceeded)
 			Log("Player weapon sheathing timed out", "OnPlayerSheatheComplete()")
 			EndAnimation()
@@ -847,6 +875,9 @@ State Making_M
 		sslActorAlias playerAlias = ActorAlias(PlayerRef)
 		If (playerAlias)
 			playerAlias.NativeActorLockApplied()
+		EndIf
+		If (LifecycleRevision != requestRevision || GetState() != STATE_SETUP_M)
+			return
 		EndIf
 		FinishPreparation()
 	EndFunction
@@ -860,6 +891,7 @@ State Making_M
 	EndFunction
 
 	Function UndressAndStripActors()
+		int requestRevision = LifecycleRevision
 		bool WaitForUndress = false
 		int i = 0
 		While (i < _Positions.Length)
@@ -869,9 +901,15 @@ State Making_M
 		If (WaitForUndress)
 			Utility.Wait(2.5)
 		EndIf
+		If (LifecycleRevision != requestRevision || GetState() != STATE_SETUP_M)
+			return
+		EndIf
 		If (HasPlayer)
 			If (sslSystemConfig.GetSettingInt("iUseFade") > 0)
 				Config.ApplyFade()
+				If (LifecycleRevision != requestRevision || GetState() != STATE_SETUP_M)
+					return
+				EndIf
 			EndIf
 		Else
 			If (Config.ShowInMap && PlayerRef.GetDistance(CenterRef) > 750)
@@ -889,11 +927,15 @@ State Making_M
 		If (WaitForUndress)
 			Utility.Wait(1.5)
 		EndIf
+		If (LifecycleRevision != requestRevision || GetState() != STATE_SETUP_M)
+			return
+		EndIf
 		GoToState(STATE_PLAYING)
 	EndFunction
 	
 	Function EndAnimation(bool Quickly = false)
 		_prepareAsyncCount = -2147483648
+		LifecycleRevision += 1
 		GoToState(STATE_END)
 	EndFunction
 
@@ -1458,8 +1500,12 @@ State Animating
 	EndFunction
 
 	Function OnNativeActorsPrepared()
+		int requestRevision = LifecycleRevision
 		int i = 0
 		While (i < _Positions.Length)
+			If (!IsActorControlRequestCurrent(_Positions[i], requestRevision))
+				return
+			EndIf
 			ActorAlias[i].NativeActorLockApplied()
 			i += 1
 		EndWhile

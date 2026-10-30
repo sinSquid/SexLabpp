@@ -700,6 +700,18 @@ Spell Property SelectedSpell Auto
 Actor Property TargetRef Auto Hidden
 Actor _CrosshairRef
 
+int _FreeCameraRequestRevision
+int Property FreeCameraRequestRevision Hidden
+  int Function Get()
+    return _FreeCameraRequestRevision
+  EndFunction
+EndProperty
+
+int Function NextFreeCameraRequest()
+  _FreeCameraRequestRevision += 1
+  return _FreeCameraRequestRevision
+EndFunction
+
 Event OnCrosshairRefChange(ObjectReference ActorRef)
   _CrosshairRef = ActorRef as Actor
 EndEvent

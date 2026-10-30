@@ -132,7 +132,9 @@ EndFunction
 
 Function ToggleFreeCamera(int aiForceState = -1) global
 	;[-1:Toggle, 0:TFC_STAYS_OFF, 1:TFC_STAYS_ON]
-	bool bVRMode = GetConfig().HasVRIK
+	sslSystemConfig cameraConfig = GetConfig()
+	int requestRevision = cameraConfig.NextFreeCameraRequest()
+	bool bVRMode = cameraConfig.HasVRIK
 	If (Game.GetCameraState() == 3)
 		If (aiForceState != 1)
 			If (!bVRMode)
@@ -145,10 +147,20 @@ Function ToggleFreeCamera(int aiForceState = -1) global
 		return
 	Else
 		If (aiForceState != 0)
-			ForceThirdPerson()
+			If (!TryForceThirdPerson(aiCameraRequestRevision=requestRevision))
+				return
+			EndIf
+			If (cameraConfig.FreeCameraRequestRevision != requestRevision)
+				return
+			EndIf
 			If (!bVRMode)
+				If (Game.GetCameraState() == 3)
+					return
+				EndIf
 				MiscUtil.SetFreeCameraSpeed(GetConfig().AutoSUCSM)
-				MiscUtil.ToggleFreeCamera()
+				If (cameraConfig.FreeCameraRequestRevision == requestRevision && Game.GetCameraState() != 3)
+					MiscUtil.ToggleFreeCamera()
+				EndIf
 			Else
 				Utility.SetIniBool("bDisablePlayerCollision:Havok", true)
 				SetActorMovement(Game.GetPlayer(), 2) ;MOVEMENT_LOCK (bVRTPP==true)
@@ -158,17 +170,57 @@ Function ToggleFreeCamera(int aiForceState = -1) global
 EndFunction
 
 Function ForceThirdPerson() global
+	TryForceThirdPerson()
+EndFunction
+
+bool Function TryForceThirdPerson(sslThreadModel akThread = none, int aiRevision = 0, Actor akActor = none, int aiCameraRequestRevision = -1) global
 	bool bVRMode = GetConfig().HasVRIK
 	bool bVRTPP = bVRMode && (GetConfig().POVModeVR == 2) ;VRIK_TPP_FREE
 	If (bVRTPP)
-		return
+		return true
 	ElseIf (bVRMode)
 		GetConfig().SetPOVModeVRIK(2, abForced=true) ;VRIK_TPP_FREE
-		return
+		return true
 	Else
-		While (Game.GetCameraState() == 0)
+		int attempts = 0
+		While (Game.GetCameraState() == 0 && attempts < 20)
+			If (aiCameraRequestRevision >= 0 && GetConfig().FreeCameraRequestRevision != aiCameraRequestRevision)
+				return false
+			EndIf
+			If (akThread && !akThread.IsActorControlRequestCurrent(akActor, aiRevision))
+				return false
+			EndIf
 			Game.ForceThirdPerson()
+			attempts += 1
+			Utility.WaitMenuMode(0.05)
 		EndWhile
+	EndIf
+	If (aiCameraRequestRevision >= 0 && GetConfig().FreeCameraRequestRevision != aiCameraRequestRevision)
+		return false
+	EndIf
+	If (akThread && !akThread.IsActorControlRequestCurrent(akActor, aiRevision))
+		return false
+	EndIf
+	If (Game.GetCameraState() == 0)
+		Debug.Trace("[SexLab] Third-person camera switch timed out; skipping free camera", 1)
+		return false
+	EndIf
+	return true
+EndFunction
+
+Function EnableSceneFreeCamera(sslThreadModel akThread, int aiRevision, Actor akActor) global
+	; No latent camera operation may outlive its owning scene.
+	If (!akThread.IsActorControlRequestCurrent(akActor, aiRevision))
+		return
+	EndIf
+	sslSystemConfig cameraConfig = GetConfig()
+	int requestRevision = cameraConfig.FreeCameraRequestRevision
+	int cameraState = Game.GetCameraState()
+	If (cameraState != 0 && cameraState != 3)
+		MiscUtil.SetFreeCameraSpeed(GetConfig().AutoSUCSM)
+		If (akThread.IsActorControlRequestCurrent(akActor, aiRevision) && cameraConfig.FreeCameraRequestRevision == requestRevision && Game.GetCameraState() != 3)
+			MiscUtil.ToggleFreeCamera()
+		EndIf
 	EndIf
 EndFunction
 
@@ -184,10 +236,10 @@ Function SetActorMovement(Actor akActor, int aiMovement) global
 		return
 	EndIf
 	bool bVRMode = GetConfig().HasVRIK
-	While (!bVRMode && Game.GetCameraState()==0)
-		Game.ForceThirdPerson()
-	EndWhile
 	If (aiMovement == 2) ;LOCK
+		If (!bVRMode && Game.GetCameraState() == 0)
+			Game.ForceThirdPerson()
+		EndIf
 		bool bVRTPP = bVRMode && (GetConfig().POVModeVR == 2) ;VRIK_TPP_FREE
 		Game.SetPlayerAIDriven(!bVRTPP)
 		Game.DisablePlayerControls(abMovement=!bVRTPP, abCamSwitch=true, abSneaking=true, abMenu=false)

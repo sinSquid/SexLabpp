@@ -378,6 +378,7 @@ Auto State Empty
 	EndFunction
 
 	Function Clear()
+		_Thread.ReleaseActorControl(_ActorRef)
 		If (GetIsDead())
 			If (_ActorRef.IsEssential())
 				_ActorRef.GetActorBase().SetEssential(false)
@@ -386,8 +387,6 @@ Auto State Empty
 		Else
 			_Thread.RequestStatisticUpdate(_ActorRef, _StartedAt)
 		EndIf
-		_ActorRef.SetFactionRank(_AnimatingFaction, -1)
-		_Thread.UpdateAnimatingActorMovement(_ActorRef) ;MOVEMENT_RELEASE
 		Parent.Clear()
 	EndFunction
 
@@ -406,18 +405,30 @@ bool Function SetActor(Actor ProspectRef)
 EndFunction
 
 Function NativeActorLockApplied()
-	If (_ActorLocked)
+	Actor lockedActor = _ActorRef
+	int requestRevision = _Thread.LifecycleRevision
+	If (_ActorLocked || !lockedActor || !_Thread.IsActorControlRequestCurrent(lockedActor, requestRevision))
 		return
 	EndIf
-	_Thread.UpdateAnimatingActorMovement(_ActorRef) ;MOVEMENT_LOCK
-	If (_ActorRef == _PlayerRef)
+	If (lockedActor == _PlayerRef && !_Config.HasVRIK)
+		SexLabUtil.TryForceThirdPerson(_Thread, requestRevision, lockedActor)
+	EndIf
+	If (_ActorLocked || _ActorRef != lockedActor || !_Thread.IsActorControlRequestCurrent(lockedActor, requestRevision))
+		return
+	EndIf
+	_ActorLocked = True
+	_Thread.UpdateAnimatingActorMovement(lockedActor) ;MOVEMENT_LOCK
+	If (lockedActor == _PlayerRef && _Thread.IsActorControlRequestCurrent(lockedActor, requestRevision))
 		_Config.ToggleVRIK(true, _Config.VRIK_FPP_HMD)
 		If(_Config.AutoTFC)
-			SexLabUtil.ToggleFreeCamera(1) ;TFC_ON
+			If (_Config.HasVRIK)
+				SexLabUtil.ToggleFreeCamera(1) ;TFC_ON
+			Else
+				SexLabUtil.EnableSceneFreeCamera(_Thread, requestRevision, lockedActor)
+			EndIf
 		EndIf
 	EndIf
 	Log("Locked Actor: " + GetActorName())
-	_ActorLocked = True
 EndFunction
 
 ; ------------------------------------------------------- ;
@@ -548,23 +559,22 @@ State Paused
 		If (_ActorLocked)
 			return
 		EndIf
+		int requestRevision = _Thread.LifecycleRevision
+		If (!_Thread.IsActorControlRequestCurrent(_ActorRef, requestRevision))
+			return
+		EndIf
 		_ActorRef.SetActorValue("Paralysis", 0.0)
 		_ActorRef.SetFactionRank(_AnimatingFaction, 1)
 		_ActorRef.SetAnimationVariableInt("IsNPC", 0)
 		_ActorRef.SetAnimationVariableBool("bHumanoidFootIKDisable", 1)
-		_Thread.UpdateAnimatingActorMovement(_ActorRef) ;MOVEMENT_LOCK
-		If (_ActorRef == _PlayerRef)
-			_Config.ToggleVRIK(true, _Config.VRIK_FPP_HMD)
-			If(_Config.AutoTFC)
-				SexLabUtil.ToggleFreeCamera(1) ;TFC_ON
-			EndIf
-		EndIf
-		Log("Locked Actor: " + GetActorName())
-		_ActorLocked = True
+		NativeActorLockApplied()
 	EndFunction
 	Function TryLockAndUnpause()
+		int requestRevision = _Thread.LifecycleRevision
 		LockActor()
-		GoToState(STATE_PLAYING)
+		If (_Thread.IsActorControlRequestCurrent(_ActorRef, requestRevision) && GetState() == STATE_PAUSED)
+			GoToState(STATE_PLAYING)
+		EndIf
 	EndFunction
 
 	bool Function InitiateUndressing()
@@ -620,6 +630,10 @@ State Paused
 	EndFunction
 
 	Function UnlockActor()
+		If (_ActorRef == _PlayerRef && !_Thread.CanReleaseActorControl(_ActorRef))
+			_ActorLocked = False
+			return
+		EndIf
 		_ActorRef.SetAnimationVariableInt("IsNPC", _AnimVarIsNPC)
 		_ActorRef.SetAnimationVariableBool("bHumanoidFootIKDisable", _AnimVarbHumanoidFootIKDisable)
 		If (_ActorRef == _PlayerRef)
@@ -637,6 +651,9 @@ State Paused
 	EndFunction
 
 	Function Clear()
+		If (_ActorRef == _PlayerRef)
+			_Thread.ReleaseActorControl(_ActorRef)
+		EndIf
 		If (_sex <= 2)
 			Redress()
 			RemoveStrapon()

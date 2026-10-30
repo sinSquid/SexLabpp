@@ -55,7 +55,7 @@ def expression(text):
     text = re.sub(r'\bnew\s+(\w+)\[(\d+)\]',
                   lambda m: f'_Array([{dict(int="0", float="0.0", bool="False", string="\"\"").get(m[1].lower(), "None")}] * {m[2]})',
                   text, flags=re.I)
-    text = re.sub(r'\s+as\s+(?:sslBaseExpression|sslBaseAnimation|sslBaseVoice)\b', '', text, flags=re.I)
+    text = re.sub(r'\s+as\s+(?:sslBaseExpression|sslBaseAnimation|sslBaseVoice|sslThreadModel)\b', '', text, flags=re.I)
     text = re.sub(r'\b([A-Za-z_]\w*)\s+as\s+(Weapon|Spell)\b',
                   lambda m: f'_cast_{m[2].lower()}({m[1]})', text, flags=re.I)
     text = re.sub(r'\b([A-Za-z_]\w*)\s+as\s+(int|float)\b', lambda m:f'{m[2].lower()}({m[1]})', text, flags=re.I)
@@ -105,7 +105,7 @@ def helper(script, name, arguments, environment, state_names=()):
             lines.append('    ' * indent + start[1].lower() + ' ' + expression(start[2]).strip() + ':')
             indent += 1
             continue
-        declaration = re.match(r'^(?:int|float|bool|string|Actor|ObjectReference|Form|Weapon|Spell|sslBaseAnimation|sslBaseExpression|sslBaseVoice|sslActorAlias|sslThreadModel|Alias)(\[\])?\s+(\w+)(.*)$', line, flags=re.I)
+        declaration = re.match(r'^(?:int|float|bool|string|Actor|ObjectReference|Form|Weapon|Spell|sslBaseAnimation|sslBaseExpression|sslBaseVoice|sslActorAlias|sslThreadModel|sslSystemConfig|Alias)(\[\])?\s+(\w+)(.*)$', line, flags=re.I)
         if declaration:
             line = declaration[2] + (declaration[3] or (' = Array()' if declaration[1] else ' = 0'))
         lines.append('    ' * indent + expression(line))
