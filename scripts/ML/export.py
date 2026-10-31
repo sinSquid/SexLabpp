@@ -22,6 +22,15 @@ def _ensure_ini_path(ini_path: str | Path) -> Path:
 def _normalize_feature_name(feature_name: str) -> str:
     return feature_name.split("_")[-1] if "_" in feature_name else feature_name
 
+def _export_feature_names(feature_names):
+    names = [str(name) for name in feature_names]
+    shortened = [_normalize_feature_name(name) for name in names]
+    if len({name.casefold() for name in shortened}) == len(shortened):
+        return shortened
+    if len({name.casefold() for name in names}) != len(names):
+        raise ValueError("Feature names cannot be represented uniquely in the INI file")
+    return names
+
 def export_binary_model_to_ini(model, interaction_name: str, out_path: str | Path) -> None:
     model = _validate_model_or_path(model)
     scaler = model.named_steps["scaler"]
@@ -37,7 +46,7 @@ def export_binary_model_to_ini(model, interaction_name: str, out_path: str | Pat
     w_raw = w_scaled / stds
     b_raw = b_scaled - np.sum((w_scaled * means) / stds)
 
-    feature_names = scaler.feature_names_in_
+    feature_names = _export_feature_names(scaler.feature_names_in_)
 
     config = configparser.ConfigParser()
     if interaction_name not in config:
@@ -46,7 +55,7 @@ def export_binary_model_to_ini(model, interaction_name: str, out_path: str | Pat
     config[interaction_name]["bias"] = str(b_raw)
 
     for feature_name, weight in zip(feature_names, w_raw):
-        config[interaction_name][_normalize_feature_name(feature_name)] = str(weight)
+        config[interaction_name][feature_name] = str(weight)
 
     with open(out_path, "w") as f:
         config.write(f)
@@ -62,7 +71,7 @@ def export_softmax_model_to_ini(model_or_path, out_path: str | Path) -> None:
 
     means = scaler.mean_
     stds = scaler.scale_
-    feature_names = scaler.feature_names_in_
+    feature_names = _export_feature_names(scaler.feature_names_in_)
 
     config = configparser.ConfigParser()
 
@@ -96,7 +105,7 @@ def export_softmax_model_to_ini(model_or_path, out_path: str | Path) -> None:
         config[class_name]["bias"] = str(b_raw)
 
         for feature_name, weight in zip(feature_names, w_raw):
-            config[class_name][_normalize_feature_name(feature_name)] = str(weight)
+            config[class_name][feature_name] = str(weight)
 
         print(f"Exported class {class_name}")
 

@@ -5,6 +5,13 @@ import sys
 
 ROOT=Path(__file__).resolve().parent
 TESTS=(
+    'review_creation_lifecycle.py', 'review_thread_cleanup.py', 'review_revert_barrier.py',
+    'review_geometry_contracts.py',
+    'review_native_data_core.py', 'review_native_data_contracts.py',
+    'review_native_data_entrypoints.py', 'review_native_data_persistence.py',
+    'review_native_data_recency.py', 'review_native_data_selection.py',
+    'review_papyrus_contracts.py', 'review_papyrus_objects.py',
+    'review_papyrus_lifecycle.py', 'review_papyrus_ui.py',
     'publication_rollback.py', 'geometry_binding.py',
     'compat_native.py', 'compat_assignment.py', 'compat_equipment.py',
     'audit_runtime.py', 'audit_papyrus.py', 'ini_merge.py', 'tag_log_views.py',

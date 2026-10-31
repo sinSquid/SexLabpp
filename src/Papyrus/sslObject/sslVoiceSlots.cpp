@@ -193,6 +193,18 @@ namespace Papyrus::VoiceSlots
         return v ? v->name : "";
     }
 
+    std::vector<RE::BSFixedString> GetVoicesByTagsA(RE::StaticFunctionTag*, std::vector<std::string_view> a_tags)
+    {
+        const Registry::TagDetails query{ a_tags };
+        std::vector<RE::BSFixedString> result;
+        Registry::Library::GetSingleton()->ForEachVoice([&](const Registry::Voice& voice) {
+            if (voice.enabled && query.MatchTags(voice.tags))
+                result.push_back(voice.GetId());
+            return false;
+        });
+        return result;
+    }
+
     void StoreVoice(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_voice)
     {
         if (!a_actor) {

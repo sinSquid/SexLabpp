@@ -55,14 +55,16 @@ int main() {
             for(int b=0;b<4;++b) if(a!=b) { if(mask & (1u<<bit)) edges.push_back(&nodes[b]); ++bit; }
         }
         for(int start=0;start<4;++start) {
-            size_t expected=0;std::set<const Stage*> active;
+            size_t expected=0, sinkExpected=0;std::set<const Stage*> active;
             std::function<void(const Stage*)> brute=[&](const Stage* n) {
                 if(!active.insert(n).second)return;
                 expected=std::max(expected,active.size());
+                if(scene.graph[n].empty())sinkExpected=std::max(sinkExpected,active.size());
                 for(auto next:scene.graph[n])brute(next);
                 active.erase(n);
             };
             brute(&nodes[start]);
+            if(sinkExpected)expected=sinkExpected;
             const auto actual=scene.GetLongestPath(&nodes[start]);
             assert(actual.size()==expected);
             assert(std::set<const Stage*>(actual.begin(),actual.end()).size()==actual.size());

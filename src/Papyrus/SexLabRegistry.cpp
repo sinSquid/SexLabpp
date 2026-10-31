@@ -282,13 +282,15 @@ namespace Papyrus::SexLabRegistry
         std::vector<RE::BSFixedString> ret{};
         ret.reserve(a_sceneids.size());
         const auto fragments = Registry::ActorFragment::MakeFragmentList(a_positions, a_submissives);
+        if (fragments.empty())
+            return {};
         const auto tagdetail = Registry::TagDetails{ a_tags };
         const auto lib = Registry::Library::GetSingleton();
         for (auto&& sceneid : a_sceneids) {
             const auto scene = lib->ReadScene(sceneid);
             if (!scene) {
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
-                break;
+                continue;
             }
             if (!scene->IsCompatibleTags(tagdetail))
                 continue;
@@ -369,7 +371,7 @@ namespace Papyrus::SexLabRegistry
             const auto scene = lib->ReadScene(a_sceneids[i]);
             if (!scene) {
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
-                break;
+                continue;
             }
             std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
             const auto fragments = Registry::ActorFragment::MakeFragmentList(positions, { a_victim });
@@ -400,7 +402,7 @@ namespace Papyrus::SexLabRegistry
             const auto scene = lib->ReadScene(a_sceneids[i]);
             if (!scene) {
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
-                break;
+                continue;
             }
             std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
             const auto fragments = Registry::ActorFragment::MakeFragmentList(positions, a_victims);
@@ -661,7 +663,8 @@ namespace Papyrus::SexLabRegistry
             a_vm->TraceStack("Invalid position idx", a_stackID);
             return false;
         }
-        return scene->positions[n].CanFillPosition(scene->positions[m]);
+        return scene->positions[n].CanFillPosition(scene->positions[m]) &&
+               scene->positions[m].CanFillPosition(scene->positions[n]);
     }
 
     bool CanFillPosition(STATICARGS, RE::BSFixedString a_id, int n, RE::Actor* a_actor)
@@ -827,7 +830,8 @@ namespace Papyrus::SexLabRegistry
             return;
         }
         const auto& func = [&](auto scene) {
-            const Registry::Coordinate coordinate{ a_newoffset };
+            Registry::Coordinate coordinate{ a_newoffset };
+            coordinate.rotation = glm::radians(coordinate.rotation);
             scene->furnitureOffset.SetOffset(coordinate);
         };
         const auto foundScene = Registry::Library::GetSingleton()->EditScene(a_id, func);
@@ -902,7 +906,8 @@ namespace Papyrus::SexLabRegistry
                 a_vm->TraceStack("New offsets are of incorrect size", a_stackID);
                 return;
             }
-            const Registry::Coordinate coordinate{ a_newoffset };
+            Registry::Coordinate coordinate{ a_newoffset };
+            coordinate.rotation = glm::radians(coordinate.rotation);
             if (a_stage.empty()) {
                 scene->ForEachStage([&](Registry::Stage* a_stage) {
                     a_stage->positions[n].offset.SetOffset(coordinate);

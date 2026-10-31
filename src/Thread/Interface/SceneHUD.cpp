@@ -7,6 +7,7 @@
 #include "Elements/SceneSelectPanel.h"
 #include "Elements/ThreadConfigPanel.h"
 #include "Elements/DebugNodeDraw.h"
+#include "StageSelectMenu.h"
 
 namespace Thread::Interface
 {
@@ -99,6 +100,7 @@ namespace Thread::Interface
         if (!IsActive() && !_elements)
             return;
 
+        StageSelectMenu::GetSingleton().CancelForThread(_linkedThread);
         _window.SetBlocksInput(false);
         _window.Close();
         _elements.reset();

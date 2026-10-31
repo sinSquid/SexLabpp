@@ -71,8 +71,6 @@ namespace Registry
         if (a_reference->HasKeyword(GameForms::FurnitureBedRoll)) {
             return FurnitureType::BedRoll;
         }
-        if (std::string name{ a_reference->GetName() }; name.empty() || Util::CastLower(name).find("bed") == std::string::npos)
-            return FurnitureType::None;
         const auto root = a_reference->Get3D();
         const auto extra = root ? root->GetExtraData("FRN") : nullptr;
         const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;

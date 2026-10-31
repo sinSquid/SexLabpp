@@ -137,7 +137,10 @@ namespace SKSE {
 namespace Hooks {void SetWeaponDrawBlocked(bool){}}
 namespace Interface {struct SceneHUD {
  static SceneHUD& GetSingleton(){static SceneHUD h;return h;}void SetSpeedControl(RE::TESQuest*,bool){}
-};}
+ };
+ struct FurnSelectMenu {static FurnSelectMenu& GetSingleton(){static FurnSelectMenu m;return m;}void CancelForThread(RE::TESQuest*){}};
+ struct StageSelectMenu {static StageSelectMenu& GetSingleton(){static StageSelectMenu m;return m;}void CancelForThread(RE::TESQuest*){}};
+}
 struct Instance {
  RE::TESQuest* linkedQst;RE::TESQuest* pendingQst;
  using SceneMapping=int;using FurniturePreference=int;
@@ -147,14 +150,16 @@ struct Instance {
  static inline int finalized=0,successes=0,failures=0;
  static inline std::function<void()> duringFinalize,duringConstruct;
  static inline bool throwFinalize=false;
- Instance(RE::TESQuest* q,const std::vector<RE::Actor*>&,int,int):linkedQst(q),pendingQst(q){if(duringConstruct)duringConstruct();}
+  Instance(RE::TESQuest* q,const std::vector<RE::Actor*>&,int,int,std::uint64_t):linkedQst(q),pendingQst(q){if(duringConstruct)duringConstruct();}
  static Instance* GetInstance(RE::TESQuest* q){for(auto& p:instances)if(p->linkedQst==q)return p.get();return nullptr;}
  void* GetPosition(RE::PlayerCharacter*){return nullptr;}
  void ReleaseAnimations(){}
+  void RestoreActorAlphas(){}
  static void RestorePreparedActors(RE::TESQuest*){}
  static void DispatchContinueSetup(RE::TESQuest*,bool ok){ok?++successes:++failures;}
  void FinalizeInstanceMake(){++finalized;if(duringFinalize)duringFinalize();if(throwFinalize)throw std::runtime_error("failed");}
- static void CreateInstance(RE::TESQuest*,const std::vector<RE::Actor*>,const SceneMapping&,FurniturePreference);
+  static std::uint64_t ReserveCreation(RE::TESQuest*);
+  static void CreateInstance(RE::TESQuest*,const std::vector<RE::Actor*>,const SceneMapping&,FurniturePreference,std::uint64_t);
  static void DestroyInstance(RE::TESQuest*,bool=false);
  static void CancelPendingCreations();
  static void FinalizeCenterRefSelection(RE::TESQuest*);
@@ -163,6 +168,7 @@ struct Instance {
 # The production API only needs Actor as a pointer in this lifecycle test.
 lifecycle = lifecycle.replace('struct TESQuest {unsigned formID;};', 'struct Actor {};struct TESQuest {unsigned formID;};')
 for path, sig in [
+    ('src/Thread/Thread.cpp', 'std::uint64_t Instance::ReserveCreation('),
     ('src/Thread/Thread.cpp', 'void Instance::CreateInstance('),
     ('src/Thread/Thread.cpp', 'void Instance::DestroyInstance('),
     ('src/Thread/Thread.cpp', 'void Instance::CancelPendingCreations('),
@@ -172,7 +178,7 @@ for path, sig in [
 lifecycle += r'''
 int main(){
  RE::TESQuest q{1};auto* tasks=SKSE::GetTaskInterface();
- auto create=[&](){Instance::CreateInstance(&q,{},0,0);};
+  auto create=[&](){Instance::CreateInstance(&q,{},0,0,Instance::ReserveCreation(&q));};
  create();Instance::FinalizeCenterRefSelection(&q);Instance::FinalizeCenterRefSelection(&q);assert(Instance::finalized==0);
  tasks->Drain();assert(Instance::instances.size()==1&&Instance::successes==1&&Instance::failures==0);
  Instance::DestroyInstance(&q);

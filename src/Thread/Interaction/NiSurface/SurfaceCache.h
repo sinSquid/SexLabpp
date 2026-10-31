@@ -8,6 +8,7 @@ namespace Thread::Interaction::NiSurface::Geometry
     struct TrackedOpening
     {
         bool Bind(RE::BSGeometry* a_geometry, std::string_view a_modelPath, std::string_view a_shapeName, const std::array<RE::NiAVObject*, 2>& a_targets, RE::NiAVObject* a_deep);
+        bool IsAttachedTo(RE::NiAVObject* a_root) const;
         std::optional<OpeningShape> Update();
 
       private:
@@ -143,6 +144,7 @@ namespace Thread::Interaction::NiSurface::Geometry::Detail
     };
 
     void HashValue(std::uint64_t& a_hash, std::uint64_t a_value);
+    bool IsAttachedTo(RE::NiAVObject* a_object, RE::NiAVObject* a_root);
     std::uint64_t GetBipedSignature(RE::Actor* a_actor);
     std::string NormalizeAssetPath(std::string_view a_path);
     std::string MakeAssetTopologyKey(std::string_view a_modelPath, std::string_view a_geometryName, std::string_view a_shapeName);

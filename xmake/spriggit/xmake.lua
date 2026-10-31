@@ -34,6 +34,7 @@ task("spriggit.serialize")
         options = {
             {'t', "target",     "kv", nil, "Serialize plugin(s) from TARGET."},
             {nil, "install",    "k",  nil, "Read plugin from TARGET:installdir instead of TARGET:targetdir."},
+            {nil, "installdir", "kv", nil, "Override the directory used with --install."},
             {'i', "inputpath",  "kv", nil, "Path to the Bethesda plugin if not from target."},
             {'o', "outputpath", "kv", nil, "Path to export plugin to if not from target."},
             {nil, "gamerel",    "kv", nil, ""},

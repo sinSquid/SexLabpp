@@ -35,7 +35,7 @@ end
 
 local function _do_target(target, opt)
     import("spriggit")
-    local targetdir = opt.install and target:installdir() or target:targetdir()
+    local targetdir = opt.install and (opt.installdir or target:installdir()) or target:targetdir()
 
     local srcdir = target:values("spriggit.srcdir")
     for _, dir in ipairs(table.wrap(srcdir)) do
@@ -67,6 +67,7 @@ function main()
 
     opt.target = opt.target or option.get("target")
     opt.install = opt.install or option.get("install")
+    opt.installdir = opt.installdir or option.get("installdir")
     opt.inputpath = opt.inputpath or option.get("inputpath")
     opt.outputpath = opt.outputpath or option.get("outputpath")
     opt.gamerel = opt.gamerel or option.get("gamerel")
@@ -79,7 +80,7 @@ function main()
         "Cannot specify both target and outputpath")
     if opt.target then
         local target = assert(project.target(opt.target), "Target not found: " .. opt.target)
-        assert(not opt.install or target:installdir(), "No installdir for target")
+        assert(not opt.install or opt.installdir or target:installdir(), "No installdir for target")
 
         _do_target(target, opt)
     else

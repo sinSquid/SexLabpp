@@ -25,19 +25,31 @@ namespace Thread::Interface
         if (!a_quest)
             return;
         _linkedThread = a_quest;
+        _ownerRevision = Script::GetProperty<std::int32_t>(Script::GetScriptObject(a_quest, "sslThreadModel"), "LifecycleRevision");
         _items = a_items;
         Show();
     }
 
+    void FurnSelectMenu::CancelForThread(RE::TESQuest* a_quest)
+    {
+        if (_linkedThread != a_quest)
+            return;
+        Hide();
+        _linkedThread = nullptr;
+        _items.clear();
+    }
+
     void FurnSelectMenu::HandleSelection(std::size_t a_index)
     {
+        if (a_index >= _items.size())
+            return;
         Hide();
         auto* quest = std::exchange(_linkedThread, nullptr);
         _items.clear();
         if (!quest)
             return;
         auto inst = Instance::GetPendingInstance(quest);
-        if (!inst) {
+        if (!inst || inst->GetThreadProperty<std::int32_t>("LifecycleRevision") != _ownerRevision) {
             logger::error("FurnSelectMenu::HandleSelection >> instance not found");
             return;
         }
@@ -53,6 +65,11 @@ namespace Thread::Interface
     {
         if (!IsVisible())
             return;
+        auto pending = Instance::GetPendingInstance(_linkedThread);
+        if (!pending || pending->GetThreadProperty<std::int32_t>("LifecycleRevision") != _ownerRevision) {
+            CancelForThread(_linkedThread);
+            return;
+        }
         auto& scale = SceneHUD::GetSingleton().GetScale();
 
         const float panelW = scale.Px(300.0f);

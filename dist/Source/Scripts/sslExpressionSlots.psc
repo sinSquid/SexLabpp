@@ -69,12 +69,16 @@ Function SyncBackend()
 	String[] profiles = GetAllProfileIDs()
 	int i = 0
 	int ii = 0
-	While (i < aliases.Length && ii < profiles.Length)
+	While (i < aliases.Length)
 		sslBaseExpression expr = aliases[i] as sslBaseExpression
 		If (expr)
-			expr.Registry = expr.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
-			expr.Registry = profiles[ii]
-			ii += 1
+			If (ii < profiles.Length)
+				expr.Registry = expr.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
+				expr.Registry = profiles[ii]
+				ii += 1
+			ElseIf (expr.Registry != "")
+				expr.Registry = ""
+			EndIf
 		EndIf
 		i += 1
 	EndWhile
@@ -304,8 +308,8 @@ endFunction
 
 int Function FindEmpty()
 	int n = Slotted
-	If (GetNthAlias(n + 1))
-		return n + 1
+	If (GetNthAlias(n))
+		return n
 	EndIf
 	return -1
 EndFunction
@@ -321,12 +325,12 @@ int function Register(string Registrar)
 	RegisterLock = true
 	int ret = FindEmpty()
 	If (ret == -1 || !sslBaseExpression.CreateEmptyProfile(Registrar))
-		sslBaseExpression it = GetBySlot(ret) as sslBaseExpression
-		it.Registry = it.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
-		it.Registry = Registrar
 		RegisterLock = false
 		return -1
 	EndIf
+	sslBaseExpression it = GetNthAlias(ret) as sslBaseExpression
+	it.Registry = it.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
+	it.Registry = Registrar
 	RegisterLock = false
 	return ret
 endFunction

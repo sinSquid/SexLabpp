@@ -1,209 +1,275 @@
-文件	本轮状态
-.github/workflows/format.yml	已静态复核：仅手动触发、分支选择和权限范围；未运行远端工作流
-dist/Source/Scripts/SexLabFramework.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/SexLabStatistics.psc	已逻辑复核：常量顺序与Stats枚举一致；原生接口声明核对
-dist/Source/Scripts/SexLabThread.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/SexLabThreadHook.psc	已逻辑复核：补空对象和锁数组边界；真实PSC编译与源码契约回归通过
-dist/Source/Scripts/SexLabUtil.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/SexlabRegistry.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslActorAlias.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslActorCumEffect.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslActorLibrary.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslActorStats.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslAnimationDefaults.psc	已核对弃用/兼容入口及活动通用代码；未恢复或逐条重审不可达历史预设
-dist/Source/Scripts/sslAnimationFactory.psc	已静态复核：旧注册入口为兼容空实现；保持不启用
-dist/Source/Scripts/sslAnimationSlots.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslBaseAnimation.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslBaseExpression.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslBaseObject.psc	已逻辑复核：修复启用setter及标签谓词；真实PSC编译和谓词回归通过
-dist/Source/Scripts/sslBaseVoice.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslBenchmark.psc	已核对弃用/兼容入口及活动通用代码；未恢复或逐条重审不可达历史预设
-dist/Source/Scripts/sslConfigMenu.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslConsoleCommands.psc	已静态复核：全部native声明已注释，无活动实现；未恢复废弃功能
-dist/Source/Scripts/sslCreatureAnimationDefaults.psc	专项范围排除：未实施功能修复；不计通用逻辑审查通过
-dist/Source/Scripts/sslCreatureAnimationSlots.psc	专项范围排除：未实施功能修复；不计通用逻辑审查通过
-dist/Source/Scripts/sslEffectDebug.psc	已核对弃用/兼容入口及活动通用代码；未恢复或逐条重审不可达历史预设
-dist/Source/Scripts/sslExpressionDefaults.psc	已核对弃用/兼容入口及活动通用代码；未恢复或逐条重审不可达历史预设
-dist/Source/Scripts/sslExpressionFactory.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslExpressionSlots.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslExpressionUtil.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslLog.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslLovense.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslMatchMakerMain.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslMatchMakerOrgy.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslMatchMakerSolo.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslMatchMakerTarget.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslObjectFactory.psc	已核对弃用/兼容入口及活动通用代码；未恢复或逐条重审不可达历史预设
-dist/Source/Scripts/sslSystemAlias.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslSystemConfig.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslSystemLibrary.psc	已逻辑复核：固定表单访问器及初始化包装，未发现需更改的实现
-dist/Source/Scripts/sslThreadController.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslThreadHook.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslThreadLibrary.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslThreadModel.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslThreadSlots.psc	已逻辑复核；结果见回归与审查记录
-dist/Source/Scripts/sslTroubleshoot.psc	已核对弃用/兼容入口及活动通用代码；未恢复或逐条重审不可达历史预设
-dist/Source/Scripts/sslUtility.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslVoiceDefaults.psc	已核对弃用/兼容入口及活动通用代码；未恢复或逐条重审不可达历史预设
-dist/Source/Scripts/sslVoiceFactory.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-dist/Source/Scripts/sslVoiceSlots.psc	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-scripts/ML/export.py	已静态审查工具流程；修复INI合并/二分类导出；完整模型训练依赖未安装，未实测训练
-scripts/ML/load_data.py	已静态审查工具流程；修复INI合并/二分类导出；完整模型训练依赖未安装，未实测训练
-scripts/ML/main.py	已静态审查工具流程；修复INI合并/二分类导出；完整模型训练依赖未安装，未实测训练
-scripts/generate_config.py	已逻辑复核；结果见回归与审查记录
-scripts/hashing.py	已逻辑复核；结果见回归与审查记录
-scripts/rotation.py	已逻辑复核；结果见回归与审查记录
-src/API/IPluginInterface.h	已静态复核：外部ABI声明及小型适配器，保留布局；第三方运行时兼容性未实测
-src/GameForms.h	已逻辑复核：DataLoaded阶段查找、缺失返回失败；未改
-src/PCH.h	已静态复核：宏/格式器/位工具；旧无界字符串读取已无活动调用，不再用于Tracking
-src/Papyrus/Papyrus.cpp	已逻辑复核；结果见回归与审查记录
-src/Papyrus/Papyrus.h	已逻辑复核；结果见回归与审查记录
-src/Papyrus/SexLabRegistry.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/SexLabRegistry.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/SexLabUtil.cpp	已逻辑复核；结果见回归与审查记录
-src/Papyrus/SexLabUtil.h	已逻辑复核；结果见回归与审查记录
-src/Papyrus/sslActorStats.cpp	已逻辑复核；结果见回归与审查记录
-src/Papyrus/sslActorStats.h	已逻辑复核；结果见回归与审查记录
-src/Papyrus/sslConsoleCommand.h	已静态复核：实现整段已注释，无活动注册
-src/Papyrus/sslLibrary/LegacyData.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslLibrary/Serialize.h	已逻辑复核：Tracking有界v1读取/持锁快照；往返、截断、坏长度及并发回归通过
-src/Papyrus/sslLibrary/sslActorLibrary.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslLibrary/sslActorLibrary.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslLibrary/sslThreadLibrary.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslLibrary/sslThreadLibrary.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslObject/sslAnimationSlots.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslObject/sslAnimationSlots.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslObject/sslCreatureAnimationSlots.cpp	专项范围排除：未实施功能修复；不计通用逻辑审查通过
-src/Papyrus/sslObject/sslCreatureAnimationSlots.h	专项范围排除：未实施功能修复；不计通用逻辑审查通过
-src/Papyrus/sslObject/sslExpressionSlots.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslObject/sslExpressionSlots.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslObject/sslVoiceSlots.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslObject/sslVoiceSlots.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslSystemConfig.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslSystemConfig.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslThreadModel.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Papyrus/sslThreadModel.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Animation.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Animation.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Expression.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Expression.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Fragment.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Fragment.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Furniture.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Furniture.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/RaceKey.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/RaceKey.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Sex.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Sex.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Tags.cpp	已逻辑复核：修复位交集、自移除及读取数量边界；1024组交集回归和MSVC检查通过
-src/Registry/Define/Tags.h	已逻辑复核：接口与集合实现配对；未改声明
-src/Registry/Define/Transform.cpp	已逻辑复核；结果见回归与审查记录
-src/Registry/Define/Transform.h	已逻辑复核；结果见回归与审查记录
-src/Registry/Define/Voice.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Define/Voice.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Library.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Library.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Library_SaveLoad.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Stats.cpp	已逻辑复核；结果见回归与审查记录
-src/Registry/Stats.h	已逻辑复核；结果见回归与审查记录
-src/Registry/Util/Decode.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/RayCast.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/RayCast/Credits.md	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/RayCast/Math.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/RayCast/ObjectBound.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/RayCast/ObjectBound.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/RayCast/Offsets.h	已静态复核：地址声明保持原样；未做VR及游戏地址验证
-src/Registry/Util/RayCast/RayCast.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/RayCast/bhkLinearCastCollector.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/RayCast/bhkRigidBodyT.h	已静态复核：布局声明与static_assert；实际MSVC包含检查通过
-src/Registry/Util/SAT.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/Scale.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Util/Scale.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Registry/Validation.cpp	排除原有未提交改动；验证构建使用HEAD
-src/Registry/Validation.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Serialization.h	已逻辑复核；结果见回归与审查记录
-src/Thread/Collision/CollisionHandler.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Collision/CollisionHandler.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Hooks.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Hooks.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/Interaction.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/Interaction.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/ActorGeometry.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/ActorGeometry.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/ActorState.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/ActorState.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/CollisionManager.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/CollisionManager.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/CollisionShapes.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/GeometryMath.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/GeometryMath.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/Shaft.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/Shaft.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/SurfaceCache.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interaction/NiSurface/SurfaceCache.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/AnimSpeedOverlay.cpp	已逻辑复核；结果见回归与审查记录
-src/Thread/Interface/Elements/AnimSpeedOverlay.h	已逻辑复核；结果见回归与审查记录
-src/Thread/Interface/Elements/DebugNodeDraw.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/DebugNodeDraw.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/ElementCtrlPanel.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/ElementCtrlPanel.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/EnjBarsOverlay.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/EnjBarsOverlay.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/OffsetAdjustPanel.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/OffsetAdjustPanel.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/PseudoPanelStack.cpp	已逻辑复核；结果见回归与审查记录
-src/Thread/Interface/Elements/PseudoPanelStack.h	已逻辑复核；结果见回归与审查记录
-src/Thread/Interface/Elements/SceneSelectPanel.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/SceneSelectPanel.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/ThreadConfigPanel.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/Elements/ThreadConfigPanel.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/FurnSelectMenu.cpp	已逻辑复核；结果见回归与审查记录
-src/Thread/Interface/FurnSelectMenu.h	已逻辑复核；结果见回归与审查记录
-src/Thread/Interface/SceneHUD.cpp	已逻辑复核；结果见回归与审查记录
-src/Thread/Interface/SceneHUD.h	已逻辑复核；结果见回归与审查记录
-src/Thread/Interface/StageSelectMenu.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/StageSelectMenu.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/UI/Scale.h	已逻辑复核；结果见回归与审查记录
-src/Thread/Interface/UI/Theme.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/UI/Theme.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Interface/UI/Window.h	已逻辑复核；结果见回归与审查记录
-src/Thread/Thread.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/Thread.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/ThreadAnimation.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Thread/ThreadCtor.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/UserData/Settings.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/UserData/Settings.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/UserData/StripData.cpp	已逻辑复核；结果见回归与审查记录
-src/UserData/StripData.h	已逻辑复核；结果见回归与审查记录
-src/UserData/config.def	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/UserData/mcm.def	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Util/AsyncIO.cpp	已逻辑复核；结果见回归与审查记录
-src/Util/AsyncIO.h	已逻辑复核；结果见回归与审查记录
-src/Util/AtomicWrite.h	已逻辑复核：独占暂存、失败清理与无覆盖发布；既有真实文件回归通过
-src/Util/Combinatorics.h	已逻辑复核；结果见回归与审查记录
-src/Util/FormLookup.h	已逻辑复核；结果见回归与审查记录
-src/Util/Misc.h	已逻辑复核；结果见回归与审查记录
-src/Util/Premutation.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/Util/Random.h	已逻辑复核；结果见回归与审查记录
-src/Util/RingBuffer.h	已逻辑复核：修复动态容器转换、固定容器初始化及构造容量约束；真实头文件回归通过
-src/Util/Script.h	已逻辑复核；结果见回归与审查记录
-src/Util/Singleton.h	已逻辑复核；结果见回归与审查记录
-src/Util/StringUtil.h	已逻辑复核；结果见回归与审查记录
-src/Util/World.h	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-src/main.cpp	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-tests/arrow_speed_hotkeys.py	已检查回归入口、生产函数提取及运行结果；引擎替身不等同游戏实测
-tests/fork_review_regressions.py	已检查回归入口、生产函数提取及运行结果；引擎替身不等同游戏实测
-xmake.lua	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-xmake/dotenv/modules/dotenv.lua	已逻辑复核；结果见回归与审查记录
-xmake/dotenv/modules/dotenv/check.lua	已逻辑复核；结果见回归与审查记录
-xmake/dotenv/xmake.lua	已逻辑复核；结果见回归与审查记录
-xmake/modules/test_ln.lua	已静态复核：临时符号链接检测及finally清理；未运行安装流程
-xmake/papyrus/modules/detect/tools/find_papyrus.lua	已静态复核：路径候选、注册表及编译器检测；现有编译器调用通过
-xmake/papyrus/modules/papyrus/anonymize.lua	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-xmake/papyrus/papyrus.lua	已逻辑复核；结果见回归与审查记录
-xmake/papyrus/project.lua	已逻辑复核；结果见回归与审查记录
-xmake/papyrus/xmake.lua	已静态复核：选项/任务及编译规则挂接；Lua语法测试通过
-xmake/spriggit/modules/detect/tools/find_spriggit.lua	已完成本轮静态通用逻辑审查；修改及验证见AUDIT_PROGRESS.txt，观察项不等同已修复
-xmake/spriggit/modules/spriggit.lua	已静态复核：既有元数据字段和目录回退；YAML仅支持原有简单格式，不声称完整解析器
-xmake/spriggit/serialize.lua	已静态复核：参数互斥及序列化调用；未执行插件写入
-xmake/spriggit/xmake.lua	已逻辑复核：修复多源目录重复加入；实际Lua回调双目录回归通过
+﻿文件	基线行数	当前行数	本轮状态	覆盖分组
+.github/workflows/format.yml	34	34	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+dist/Interface/Translations/translate.py	79	79	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/SKSE/SexLab/Furniture/SexLabDefault.yml	46	46	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/SKSE/SexLab/Voices/.example/VoiceFormat.yml	29	29	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/SKSE/SexLab/Voices/Pitch/DefaultPitch.yml	18	18	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Sound/fx/SexLab/vfx/ConvertMp3ToWav.py	16	19	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Sound/fx/SexLab/vfx/VoiceRename.py	21	21	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/SexLabFramework.psc	1861	1861	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/SexLabStatistics.psc	95	95	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/SexLabThread.psc	354	354	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/SexLabThreadHook.psc	125	125	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/SexLabUtil.psc	497	497	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/SexlabRegistry.psc	240	241	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslActorAlias.psc	1865	1869	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslActorCumEffect.psc	52	52	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslActorLibrary.psc	943	947	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslActorStats.psc	1042	1042	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslAnimationDefaults.psc	2990	2990	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslAnimationFactory.psc	92	92	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslAnimationSlots.psc	588	634	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslBaseAnimation.psc	949	948	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslBaseExpression.psc	510	510	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslBaseObject.psc	229	229	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslBaseVoice.psc	378	378	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslBenchmark.psc	164	164	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslConfigMenu.psc	1796	1796	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslConsoleCommands.psc	10	10	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslCreatureAnimationDefaults.psc	1490	1490	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslCreatureAnimationSlots.psc	230	230	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslEffectDebug.psc	44	44	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslExpressionDefaults.psc	450	450	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslExpressionFactory.psc	67	67	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslExpressionSlots.psc	374	378	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslExpressionUtil.psc	79	79	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslLog.psc	27	27	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslLovense.psc	84	84	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslMatchMakerMain.psc	140	140	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslMatchMakerOrgy.psc	11	11	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslMatchMakerSolo.psc	13	13	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslMatchMakerTarget.psc	14	14	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslObjectFactory.psc	253	253	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslSystemAlias.psc	205	208	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslSystemConfig.psc	2620	2641	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslSystemLibrary.psc	118	118	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslThreadController.psc	702	701	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslThreadHook.psc	203	203	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslThreadLibrary.psc	243	243	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslThreadModel.psc	3410	3464	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslThreadSlots.psc	224	224	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslTroubleshoot.psc	352	352	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslUtility.psc	1992	1987	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslVoiceDefaults.psc	395	395	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslVoiceFactory.psc	65	65	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+dist/Source/Scripts/sslVoiceSlots.psc	519	550	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	papyrus
+scripts/ML/export.py	140	149	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+scripts/ML/load_data.py	88	88	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+scripts/ML/main.py	196	196	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+scripts/generate_config.py	47	47	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+scripts/hashing.py	61	61	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+scripts/rotation.py	32	32	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+src/API/IPluginInterface.h	452	452	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/GameForms.h	42	42	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/PCH.h	225	225	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/Papyrus/Papyrus.cpp	40	40	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/Papyrus.h	6	6	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/SexLabRegistry.cpp	1059	1064	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/SexLabRegistry.h	224	224	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/SexLabUtil.cpp	169	169	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/SexLabUtil.h	49	49	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslActorStats.cpp	575	575	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslActorStats.h	112	112	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslConsoleCommand.h	64	64	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslLibrary/LegacyData.h	42	42	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslLibrary/Serialize.h	122	122	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslLibrary/sslActorLibrary.cpp	141	141	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslLibrary/sslActorLibrary.h	38	38	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslLibrary/sslThreadLibrary.cpp	387	398	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslLibrary/sslThreadLibrary.h	58	58	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslObject/sslAnimationSlots.cpp	121	121	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslObject/sslAnimationSlots.h	23	23	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslObject/sslCreatureAnimationSlots.cpp	187	188	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslObject/sslCreatureAnimationSlots.h	28	28	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslObject/sslExpressionSlots.cpp	255	263	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslObject/sslExpressionSlots.h	70	70	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslObject/sslVoiceSlots.cpp	247	259	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslObject/sslVoiceSlots.h	79	81	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslSystemConfig.cpp	232	232	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslSystemConfig.h	50	50	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslThreadModel.cpp	737	738	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Papyrus/sslThreadModel.h	171	171	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Animation.cpp	822	862	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Animation.h	189	189	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Expression.cpp	322	322	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Expression.h	76	76	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Fragment.cpp	229	238	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Fragment.h	96	96	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Furniture.cpp	257	255	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Furniture.h	126	126	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/RaceKey.cpp	223	223	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/RaceKey.h	103	103	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Sex.cpp	89	89	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Sex.h	39	39	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Tags.cpp	288	300	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Tags.h	156	157	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Transform.cpp	149	149	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Transform.h	70	70	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Voice.cpp	237	237	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Define/Voice.h	110	110	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Library.cpp	626	619	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Library.h	164	164	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Library_SaveLoad.cpp	601	601	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Stats.cpp	538	663	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Stats.h	178	192	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/Decode.h	106	106	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/RayCast.h	83	83	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/RayCast/Math.h	99	99	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/RayCast/ObjectBound.cpp	170	170	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/RayCast/ObjectBound.h	26	26	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/RayCast/Offsets.h	23	23	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/RayCast/RayCast.cpp	135	135	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/RayCast/bhkLinearCastCollector.h	162	162	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/RayCast/bhkRigidBodyT.h	17	17	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/SAT.h	109	109	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/Scale.cpp	141	139	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Util/Scale.h	44	44	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Validation.cpp	179	179	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Registry/Validation.h	9	9	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Serialization.h	89	97	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Thread/Collision/CollisionHandler.cpp	451	451	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Collision/CollisionHandler.h	53	53	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Hooks.cpp	69	69	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/Thread/Hooks.h	7	7	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/Thread/Interaction/Interaction.cpp	368	368	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/Interaction.h	167	167	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/ActorGeometry.cpp	365	396	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/ActorGeometry.h	56	61	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/ActorState.cpp	507	505	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/ActorState.h	112	112	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/CollisionManager.cpp	281	306	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/CollisionManager.h	43	45	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/CollisionShapes.h	33	33	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/GeometryMath.cpp	108	108	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/GeometryMath.h	34	34	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/Shaft.cpp	615	619	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/Shaft.h	72	72	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/SurfaceCache.cpp	871	888	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interaction/NiSurface/SurfaceCache.h	169	171	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-geometry
+src/Thread/Interface/Elements/AnimSpeedOverlay.cpp	141	141	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/AnimSpeedOverlay.h	19	19	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/DebugNodeDraw.cpp	123	123	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/DebugNodeDraw.h	42	42	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/ElementCtrlPanel.cpp	301	301	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/ElementCtrlPanel.h	22	22	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/EnjBarsOverlay.cpp	529	529	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/EnjBarsOverlay.h	73	73	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/OffsetAdjustPanel.cpp	383	383	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/OffsetAdjustPanel.h	65	65	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/PseudoPanelStack.cpp	153	153	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/PseudoPanelStack.h	11	11	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/SceneSelectPanel.cpp	334	334	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/SceneSelectPanel.h	40	40	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/ThreadConfigPanel.cpp	435	442	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/Elements/ThreadConfigPanel.h	33	33	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/FurnSelectMenu.cpp	151	168	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/FurnSelectMenu.h	31	33	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/SceneHUD.cpp	373	375	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/SceneHUD.h	90	90	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/StageSelectMenu.cpp	721	754	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/StageSelectMenu.h	95	97	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/UI/Scale.h	97	97	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/UI/Theme.cpp	127	127	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/UI/Theme.h	356	356	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Interface/UI/Window.h	78	78	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-ui
+src/Thread/Thread.cpp	566	609	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/Thread/Thread.h	259	265	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/Thread/ThreadAnimation.cpp	878	890	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/Thread/ThreadCtor.cpp	417	434	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/UserData/Settings.cpp	225	225	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/UserData/Settings.h	80	80	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/UserData/StripData.cpp	99	99	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/UserData/StripData.h	35	35	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/UserData/config.def	133	133	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/UserData/mcm.def	127	127	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+src/Util/Assignment.h	39	39	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/AsyncIO.cpp	78	78	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/AsyncIO.h	11	11	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/AtomicWrite.h	68	68	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/Combinatorics.h	34	34	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/FileWork.h	65	65	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/FormLookup.h	71	71	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/LockedAccess.h	33	33	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/Misc.h	46	46	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/Premutation.h	891	891	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/PublishPackage.h	48	48	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/Random.h	58	58	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/RecordIO.h	77	77	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/RingBuffer.h	117	117	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/Script.h	107	107	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/Singleton.h	23	23	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/StringUtil.h	89	89	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/Util/World.h	412	412	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	native-data
+src/main.cpp	177	177	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	runtime-core
+tests/arrow_speed_hotkeys.py	173	179	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/audit_papyrus.py	72	72	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/audit_runtime.py	84	84	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/bed_query.py	32	32	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/camera_control_cleanup.py	358	358	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/collision_controller_restore.py	65	65	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/collision_foot_ik.py	111	111	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/collision_physics_restore.py	89	89	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/compat_assignment.py	96	96	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/compat_equipment.py	113	113	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/compat_native.py	134	134	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/decode_bounds.py	31	31	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/expression_sampling.py	36	36	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/fork_review_regressions.py	427	433	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/geometry_binding.py	92	92	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/geometry_math.py	69	69	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/graph_paths.py	105	107	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/ini_merge.py	30	30	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/input_helpers.py	64	64	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/lua_audit.lua	14	14	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/lua_audit.py	13	13	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/model_export.py	27	27	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/papyrus_base_contracts.py	35	35	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/papyrus_harness.py	125	125	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/publication_rollback.py	47	47	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/raycast_boundaries.py	32	32	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/raycast_transform.py	33	33	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/review_creation_lifecycle.py	0	102	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_geometry_contracts.py	0	427	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_native_data_contracts.py	0	84	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_native_data_core.py	0	238	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_native_data_entrypoints.py	0	116	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_native_data_persistence.py	0	105	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_native_data_recency.py	0	109	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_native_data_selection.py	0	56	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_native_data_support.py	0	39	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_papyrus_contracts.py	0	83	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_papyrus_lifecycle.py	0	210	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_papyrus_objects.py	0	194	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_papyrus_ui.py	0	126	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_revert_barrier.py	0	97	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_thread_cleanup.py	0	96	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/review_tooling_contracts.py	0	101	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	regression/independent review
+tests/ring_buffer.py	41	41	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/run.py	23	30	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/scene_registration_owner.py	63	63	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/settings_access.py	32	32	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/settings_ini.py	41	41	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/source_regressions.py	17	17	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/speed_graph_bounds.py	60	60	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/spriggit_rule.py	33	33	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/statistics_roundtrip.py	152	152	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/strip_persistence.py	67	67	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/tag_log_views.py	24	24	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/tag_sets.py	71	71	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/theme_save.py	53	53	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/tracking_records.py	49	49	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+tests/voice_cache.py	62	62	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake.lua	342	343	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/dotenv/modules/dotenv.lua	39	39	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/dotenv/modules/dotenv/check.lua	42	42	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/dotenv/xmake.lua	15	15	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/modules/test_ln.lua	22	22	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/papyrus/modules/detect/tools/find_papyrus.lua	36	36	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/papyrus/modules/papyrus/anonymize.lua	85	85	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/papyrus/papyrus.lua	165	185	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/papyrus/project.lua	74	74	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/papyrus/xmake.lua	54	54	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/spriggit/modules/detect/tools/find_spriggit.lua	65	65	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/spriggit/modules/spriggit.lua	84	84	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/spriggit/serialize.lua	89	90	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling
+xmake/spriggit/xmake.lua	83	84	2026-10-31 已逐行核查及修复后复核；验证边界见 AUDIT_PROGRESS.txt	tooling

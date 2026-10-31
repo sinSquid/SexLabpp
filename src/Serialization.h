@@ -29,6 +29,7 @@ namespace Serialization
             _StatisticsVersion = 2,
 
             _Statistics = 'stcs',
+            _EncounterRecency = 'ercy',
             _Tracking = 'trcn'
         };
 
@@ -42,6 +43,7 @@ namespace Serialization
         func;                                              \
     }
             SAVE(_Statistics, Registry::Statistics::StatisticsData::GetSingleton()->Save(a_intfc))
+            SAVE(_EncounterRecency, Registry::Statistics::StatisticsData::GetSingleton()->SaveEncounterRecency(a_intfc))
             SAVE(_Tracking, Papyrus::Tracking::GetSingleton()->Save(a_intfc))
 
 #undef SAVE
@@ -49,6 +51,8 @@ namespace Serialization
 
         static void LoadCallback(SKSE::SerializationInterface* a_intfc)
         {
+            const auto statistics = Registry::Statistics::StatisticsData::GetSingleton();
+            statistics->BeginLoad();
             const auto v = static_cast<uint32_t>(_Version);
             uint32_t type, version, length;
             while (a_intfc->GetNextRecordInfo(type, version, length)) {
@@ -64,17 +68,21 @@ namespace Serialization
                 case _Tracking:
                     Papyrus::Tracking::GetSingleton()->Load(a_intfc, length);
                     break;
+                case _EncounterRecency:
+                    statistics->LoadEncounterRecency(a_intfc, length);
+                    break;
                 default:
                     break;
                 }
             }
+            statistics->FinishLoad();
 
             logger::info("Finished loading data from cosave");
         }
 
         static void RevertCallback(SKSE::SerializationInterface* a_intfc)
         {
-            Thread::Instance::CancelPendingCreations();
+            Thread::Instance::RevertInstances();
             Thread::Collision::CollisionHandler::Clear();
             Registry::Statistics::StatisticsData::GetSingleton()->Revert(a_intfc);
             Papyrus::Tracking::GetSingleton()->Revert(a_intfc);

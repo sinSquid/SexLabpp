@@ -294,13 +294,8 @@ int Function BoolToBit(bool[] abBools) global
 EndFunction
 
 bool[] Function BitsToBool(int n, bool append) global
-	bool[] ret
-	If(append)
-		ret = new bool[33]
-		ret[32] = append
-	Else
-		ret = new bool[32]
-	EndIf
+	bool[] ret = new bool[33]
+	ret[32] = append
 	int i = 0
 	While(i < 32)
 		ret[i] = Math.LogicalAnd(Math.LeftShift(1, i), n)

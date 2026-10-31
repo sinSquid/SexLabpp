@@ -205,12 +205,10 @@ namespace Thread::Interaction::NiSurface
         const auto [angleToHead, angleToMouth, angleToBase] = [&]() {
             const auto vBaseToHead = headWorld.translate - shaftSegment.start;
             const auto vPartnerDir = partnerGeometry.GetCrotchSegment().Vector();
-            const auto proj1 = GeometryMath::ProjectedComponent(vPartnerDir, vHead);
-            const auto proj2 = GeometryMath::ProjectedComponent(vBaseToHead, vHead);
             return std::make_tuple(
-                GeometryMath::GetAngleDegree(proj1, proj2),
-                GeometryMath::GetAngleDegree(proj1, -vHead),
-                GeometryMath::GetAngleDegree(proj2, vHead));
+                GeometryMath::GetAngleDegree(vPartnerDir, vBaseToHead),
+                GeometryMath::GetAngleDegree(vPartnerDir, -vHead),
+                GeometryMath::GetAngleDegree(vBaseToHead, vHead));
         }();
 
         const auto aimingAtHead = std::abs(angleToHead - angleToMouth) < Settings::fAngleToHeadTolerance;
@@ -340,7 +338,7 @@ namespace Thread::Interaction::NiSurface
                     interactions.emplace_back(a_partner.state.actor, Interaction::Action::Anal, crotchDistance, shaftTip - crotchSegment.start);
                     return true;
                 } else if (std::abs(crotchAngle - 90.0f) <= Settings::fAngleGrinding) {
-                    interactions.emplace_back(a_partner.state.actor, Interaction::Action::Anal, crotchDistance, shaftTip - crotchSegment.start);
+                    interactions.emplace_back(a_partner.state.actor, Interaction::Action::Grinding, crotchDistance, shaftTip - crotchSegment.start);
                     return true;
                 }
             }

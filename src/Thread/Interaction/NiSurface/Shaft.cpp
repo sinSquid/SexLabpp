@@ -406,7 +406,8 @@ namespace Thread::Interaction::NiSurface::Geometry
 
     void Shaft::UpdateCollisionShape()
     {
-        if (surface && (!surface->geometry || !surface->geometry->parent || surface->geometry->GetGeometryRuntimeData().skinInstance.get() != surface->skinInstance)) {
+        if (surface && (!IsAttachedTo(surface->geometry.get(), ownerActor ? ownerActor->Get3D() : nullptr) ||
+                           surface->geometry->GetGeometryRuntimeData().skinInstance.get() != surface->skinInstance)) {
             // Re-arm discovery when an equipped shaft is replaced or removed during a scene.
             surface.reset();
             collisionShape.reset();
@@ -482,6 +483,9 @@ namespace Thread::Interaction::NiSurface::Geometry
         for (auto& bone : surface->bones) {
             if (bone.skinIndex >= surface->skinInstance->numMatrices || bone.skinIndex >= skinData->GetBoneCount() ||
                 !bone.node || surface->skinInstance->bones[bone.skinIndex] != bone.node.get()) {
+                surface.reset();
+                surfaceSearchPending = true;
+                stableEquipmentFrames = 0;
                 collisionShape.reset();
                 return;
             }

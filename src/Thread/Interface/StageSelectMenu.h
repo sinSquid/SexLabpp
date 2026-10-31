@@ -25,6 +25,7 @@ namespace Thread::Interface
         void SetVisibilitySceneGraph(RE::TESQuest* a_quest, bool a_open);  // called by hotkey iToggleSceneGraph
         void RefreshSceneGraphView(RE::TESQuest* a_quest);                 // syncs the graph's current-node highlight
         void Close();
+        void CancelForThread(RE::TESQuest* a_quest);
 
         [[nodiscard]] bool IsGraphViewOpen() const { return _graphOpen; }
         [[nodiscard]] bool IsChoicePending() const { return _choicePending; }
@@ -74,6 +75,7 @@ namespace Thread::Interface
         bool _choicePending{ false };
         std::vector<ChoiceOption> _choices;
         const Registry::Stage* _choiceOrigin{ nullptr };
+        std::int32_t _choiceRevision{};
         int _selectedChoiceIndex = 0;
         std::vector<float> _choiceScrollOffsets;
         double _choiceStartTime = 0.0;

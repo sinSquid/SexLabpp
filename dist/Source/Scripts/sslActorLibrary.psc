@@ -142,7 +142,11 @@ bool function IsStrippable(Form ItemRef)
 endFunction
 
 Form[] function StripActor(Actor ActorRef, Actor VictimRef = none, bool DoAnimate = true, bool LeadIn = false)
-	int[] strips = sslSystemConfig.GetStripForms(ActorRef == VictimRef || SexLabRegistry.GetSex(ActorRef, false) == 1, VictimRef)
+	bool femaleOrVictim = ActorRef == VictimRef
+	If (!VictimRef)
+		femaleOrVictim = SexLabRegistry.GetSex(ActorRef, false) == 1
+	EndIf
+	int[] strips = sslSystemConfig.GetStripForms(femaleOrVictim, VictimRef)
 	return StripActorImpl(ActorRef, strips[0], strips[1], DoAnimate)
 endFunction
 Form[] function StripSlots(Actor ActorRef, bool[] Strip, bool DoAnimate = false, bool AllowNudesuit = true)
@@ -169,7 +173,7 @@ Form Function StripSlot(Actor ActorRef, int SlotMask)
 EndFunction
 
 Function UnstripActor(Actor ActorRef, Form[] Stripped, bool IsVictim = false)
-	If (!ActorRef)
+	If (!ActorRef || (IsVictim && !Config.RedressVictim))
 		return
 	EndIf
 	int i = 0

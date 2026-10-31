@@ -158,13 +158,11 @@ string[] function FetchPosition(int Position)
 		Log("Unknown Position, '"+Position+"' given", "FetchPosition")
 		return none
 	endIf
-	int depth = GetMaxDepth()
-	String node = ""
-	string[] ret = Utility.CreateStringArray(depth)
+	String[] path = SexLabRegistry.GetPathMax(Registry, "")
+	string[] ret = Utility.CreateStringArray(path.Length)
 	int i = 0
 	While(i < ret.Length)
-		ret[i] = SexLabRegistry.GetAnimationEvent(Registry, node, Position)
-		node = SexLabRegistry.BranchTo(Registry, node, 0)
+		ret[i] = SexLabRegistry.GetAnimationEvent(Registry, path[i], Position)
 		i += 1
 	EndWhile
 	return ret
@@ -576,7 +574,8 @@ bool function CreaturePosition(int Position)
 endFunction
 
 bool function MatchGender(int Gender, int Position)
-	return Gender == GetGender(Position) || (!GenderedCreatures && Gender > 1)
+	int positionGender = GetGender(Position)
+	return Gender == positionGender || (!GenderedCreatures && Gender > 1 && positionGender > 1)
 endFunction
 
 int function FemaleCount()
@@ -628,7 +627,7 @@ int function CountValidRaceKey(string[] RaceKeys)
 	int ret = 0
 	int i = 0
 	While(i < RaceKeys.Length)
-		If (RaceKeys[i] && racekeys_.Find(RaceKeys[i]))
+		If (RaceKeys[i] && racekeys_.Find(RaceKeys[i]) >= 0)
 			ret += 1
 		EndIf
 		i += 1

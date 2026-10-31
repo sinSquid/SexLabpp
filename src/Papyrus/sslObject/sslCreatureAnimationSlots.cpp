@@ -2,6 +2,7 @@
 
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Library.h"
+#include "Util/Assignment.h"
 
 namespace Papyrus::CreatureAnimationSlots
 {
@@ -64,8 +65,7 @@ namespace Papyrus::CreatureAnimationSlots
             if (!a_scene->IsCompatibleTags(tagdetails))
                 return false;
 
-            int32_t reqtrue = static_cast<int32_t>(a_creatures.size());
-            std::vector<bool> control(a_actorcount, false);
+            std::vector<uint32_t> compatible;
             for (auto&& creature : a_creatures) {
                 const Registry::RaceKey racekey{ creature };
                 if (!racekey.IsValid()) {
@@ -74,20 +74,21 @@ namespace Papyrus::CreatureAnimationSlots
                     return true;
                 }
                 if (racekey.Is(Registry::RaceKey::Human)) {
-                    reqtrue -= 1;
                     continue;
                 }
+                uint32_t mask = 0;
                 for (size_t i = 0; i < a_scene->positions.size(); i++) {
-                    if (control[i])
-                        continue;
                     const auto& position = a_scene->positions[i];
-                    if (position.data.GetRace().IsCompatibleWith(racekey)) {
-                        control[i] = true;
-                        break;
-                    }
+                    if (position.data.GetRace().IsCompatibleWith(racekey))
+                        mask |= uint32_t{ 1 } << i;
                 }
+                compatible.push_back(mask);
             }
-            if (reqtrue != std::count(control.begin(), control.end(), true)) {
+            const auto required = compatible.size();
+            // The legacy query supplies only required creatures. Optional
+            // placeholders fill the other scene positions after matching them.
+            compatible.resize(required + a_scene->positions.size(), (uint32_t{ 1 } << a_scene->positions.size()) - 1);
+            if (Util::MatchRequiredSlots(a_scene->positions.size(), compatible, required).empty()) {
                 return false;
             }
             ret.push_back(a_scene->id);

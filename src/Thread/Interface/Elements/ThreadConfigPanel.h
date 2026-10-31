@@ -23,7 +23,7 @@ namespace Thread::Interface
         void OnNextPosition(SceneHUD& a_hud, RE::Actor* a_actor);
         void OnSetExpression(SceneHUD& a_hud, RE::Actor* a_actor, const Registry::Expression* a_expression);
         void OnSetVoice(SceneHUD& a_hud, RE::Actor* a_actor, const Registry::Voice* a_voice);
-        void OnSetActorAlpha(RE::Actor* a_actor, int a_alpha);
+        void OnSetActorAlpha(SceneHUD& a_hud, RE::Actor* a_actor, int a_alpha);
 
         void RenderActorCard(SceneHUD& a_hud, RE::Actor* a_actor, ActorState& a_state);
 

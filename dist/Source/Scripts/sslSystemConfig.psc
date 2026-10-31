@@ -1410,6 +1410,11 @@ float _fLockHmdDistance
 float _fLockHmdTolerance
 float _fLockHmdSpeed
 bool _bAnimatingVR
+bool _hasPositionVRIK
+float _lastPositionXVRIK
+float _lastPositionYVRIK
+float _lastPositionZVRIK
+float _lastAngleVRIK
 SoundCategory _AudioCategoryFST
 SoundCategory _AudioCategoryNPCFST
 
@@ -1499,6 +1504,7 @@ Function ApplyConfigsVRIK(bool abEnabled)
   If (!HasVRIK)
     return
   EndIf
+  _hasPositionVRIK = false
   If (!abEnabled)
     _bAnimatingVR = false
     Utility.SetIniBool("bComfortSneak:VR", false)
@@ -1554,7 +1560,19 @@ int Function UpdatePositioningVRIK(int VRIKRestoreInTicks)
     return 0
   EndIf
   Actor PlayerRef = Game.GetPlayer()
-  VRIK.VrikSetSetting("lockRotationAngle", PlayerRef.GetAngleZ())
+  float x = PlayerRef.X
+  float y = PlayerRef.Y
+  float z = PlayerRef.Z
+  float angle = PlayerRef.GetAngleZ()
+  If (_hasPositionVRIK && x == _lastPositionXVRIK && y == _lastPositionYVRIK && z == _lastPositionZVRIK && angle == _lastAngleVRIK)
+    return VRIKRestoreInTicks
+  EndIf
+  _hasPositionVRIK = true
+  _lastPositionXVRIK = x
+  _lastPositionYVRIK = y
+  _lastPositionZVRIK = z
+  _lastAngleVRIK = angle
+  VRIK.VrikSetSetting("lockRotationAngle", angle)
   VRIK.VrikSetSetting("lockPositionX", PlayerRef.X)
   VRIK.VrikSetSetting("lockPositionY", PlayerRef.Y)
   VRIK.VrikSetSetting("lockPositionZ", PlayerRef.Z)
@@ -2505,7 +2523,10 @@ endFunction
 ; ------------------------------------------------------- ;
 
 int[] Function GetStripSettings(bool IsFemale, bool IsLeadIn = false, bool IsAggressive = false, bool IsVictim = false)
-  return GetStripForms(IsFemale || IsVictim , IsAggressive)
+  If (IsAggressive)
+    return GetStripForms(IsVictim, true)
+  EndIf
+  return GetStripForms(IsFemale, false)
 EndFunction
 
 bool[] function GetStrip(bool IsFemale, bool IsLeadIn = false, bool IsAggressive = false, bool IsVictim = false)

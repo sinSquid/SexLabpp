@@ -111,10 +111,10 @@ int function RegisterStat(string Stat, string Value, string Prepend = "", string
 		SexLabStatistics.SetCustomStatStr(Game.GetPlayer(), Stat, Value)
 		SexLabStatistics.SetCustomStatStr(Game.GetPlayer(), "Custom.Default." + Stat, Value)
 		If (Prepend)
-			SexLabStatistics.SetCustomStatStr(Game.GetPlayer(), "Custom.Prepend." + Stat, Value)
+			SexLabStatistics.SetCustomStatStr(Game.GetPlayer(), "Custom.Prepend." + Stat, Prepend)
 		EndIf
 		If (Append)
-			SexLabStatistics.SetCustomStatStr(Game.GetPlayer(), "Custom.Append." + Stat, Value)		
+			SexLabStatistics.SetCustomStatStr(Game.GetPlayer(), "Custom.Append." + Stat, Append)
 		EndIf
 	EndIf
 	return FindStat(Stat)

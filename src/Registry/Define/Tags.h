@@ -119,6 +119,7 @@ namespace Registry
         std::vector<RE::BSFixedString> AsVector() const;
 
       private:
+        stl::enumeration<Tag> GetBaseTags() const;
         void AddExtraTag(const RE::BSFixedString& a_tag);
         void RemoveExtraTag(const RE::BSFixedString& a_tag);
         bool HasExtraTag(const RE::BSFixedString& a_tag) const;

@@ -22,16 +22,25 @@ namespace Thread
         }
     }
 
-    Instance::Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturepref) :
-      linkedQst(a_linkedQst), center(nullptr), scenes({})
+    Instance::Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturepref, std::uint64_t a_generation) :
+      linkedQst(a_linkedQst), creationGeneration(a_generation), center(nullptr), scenes({})
     {
         const auto centerAct = InitializeReferences(a_submissives);
         const auto fragments = InitializeScenes(a_scenes, a_furniturepref);
         InitializeCenter(centerAct, a_furniturepref);
+        if (!IsCreationCurrent())
+            throw std::runtime_error("Thread creation was cancelled.");
         if (Instance::pendingQst != nullptr) {
             return;  // pending impl handled by FinalizeCenterRefSelection()
         }
         FinalizeInstanceMake();
+    }
+
+    bool Instance::IsCreationCurrent() const
+    {
+        std::unique_lock lock{ _mInstances };
+        const auto found = creationGenerations.find(linkedQst);
+        return found != creationGenerations.end() && found->second == creationGeneration;
     }
 
     void Instance::FinalizeInstanceMake()
@@ -140,6 +149,11 @@ namespace Thread
         auto future = promise.get_future();
         const auto selectionMethod = GetSelectionMethod(furniturePreference);
         SKSE::GetTaskInterface()->AddTask([&]() mutable {
+            std::unique_lock requestLock{ _mInstances };
+            if (!IsCreationCurrent()) {
+                promise.set_value(true);
+                return;
+            }
             if (((bool (*)(void))Offsets::NotOnGameThread.address())()) {
                 logger::error("Task is not on valid thread, this should never happen and can cause random CTD/freezes");
             }
@@ -168,6 +182,9 @@ namespace Thread
             promise.set_value(true);
         });
         future.wait();
+        std::unique_lock requestLock{ _mInstances };
+        if (!IsCreationCurrent())
+            throw std::runtime_error("Thread center selection was cancelled.");
         if (future.get()) {
             return prioScenes;
         } else if (furnitureMap.empty()) {

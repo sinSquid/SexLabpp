@@ -156,7 +156,7 @@ namespace Registry
         std::vector<FxConfig> fxList;
 
         mutable std::shared_mutex _mFurniture{};
-        FurnitureDetails offsetDefaultBedroll{ FurnitureType::BedRoll, Coordinate(std::vector{ 0.0f, 0.0f, 7.5f, 180.0f }) };
+        FurnitureDetails offsetDefaultBedroll{ FurnitureType::BedRoll, Coordinate(std::vector{ 0.0f, 0.0f, 7.5f, glm::radians(180.0f) }) };
         FurnitureDetails offsetDefaultBedsingle{ FurnitureType::BedSingle, Coordinate(std::vector{ 0.0f, -31.0f, 42.5f, 0.0f }) };
         FurnitureDetails offsetDefaultBeddouble{ FurnitureType::BedDouble, Coordinate(std::vector{ 0.0f, -31.0f, 42.5f, 0.0f }) };
         std::map<RE::BSFixedString, std::unique_ptr<FurnitureDetails>, FixedStringCompare> furnitures;

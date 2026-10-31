@@ -91,10 +91,17 @@ namespace Thread::Interface
             inst->SetVoice(actor, voice);
     }
 
-    void ThreadConfigPanel::OnSetActorAlpha(RE::Actor* actor, int alphaInt)
+    void ThreadConfigPanel::OnSetActorAlpha(SceneHUD& a_hud, RE::Actor* actor, int alphaInt)
     {
-        if (actor)
-            actor->SetAlpha(std::clamp(alphaInt, 0, 100) / 100.0f);
+        auto inst = a_hud.GetThreadInstance();
+        if (!inst || !actor)
+            return;
+        auto* position = inst->GetPosition(actor);
+        if (!position)
+            return;
+        if (!position->ghostAlpha)
+            position->ghostAlpha = actor->GetAlpha();
+        actor->SetAlpha(std::clamp(alphaInt, 0, 100) / 100.0f);
     }
 
     // ── Actor card ──────────────────────────────────────────────────────────
@@ -263,7 +270,7 @@ namespace Thread::Interface
                 ImGuiMCP::ImVec2{ 0.0f, scale.Px(0.5f) * nestedScale });
             ImGuiMCP::PushStyleVar(ImGuiMCP::ImGuiStyleVar_GrabMinSize, scale.Px(6.0f) * nestedScale);
             if (ImGuiMCP::SliderInt("##slpp_tcmAlpha", &alphaInt, 0, 100, ""))
-                OnSetActorAlpha(actor, alphaInt);  // actor's opacity updates live while dragging
+                OnSetActorAlpha(a_hud, actor, alphaInt);  // actor's opacity updates live while dragging
             ImGuiMCP::PopStyleVar(2);
 
             ImGuiMCP::SameLine(0.0f, fieldGap);

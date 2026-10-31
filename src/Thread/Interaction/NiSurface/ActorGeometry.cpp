@@ -90,7 +90,8 @@ namespace Thread::Interaction::NiSurface::Geometry
     }
 
     ActorGeometry::ActorGeometry(RE::Actor* a_actor) :
-      ownerActor(a_actor)
+      ownerActor(a_actor),
+      openingEquipmentSignature(GetBipedSignature(a_actor))
     {
         const auto obj = a_actor->Get3D();
         if (!obj) {
@@ -147,6 +148,22 @@ namespace Thread::Interaction::NiSurface::Geometry
             shafts.emplace_back(a_actor, RE::NiPointer{ node }, base.rotation);
         }
         logger::info("NiSurface Interaction: Shaft discovery actor {:X}: configured bases found={}", a_actor->GetFormID(), shafts.size());
+        DiscoverOpenings();
+        const auto mouthOpening = GetMouthOpening();
+        if (mouth) {
+            const auto& center = mouth->worldBound.center;
+            logger::info("NiSurface Interaction: Actor {:X} mouth surface selected '{}' under '{}': center=({:.2f}, {:.2f}, {:.2f}), radius={:.2f}, opening={}", a_actor->GetFormID(), mouth->name,
+                mouth->parent ? mouth->parent->name.c_str() : "", center.x, center.y, center.z, mouth->worldBound.radius, mouthOpening.has_value());
+        }
+        logger::info("NiSurface Interaction: Actor {:X} surface shapes: mouth={}, vaginal={}, anal={}", a_actor->GetFormID(), mouthOpening.has_value(), trackedVagina.has_value(), trackedAnus.has_value());
+    }
+
+    void ActorGeometry::DiscoverOpenings()
+    {
+        auto* a_actor = ownerActor;
+        auto* obj = a_actor ? a_actor->Get3D() : nullptr;
+        if (!obj)
+            return;
         const std::array<RE::NiAVObject*, 2> vaginalTargets{ leftVagina.get(), rightVagina.get() };
         const std::array<RE::NiAVObject*, 2> analTargets{ leftAnus.get(), rightAnus.get() };
         const bool wantsVaginal = deepVagina && std::ranges::all_of(vaginalTargets, [](auto* a_target) { return a_target != nullptr; });
@@ -240,13 +257,27 @@ namespace Thread::Interaction::NiSurface::Geometry
                 CacheOpeningSelection(modelPath, "anal", std::string_view(analGeometry->name.c_str()));
             }
         }
-        const auto mouthOpening = GetMouthOpening();
-        if (mouth) {
-            const auto& center = mouth->worldBound.center;
-            logger::info("NiSurface Interaction: Actor {:X} mouth surface selected '{}' under '{}': center=({:.2f}, {:.2f}, {:.2f}), radius={:.2f}, opening={}", a_actor->GetFormID(), mouth->name,
-                mouth->parent ? mouth->parent->name.c_str() : "", center.x, center.y, center.z, mouth->worldBound.radius, mouthOpening.has_value());
+    }
+
+    void ActorGeometry::RefreshOpenings()
+    {
+        auto* root = ownerActor ? ownerActor->Get3D() : nullptr;
+        const auto signature = GetBipedSignature(ownerActor);
+        const bool detached = (trackedVagina && !trackedVagina->IsAttachedTo(root)) ||
+                              (trackedAnus && !trackedAnus->IsAttachedTo(root));
+        if (signature != openingEquipmentSignature || detached) {
+            trackedVagina.reset();
+            trackedAnus.reset();
+            openingEquipmentSignature = signature;
+            stableOpeningFrames = 0;
+            openingSearchPending = true;
         }
-        logger::info("NiSurface Interaction: Actor {:X} surface shapes: mouth={}, vaginal={}, anal={}", a_actor->GetFormID(), mouthOpening.has_value(), trackedVagina.has_value(), trackedAnus.has_value());
+        // Rescan once after equipment settles, never once per frame on unsupported bodies.
+        if (openingSearchPending && ++stableOpeningFrames >= SHAFT_EQUIPMENT_STABLE_FRAMES) {
+            openingSearchPending = false;
+            stableOpeningFrames = 0;
+            DiscoverOpenings();
+        }
     }
 
     std::optional<GeometryMath::Segment> ActorGeometry::GetVaginalSegment() const

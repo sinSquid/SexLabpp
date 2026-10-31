@@ -13,17 +13,19 @@ namespace Thread::Interaction::NiSurface
         constexpr float MINIMUM_SAMPLE_TIME{ 0.0001f };
     }
 
-    Scene::Scene(const std::vector<RE::Actor*>& a_positions, const Registry::Scene* a_scene)
+    Scene::Scene(const std::vector<RE::Actor*>& a_positions, const Registry::Scene*)
     {
         positions.reserve(a_positions.size());
         for (std::size_t i = 0; i < a_positions.size(); ++i) {
-            positions.emplace_back(a_positions[i], a_scene->GetNthPosition(i)->data.GetSex().get());
+            positions.emplace_back(a_positions[i], Registry::GetSex(a_positions[i]));
         }
     }
 
     bool Scene::VisitPositions(const std::function<bool(const ActorState&)>& a_visitor) const
     {
         std::scoped_lock lock{ _mutex };
+        if (!valid)
+            return false;
         for (const auto& position : positions) {
             if (a_visitor(position)) {
                 return true;
@@ -35,6 +37,8 @@ namespace Thread::Interaction::NiSurface
     std::optional<ShaftSize> Scene::GetShaftSize(RE::FormID a_actorId) const
     {
         std::scoped_lock lock{ _mutex };
+        if (!valid)
+            return std::nullopt;
         for (const auto& position : positions) {
             if (position.actor->GetFormID() == a_actorId) {
                 return position.geometry.GetShaftSize();
@@ -49,6 +53,8 @@ namespace Thread::Interaction::NiSurface
         if (!lock.try_lock()) {
             return;
         }
+        if (!valid)
+            return;
         bool geometryChanged = false;
         bool geometryReady = true;
         for (auto& position : positions) {
@@ -72,6 +78,7 @@ namespace Thread::Interaction::NiSurface
         std::vector<ActorState::Frame> frames;
         frames.reserve(positions.size());
         for (auto& position : positions) {
+            position.geometry.RefreshOpenings();
             frames.emplace_back(position);
         }
         if (a_drawCollision) {
@@ -263,6 +270,24 @@ namespace Thread::Interaction::NiSurface
             logger::error("NiSurface Interaction: Failed to register NiSurface for scene: unknown error");
             return nullptr;
         }
+    }
+
+    void Manager::Clear()
+    {
+        decltype(scenes) releaseAfterUnlock;
+        {
+            // Match Register's lock order and wait for any current geometry sampling to finish.
+            std::scoped_lock geometryLock{ _geometryMutex };
+            {
+                std::scoped_lock registryLock{ _mutex };
+                releaseAfterUnlock.swap(scenes);
+            }
+            for (const auto& [_, scene] : releaseAfterUnlock) {
+                std::scoped_lock sceneLock{ scene->_mutex };
+                scene->valid = false;
+            }
+        }
+        // Default scene destruction only releases references, after every plugin lock is released.
     }
 
     void Manager::Unregister(RE::FormID a_id, const Scene* a_expected) noexcept

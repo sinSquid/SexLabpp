@@ -96,6 +96,11 @@ struct AnimSpeedOverlay {
  static void StepSpeed(RE::TESQuest*,bool);
 };
 enum class PanelId {kNone,kOffsetAdjust};
+struct StageSelectMenu {
+ int cancellations=0;RE::TESQuest* cancelledThread=nullptr;
+ static StageSelectMenu& GetSingleton(){static StageSelectMenu menu;return menu;}
+ void CancelForThread(RE::TESQuest* q){++cancellations;cancelledThread=q;}
+};
 struct SceneHUD {
  struct Elements {AnimSpeedOverlay animSpeedOverlay;};
  std::unique_ptr<Elements> _elements=std::make_unique<Elements>();
@@ -144,6 +149,7 @@ int main(){
  // Closing the actual HUD destroys its elements, but must not disable arrows.
  instance.SetAnimationPlaybackSpeed(2.0f);
  h.Destroy();assert(!h.IsActive()&&!h._elements&&!h._focused);
+  assert(StageSelectMenu::GetSingleton().cancellations==1&&StageSelectMenu::GetSingleton().cancelledThread==&quest);
  send(right);drain();assert(speed()==2.25f&&Script::baseSpeed==2.25f);
  send(left);drain();assert(speed()==2.0f);
  // New UI elements must not replace the authoritative speed.

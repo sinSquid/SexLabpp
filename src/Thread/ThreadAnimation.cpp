@@ -4,6 +4,8 @@
 #include "Registry/Util/Scale.h"
 #include "Thread/Collision/CollisionHandler.h"
 #include "Thread/Hooks.h"
+#include "Thread/Interface/FurnSelectMenu.h"
+#include "Thread/Interface/StageSelectMenu.h"
 #include "Util/Script.h"
 
 #include <bit>
@@ -134,19 +136,29 @@ namespace Thread
 
     void Instance::RestorePreparedActors(RE::TESQuest* a_linkedQst)
     {
+        std::unique_lock lock{ _mInstances };
         RestorePreparedActorState(a_linkedQst);
+    }
+
+    void Instance::DiscardPreparedActors()
+    {
+        std::scoped_lock lock{ actorPreparationLock };
+        actorPreparations.clear();
     }
 
     void Instance::CancelPendingAnimations(RE::TESQuest* a_linkedQst)
     {
         {
             std::unique_lock lock{ _mInstances };
+            Interface::FurnSelectMenu::GetSingleton().CancelForThread(a_linkedQst);
+            Interface::StageSelectMenu::GetSingleton().CancelForThread(a_linkedQst);
             for (auto&& instance : instances) {
                 if (instance->linkedQst != a_linkedQst) {
                     continue;
                 }
                 instance->CancelFixedLengthTimer();
                 instance->ReleaseAnimations();
+                instance->RestoreActorAlphas();
                 if (!instance->pendingAnimations.empty()) {
                     logger::info("Cancelled {} pending animation synchronization(s).", instance->pendingAnimations.size());
                     instance->pendingAnimations.clear();
@@ -164,7 +176,7 @@ namespace Thread
                 break;
             }
         }
-        RestorePreparedActorState(a_linkedQst);
+        RestorePreparedActors(a_linkedQst);
     }
 
     bool Instance::BeginActorRecovery()

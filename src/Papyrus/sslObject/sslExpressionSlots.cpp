@@ -210,6 +210,10 @@ namespace Papyrus::ExpressionSlots
             a_vm->TraceStack("Actor is none", a_stackID);
             return {};
         }
+        const auto base = a_actor->GetActorBase();
+        if (!base || (base->GetSex() != RE::SEXES::kMale && base->GetSex() != RE::SEXES::kFemale))
+            return {};
+        const auto sex = base->GetSex();
         std::vector<RE::BSFixedString> ret{};
         RE::BSFixedString tag;
         switch (a_status) {
@@ -220,11 +224,11 @@ namespace Papyrus::ExpressionSlots
             tag = "Aggressor";
             break;
         default:
-            tag = "";
+            tag = "Normal";
             break;
         }
         Registry::Library::GetSingleton()->ForEachExpression([&](const Registry::Expression& profile) {
-            if (!profile.tags.HasTag(tag)) {
+            if (!profile.IsEnabled() || profile.data[sex].empty() || !profile.tags.HasTag(tag)) {
                 return false;
             }
             ret.push_back(profile.id);
@@ -239,11 +243,15 @@ namespace Papyrus::ExpressionSlots
             a_vm->TraceStack("Actor is none", a_stackID);
             return {};
         }
+        const auto base = a_actor->GetActorBase();
+        if (!base || (base->GetSex() != RE::SEXES::kMale && base->GetSex() != RE::SEXES::kFemale))
+            return {};
+        const auto sex = base->GetSex();
         std::vector<RE::BSFixedString> ret{};
         auto list = Util::StringSplit(a_tags, ",");
         Registry::TagDetails search{ list };
         Registry::Library::GetSingleton()->ForEachExpression([&](const Registry::Expression& profile) {
-            if (!search.MatchTags(profile.tags)) {
+            if (!profile.IsEnabled() || profile.data[sex].empty() || !search.MatchTags(profile.tags)) {
                 return false;
             }
             ret.push_back(profile.id);

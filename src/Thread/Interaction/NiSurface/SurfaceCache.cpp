@@ -19,6 +19,17 @@ namespace Thread::Interaction::NiSurface::Geometry
             a_hash ^= a_value + 0x9E3779B97F4A7C15ULL + (a_hash << 6) + (a_hash >> 2);
         }
 
+        bool IsAttachedTo(RE::NiAVObject* a_object, RE::NiAVObject* a_root)
+        {
+            if (!a_root)
+                return false;
+            for (auto* current = a_object; current; current = current->parent) {
+                if (current == a_root)
+                    return true;
+            }
+            return false;
+        }
+
         // Equipped-part pointer identity is a cheap signal that Skyrim has finished replacing actor geometry.
         std::uint64_t GetBipedSignature(RE::Actor* a_actor)
         {
@@ -299,8 +310,8 @@ namespace Thread::Interaction::NiSurface::Geometry
         {
             if (auto* dynamicShape = netimmerse_cast<RE::BSDynamicTriShape*>(a_geometry)) {
                 auto& dynamicData = dynamicShape->GetDynamicTrishapeRuntimeData();
+                RE::BSSpinLockGuard lock(dynamicData.lock);
                 if (dynamicData.dynamicData) {
-                    RE::BSSpinLockGuard lock(dynamicData.lock);
                     const auto* vertices = static_cast<const DirectX::XMVECTOR*>(dynamicData.dynamicData);
                     for (auto& candidates : a_candidates) {
                         for (auto& candidate : candidates) {
@@ -337,8 +348,8 @@ namespace Thread::Interaction::NiSurface::Geometry
         {
             if (auto* dynamicShape = netimmerse_cast<RE::BSDynamicTriShape*>(a_geometry)) {
                 auto& dynamicData = dynamicShape->GetDynamicTrishapeRuntimeData();
+                RE::BSSpinLockGuard lock(dynamicData.lock);
                 if (dynamicData.dynamicData) {
-                    RE::BSSpinLockGuard lock(dynamicData.lock);
                     const auto* vertices = static_cast<const DirectX::XMVECTOR*>(dynamicData.dynamicData);
                     for (auto& candidate : a_candidates) {
                         DirectX::XMFLOAT3 position;
@@ -764,6 +775,11 @@ namespace Thread::Interaction::NiSurface::Geometry
         return true;
     }
 
+    bool TrackedOpening::IsAttachedTo(RE::NiAVObject* a_root) const
+    {
+        return Detail::IsAttachedTo(geometry.get(), a_root);
+    }
+
     bool TrackedOpening::RefreshBinding()
     {
         auto retainedGeometry = geometry;
@@ -825,6 +841,7 @@ namespace Thread::Interaction::NiSurface::Geometry
         for (auto& bone : bones) {
             if (bone.skinIndex >= skinInstance->numMatrices || bone.skinIndex >= skinData->GetBoneCount() ||
                 !bone.node || skinInstance->bones[bone.skinIndex] != bone.node.get()) {
+                RefreshBinding();
                 return std::nullopt;
             }
             bone.transform = bone.node->world * skinData->GetBoneDataSkinToBone(bone.skinIndex);

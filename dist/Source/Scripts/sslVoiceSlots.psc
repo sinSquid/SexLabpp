@@ -7,6 +7,7 @@ scriptname sslVoiceSlots extends Quest
 String Function SelectVoice(Actor akActor) native global
 String Function SelectVoiceByTags(Actor akActor, String asTags) native global
 String Function SelectVoiceByTagsA(Actor akActor, String[] asTags) native global
+String[] Function GetVoicesByTagsA(String[] asTags) native global
 
 String Function GetSavedVoice(Actor akActor) native global
 Function StoreVoice(Actor akActor, String asVoice) native global
@@ -74,12 +75,16 @@ Function SyncBackend()
 	String[] arr = GetAllVoices("")
 	int i = 0
 	int ii = 0
-	While (i < aliases.Length && ii < arr.Length)
+	While (i < aliases.Length)
 		sslBaseVoice v = aliases[i] as sslBaseVoice
 		If (v)
-			v.Registry = v.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
-			v.Registry = arr[ii]
-			ii += 1
+			If (ii < arr.Length)
+				v.Registry = v.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
+				v.Registry = arr[ii]
+				ii += 1
+			ElseIf (v.Registry != "")
+				v.Registry = ""
+			EndIf
 		EndIf
 		i += 1
 	EndWhile
@@ -232,12 +237,38 @@ endFunction
 
 sslBaseVoice[] function GetAllByTags(string Tags, string TagsSuppressed = "", bool RequireAll = true)
 	String[] arg = SexLabUtil.MergeSplitTags(Tags, TagsSuppressed, RequireAll)
-	String v = SelectVoiceByTagsA(none, arg)
-	If (!v)
-		return sslUtility.VoiceArray(0)
+	String[] voiceIDs = GetVoicesByTagsA(arg)
+	String[] registeredIDs = Registry
+	int count = voiceIDs.Length
+	If (count > registeredIDs.Length)
+		count = registeredIDs.Length
 	EndIf
-	sslBaseVoice[] ret = new sslBaseVoice[1]
-	ret[0] = GetbyRegistrar(v)
+	sslBaseVoice[] ret = sslUtility.VoiceArray(count)
+	String[] reservedIDs = Utility.ResizeStringArray(voiceIDs, ret.Length)
+	int i = 0
+	While (i < ret.Length)
+		int index = registeredIDs.Find(voiceIDs[i])
+		If (index < 0)
+			; A finite legacy alias pool can lend unrequested slots to this result.
+			int j = 0
+			While (j < registeredIDs.Length && index < 0)
+				If (reservedIDs.Find(registeredIDs[j]) < 0)
+					index = j
+				EndIf
+				j += 1
+			EndWhile
+			If (index >= 0)
+				sslBaseVoice proxy = GetNthAlias(index) as sslBaseVoice
+				proxy.Registry = proxy.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
+				proxy.Registry = voiceIDs[i]
+				registeredIDs[index] = voiceIDs[i]
+			EndIf
+		EndIf
+		If (index >= 0)
+			ret[i] = GetNthAlias(index) as sslBaseVoice
+		EndIf
+		i += 1
+	EndWhile
 	return ret
 endFunction
 
@@ -454,8 +485,8 @@ endFunction
 
 int Function FindEmpty()
 	int n = Slotted
-	If (GetNthAlias(n + 1))
-		return n + 1
+	If (GetNthAlias(n))
+		return n
 	EndIf
 	return -1
 EndFunction

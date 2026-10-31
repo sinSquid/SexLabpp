@@ -110,9 +110,7 @@ namespace Registry
     void Scale::RemoveScale(RE::Actor* a_actor)
     {
         assert(a_actor);
-        if (Settings::ReadMCM(Settings::bDisableScale)) {
-            return;
-        } else if (!transformInterface) {
+        if (!transformInterface) {
             logger::error("Missing interface, scaling disabled");
             Settings::WriteMCM(Settings::bDisableScale, true);
             return;

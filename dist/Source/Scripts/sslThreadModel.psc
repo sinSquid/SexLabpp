@@ -1219,7 +1219,7 @@ State Animating
 				ActorAlias[i].TryLockAndUnpause()
 				i += 1
 			EndWhile
-			StartStage(Utility.ResizeStringArray(_StageHistory, ToStage - 2), _StageHistory[ToStage - 1])
+			StartStage(Utility.ResizeStringArray(_StageHistory, ToStage - 1), _StageHistory[ToStage - 1])
 		EndIf
 	EndFunction
 	Function BranchTo(int aiNextBranch)
@@ -1295,8 +1295,12 @@ State Animating
 			return Timers[Timers.Length - 1]
 		EndIf
 		int lastTimerIdx = Timers.Length - 2
-		If (_StageHistory.Length < lastTimerIdx)
-			return Timers[_StageHistory.Length]
+		int timerIdx = _StageHistory.Length - 1
+		If (timerIdx < 0)
+			timerIdx = 0
+		EndIf
+		If (timerIdx < lastTimerIdx)
+			return Timers[timerIdx]
 		EndIf
 		return Timers[lastTimerIdx]
 	Endfunction
@@ -1768,6 +1772,7 @@ State Ending
 		string activeScene = GetActiveScene()
 		Log("Thread validated, playing animation: " + activeScene + ", " + SexLabRegistry.GetSceneName(activeScene), "StartThread()")
 		(self as sslThreadController).ToggleVisibilitySceneHUD(1)
+		OnPositionsChanged()
 		StartStage(Utility.CreateStringArray(0), "")
 		_QuickResetScenes = false
 		return true
@@ -1908,16 +1913,64 @@ EndFunction
 Function SortAliasesToPositions()
 	_Positions = GetPositions()
 	int i = 0
-	While (i < ActorAlias.Length)
-		Actor position = ActorAlias[i].GetReference() as Actor
-		If (position)
-			int inActorArray = _Positions.Find(position)
-			sslActorAlias tmp = ActorAlias[inActorArray]
-			ActorAlias[inActorArray] = ActorAlias[i]
+	While (i < _Positions.Length)
+		int j = i
+		While (j < ActorAlias.Length && (ActorAlias[j].GetReference() as Actor) != _Positions[i])
+			j += 1
+		EndWhile
+		If (j < ActorAlias.Length)
+			sslActorAlias tmp = ActorAlias[j]
+			ActorAlias[j] = ActorAlias[i]
 			ActorAlias[i] = tmp
 		EndIf
 		i += 1
 	EndWhile
+EndFunction
+
+; Native position changes and quick scene rebuilds must preserve actor/alias identity.
+Function OnPositionsChanged()
+	int requestRevision = LifecycleRevision
+	If (!IsCurrentSceneRequest(requestRevision) || !GetPositions().Length)
+		return
+	EndIf
+	SortAliasesToPositions()
+	String sceneID = GetActiveScene()
+	int[] strips = SexLabRegistry.GetStripDataA(sceneID, GetActiveStage())
+	int[] sexes = SexLabRegistry.GetPositionSexA(sceneID)
+	If (strips.Length != _Positions.Length || sexes.Length != _Positions.Length)
+		return
+	EndIf
+	int i = 0
+	While (i < _Positions.Length)
+		If (!IsCurrentSceneRequest(requestRevision))
+			return
+		EndIf
+		ActorAlias[i].TryLockAndUnpause()
+		ActorAlias[i].ResetPosition(strips[i], sexes[i])
+		i += 1
+	EndWhile
+EndFunction
+
+; A queued choice must still belong to the same scene lifecycle and origin stage.
+Function BranchToCurrent(int aiBranch, int aiRevision, String asScene, String asStage)
+	If (IsCurrentSceneRequest(aiRevision) && GetActiveScene() == asScene && GetActiveStage() == asStage)
+		BranchTo(aiBranch)
+	EndIf
+EndFunction
+
+Function SkipToCurrent(int aiRevision, String asScene, String asOrigin, String asTarget)
+	If (IsCurrentSceneRequest(aiRevision) && GetActiveScene() == asScene && GetActiveStage() == asOrigin)
+		(self as sslThreadController).ToggleVisibilitySceneGraph(-1)
+		If (IsCurrentSceneRequest(aiRevision) && GetActiveScene() == asScene && GetActiveStage() == asOrigin)
+			SkipTo(asTarget)
+		EndIf
+	EndIf
+EndFunction
+
+Function CloseSceneGraphCurrent(int aiRevision, String asScene)
+	If (IsCurrentSceneRequest(aiRevision) && GetActiveScene() == asScene)
+		(self as sslThreadController).ToggleVisibilitySceneGraph(-1)
+	EndIf
 EndFunction
 
 Sound Function GetAliasSound(sslActorAlias akThis, String asVoice, int aiStrength)
@@ -2226,6 +2279,7 @@ Function Initialize()
 	_AnimationSpeedBase = 1.25
 	_TimerPaused = false
 	_NativeFixedLengthTimer = false
+	_CustomTimers = Utility.CreateFloatArray(0)
 	_QuickResetScenes = false
 	_animationStarted = false
 	_animationSyncPending = false

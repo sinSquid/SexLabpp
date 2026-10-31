@@ -142,7 +142,7 @@ namespace Registry
 
     void TagData::IntersectTags(const TagData& a_tags)
     {
-        _basetags = _basetags & a_tags._basetags;
+        _basetags = _basetags & a_tags.GetBaseTags();
         std::erase_if(_extratags, [&](const auto& tag) { return !a_tags.HasTag(tag); });
         std::erase_if(_annotations, [&](const auto& tag) { return !a_tags.HasTag(tag); });
     }
@@ -157,14 +157,14 @@ namespace Registry
 
     bool TagData::HasTag(Tag a_tag) const
     {
-        return _basetags.all(a_tag);
+        return GetBaseTags().all(a_tag);
     }
 
     bool TagData::HasTag(const RE::BSFixedString& a_tag) const
     {
         const auto where = TagTable.find(a_tag);
         if (where != TagTable.end()) {
-            return _basetags.all(where->second);
+            return HasTag(where->second);
         }
         return HasExtraTag(a_tag) || HasAnnotation(a_tag);
     }
@@ -172,12 +172,12 @@ namespace Registry
     bool TagData::HasTags(const TagData& a_tag, bool a_all) const
     {
         if (a_all) {
-            return _basetags.all(a_tag._basetags.get()) &&
+            return GetBaseTags().all(a_tag.GetBaseTags().get()) &&
                    std::ranges::all_of(a_tag._extratags, [&](const auto& tag) { return HasTag(tag); }) &&
                    std::ranges::all_of(a_tag._annotations, [&](const auto& tag) { return HasTag(tag); });
         } else {
             return a_tag.IsEmpty() ||
-                   _basetags.any(a_tag._basetags.get()) ||
+                   GetBaseTags().any(a_tag.GetBaseTags().get()) ||
                    std::ranges::any_of(a_tag._extratags, [&](const auto& tag) { return HasTag(tag); }) ||
                    std::ranges::any_of(a_tag._annotations, [&](const auto& tag) { return HasTag(tag); });
         }
@@ -185,9 +185,11 @@ namespace Registry
 
     uint32_t TagData::CountTags(const TagData& a_tag) const
     {
-        return std::popcount((a_tag._basetags & _basetags).underlying()) +
+        return std::popcount((a_tag.GetBaseTags() & GetBaseTags()).underlying()) +
                static_cast<uint32_t>(std::ranges::count_if(_extratags, [&](const auto& tag) { return a_tag.HasTag(tag); })) +
-               static_cast<uint32_t>(std::ranges::count_if(_annotations, [&](const auto& tag) { return a_tag.HasTag(tag); }));
+               static_cast<uint32_t>(std::ranges::count_if(_annotations, [&](const auto& tag) {
+                   return !TagTable.contains(tag) && !HasExtraTag(tag) && a_tag.HasTag(tag);
+               }));
     }
 
     bool TagData::IsEmpty() const
@@ -230,6 +232,16 @@ namespace Registry
         if (HasExtraTag(a_tag))
             return;
         _extratags.push_back(a_tag);
+    }
+
+    stl::enumeration<Tag> TagData::GetBaseTags() const
+    {
+        auto result = _basetags;
+        for (const auto& tag : _annotations) {
+            if (const auto it = TagTable.find(tag); it != TagTable.end())
+                result.set(it->second);
+        }
+        return result;
     }
 
     void TagData::RemoveExtraTag(const RE::BSFixedString& a_tag)

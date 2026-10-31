@@ -271,6 +271,7 @@ namespace Papyrus::ThreadModel
         std::vector<RE::BSFixedString> a_scenesCustom,
         int a_furniturepref)
     {
+        const auto generation = Thread::Instance::ReserveCreation(a_qst);
         const auto library = Registry::Library::GetSingleton();
         const auto toVector = [&](const auto& a_list) {
             return std::ranges::fold_left(a_list, std::vector<const Registry::Scene*>{}, [&](auto&& acc, const auto& it) {
@@ -290,7 +291,7 @@ namespace Papyrus::ThreadModel
             toVector(a_scenesCustom)
         };
         std::thread([=]() {
-            Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference);
+            Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference, generation);
         }).detach();
     }
 

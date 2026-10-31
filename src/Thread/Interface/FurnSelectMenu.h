@@ -17,6 +17,7 @@ namespace Thread::Interface
 
         bool Register();
         void Open(RE::TESQuest* a_quest, const std::vector<Item>& a_items);
+        void CancelForThread(RE::TESQuest* a_quest);
 
       private:
         FurnSelectMenu() = default;
@@ -26,6 +27,7 @@ namespace Thread::Interface
         void HandleSelection(std::size_t a_index);
 
         RE::TESQuest* _linkedThread{};
+        std::int32_t _ownerRevision{};
         std::vector<Item> _items;
     };
 }

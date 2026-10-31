@@ -46,7 +46,10 @@ EndEvent
 Event OnPlayerLoadGame()
 	If (!Config.CheckSystem())
 		return
-	ElseIf (IsInstalled)
+	EndIf
+	AnimSlots.InvalidateBackEnd()
+	CreatureSlots.InvalidateBackEnd()
+	If (IsInstalled)
 		Config.Reload()
 		ThreadSlots.StopAll()
 		ModEvent.Send(ModEvent.Create("SexLabGameLoaded"))

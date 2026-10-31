@@ -91,7 +91,9 @@ namespace Registry
         ret.set(Sex::s);
         SET_SEX(Male);
         SET_SEX(Female);
-        SET_SEX(Futa);
+        if (IsHuman()) {
+            SET_SEX(Futa);
+        }
 #undef SET_SEX
         return ret;
     }
@@ -221,7 +223,14 @@ namespace Registry
         std::vector<ActorFragment> fragments;
         fragments.reserve(a_actors.size());
         for (auto&& actor : a_actors) {
-            fragments.emplace_back(actor, std::ranges::contains(a_submissives, actor));
+            if (!actor)
+                return {};
+            try {
+                fragments.emplace_back(actor, std::ranges::contains(a_submissives, actor));
+            } catch (const std::exception& error) {
+                logger::error("Cannot build actor query: {}", error.what());
+                return {};
+            }
         }
         return fragments;
     }

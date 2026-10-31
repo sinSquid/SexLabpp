@@ -58,12 +58,14 @@ namespace Thread
         };
 
       public:
-        Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
+        Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, std::uint64_t a_generation);
         ~Instance() { UnregisterInstanceNiSurface(); }
 
-        static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
+        static std::uint64_t ReserveCreation(RE::TESQuest* a_linkedQst);
+        static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, std::uint64_t a_generation);
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
         static void CancelPendingCreations();
+        static void RevertInstances();
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
         using Access = Util::LockedAccess<Instance, std::unique_lock<std::recursive_mutex>>;
         static Access GetInstance(RE::TESQuest* a_linkedQst);
@@ -192,6 +194,7 @@ namespace Thread
         };
 
         RE::TESQuest* linkedQst;
+        std::uint64_t creationGeneration;
         std::weak_ptr<Interaction::NiSurface::Scene> ownedNiSurface;
 
         Center center;
@@ -228,6 +231,7 @@ namespace Thread
         };
 
         void FinalizeInstanceMake();
+        bool IsCreationCurrent() const;
         RE::Actor* InitializeReferences(const std::vector<RE::Actor*>& a_submissives);
         std::vector<Registry::ActorFragment> InitializeScenes(const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
         std::vector<const Registry::Scene*>& InitializeCenter(RE::Actor* centerAct, FurniturePreference furniturePreference);
@@ -240,6 +244,7 @@ namespace Thread
         void TryStartAnimations();
         bool HoldAnimation(PendingAnimation& a_pending);
         void ReleaseAnimations();
+        void RestoreActorAlphas();
         bool StartFixedLengthTimer();
         void CancelFixedLengthTimer();
         void UpdateFixedLengthTimer(float a_delta);
@@ -247,6 +252,7 @@ namespace Thread
         void UpdatePendingRecoveries(float a_delta);
         void ReassertPlacement(size_t a_position, bool a_force);
         static void RestorePreparedActors(RE::TESQuest* a_linkedQst);
+        static void DiscardPreparedActors();
 
       private:
         static inline std::recursive_mutex _mInstances{};

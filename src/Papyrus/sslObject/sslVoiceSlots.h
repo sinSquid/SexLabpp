@@ -50,6 +50,7 @@ namespace Papyrus::VoiceSlots
     RE::BSFixedString SelectVoice(RE::StaticFunctionTag*, RE::Actor* a_actor);
     RE::BSFixedString SelectVoiceByTags(RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_tags);
     RE::BSFixedString SelectVoiceByTagsA(RE::StaticFunctionTag*, RE::Actor* a_actor, std::vector<std::string_view> a_tags);
+    std::vector<RE::BSFixedString> GetVoicesByTagsA(RE::StaticFunctionTag*, std::vector<std::string_view> a_tags);
 
     RE::BSFixedString GetSavedVoice(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor);
     void StoreVoice(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, RE::Actor* a_actor, RE::BSFixedString a_voice);
@@ -64,6 +65,7 @@ namespace Papyrus::VoiceSlots
         REGISTERFUNC(SelectVoice, "sslVoiceSlots", true);
         REGISTERFUNC(SelectVoiceByTags, "sslVoiceSlots", true);
         REGISTERFUNC(SelectVoiceByTagsA, "sslVoiceSlots", true);
+        REGISTERFUNC(GetVoicesByTagsA, "sslVoiceSlots", true);
 
         REGISTERFUNC(GetSavedVoice, "sslVoiceSlots", true);
         REGISTERFUNC(StoreVoice, "sslVoiceSlots", true);

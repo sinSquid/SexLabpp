@@ -309,6 +309,7 @@ task("serialize")
         task.run("spriggit.serialize", {
             target = "SexLab.esm",
             install = option.get("install"),
+            installdir = option.get("installdir"),
         })
     end)
 

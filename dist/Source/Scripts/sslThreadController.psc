@@ -224,7 +224,6 @@ Function PickRandomScene(String asNewScene)
 		Log("PickRandomScene: No other scenes to pick from")
 		return
 	EndIf
-	UnregisterForUpdate()
 	If (asNewScene == "")
 		int i = sceneSet.Find(GetActiveScene())
 		int r = Utility.RandomInt(0, sceneSet.Length - 1)

@@ -88,6 +88,7 @@ namespace Thread::Interface
         }
         _choiceScrollOffsets.assign(_choices.size(), 0.0f);
         _choiceOrigin = stage;
+        _choiceRevision = inst->GetThreadProperty<std::int32_t>("LifecycleRevision");
         _choicePending = true;
         _linkedThread = a_quest;
         _choiceStartTime = ImGuiMCP::GetTime();
@@ -147,6 +148,16 @@ namespace Thread::Interface
         }
         SetBlocksInput(false);
         Hide();
+        _linkedThread = nullptr;
+        _graphScene = nullptr;
+        _graphNodes.clear();
+        _graphEdges.clear();
+    }
+
+    void StageSelectMenu::CancelForThread(RE::TESQuest* a_quest)
+    {
+        if (_linkedThread == a_quest)
+            Close();
     }
 
     // ── Internals
@@ -176,8 +187,16 @@ namespace Thread::Interface
 
     void StageSelectMenu::OnNextBranchSelected(int a_index)
     {
+        auto inst = Instance::GetInstance(_linkedThread);
+        if (!_choicePending || a_index < 0 || static_cast<std::size_t>(a_index) >= _choices.size() ||
+            !inst || inst->GetActiveStage() != _choiceOrigin ||
+            inst->GetThreadProperty<std::int32_t>("LifecycleRevision") != _choiceRevision) {
+            ClosePendingChoice();
+            return;
+        }
         const auto script = Script::GetScriptObject(_linkedThread, "sslThreadController");
-        Script::DispatchMethodCall(script, "BranchTo", Script::CallbackPtr{}, static_cast<int>(a_index));
+        Script::DispatchMethodCall(script, "BranchToCurrent", Script::CallbackPtr{}, static_cast<int>(a_index),
+            static_cast<int>(_choiceRevision), RE::BSFixedString{ inst->GetActiveScene()->id }, RE::BSFixedString{ _choiceOrigin->id });
         ClosePendingChoice();
     }
 
@@ -283,6 +302,16 @@ namespace Thread::Interface
             return;
         if (!_linkedThread)
             return;
+        auto inst = Instance::GetInstance(_linkedThread);
+        if (!inst) {
+            Close();
+            return;
+        }
+        if (_choicePending) {
+            if (inst->GetActiveStage() != _choiceOrigin ||
+                inst->GetThreadProperty<std::int32_t>("LifecycleRevision") != _choiceRevision)
+                ClosePendingChoice();
+        }
 
         if (_graphOpen)
             RenderSceneGraphView();
@@ -480,10 +509,12 @@ namespace Thread::Interface
     void StageSelectMenu::RenderSceneGraphView()
     {
         auto inst = Instance::GetInstance(_linkedThread);
-        if (!inst) {
+        if (!inst || !inst->GetActiveScene() || !inst->GetActiveStage()) {
             Close();
             return;
         }
+        if (inst->GetActiveScene() != _graphScene)
+            BuildSceneGraph(*inst);
         auto& scale = SceneHUD::GetSingleton().GetScale();
         auto* io = ImGuiMCP::GetIO();
         const float dw = io->DisplaySize.x;
@@ -707,15 +738,17 @@ namespace Thread::Interface
 
         // Node click
         const auto script = Script::GetScriptObject(_linkedThread, "sslThreadController");
+        const auto revision = inst->GetThreadProperty<std::int32_t>("LifecycleRevision");
+        const RE::BSFixedString sceneID{ inst->GetActiveScene()->id };
         if (graphClickedIndex >= 0 && graphClickedIndex < static_cast<int>(_graphNodes.size())) {
             const auto* clickedStage = _graphNodes[graphClickedIndex].stage;
             if (_graphScene && clickedStage) {
-                Script::DispatchMethodCall(script, "ToggleVisibilitySceneGraph", Script::CallbackPtr{}, -1);
-                Script::DispatchMethodCall(script, "SkipTo", Script::CallbackPtr{}, std::string{ clickedStage->id });
+                Script::DispatchMethodCall(script, "SkipToCurrent", Script::CallbackPtr{}, static_cast<int>(revision),
+                    RE::BSFixedString{ sceneID }, RE::BSFixedString{ inst->GetActiveStage()->id }, RE::BSFixedString{ clickedStage->id });
                 return;
             }
         }
         if (closeClicked || ImGuiMCP::IsKeyReleased(ImGuiMCP::ImGuiKey_Escape))
-            Script::DispatchMethodCall(script, "ToggleVisibilitySceneGraph", Script::CallbackPtr{}, -1);
+            Script::DispatchMethodCall(script, "CloseSceneGraphCurrent", Script::CallbackPtr{}, static_cast<int>(revision), RE::BSFixedString{ sceneID });
     }
 }

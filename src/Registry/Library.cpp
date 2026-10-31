@@ -40,16 +40,9 @@ namespace Registry
             return {};
         const auto tStart = std::chrono::high_resolution_clock::now();
         ActorFragment::FragmentHash hash;
-        std::vector<ActorFragment> fragments;
-        fragments.reserve(a_actors.size());
-        for (auto&& position : a_actors) {
-            if (!position) {
-                logger::warn("Warning: NULL Actor passed to LookupScenes");
-                continue;
-            }
-            const auto submissive = std::ranges::contains(a_submissives, position);
-            fragments.emplace_back(position, submissive);
-        }
+        const auto fragments = ActorFragment::MakeFragmentList(a_actors, a_submissives);
+        if (fragments.empty())
+            return {};
         hash = ActorFragment::MakeFragmentHash(fragments);
         TagDetails tags{ a_tags };
         const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", [&] {

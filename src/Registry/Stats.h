@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Util/RecordIO.h"
+#include <array>
 #include <shared_mutex>
 
 #include "Registry/Define/RaceKey.h"
@@ -98,12 +99,17 @@ namespace Registry::Statistics
         };
 
       public:
-        ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type);
+        using Recency = std::array<uint64_t, 4>;
+        ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type, uint64_t sequence = 0);
         ActorEncounter(Util::RecordReader<SKSE::SerializationInterface>& reader);
         bool Resolve(SKSE::SerializationInterface* a_intfc);
         ~ActorEncounter() = default;
 
-        void Update(EncounterType a_type);
+        void Update(EncounterType a_type, uint64_t sequence = 0);
+        uint64_t GetLastEncounterOrder(RE::FormID actor, EncounterType type) const;
+        const Recency& GetRecency() const { return _recency; }
+        bool SetRecency(const Recency& values);
+        void InitializeLegacyRecency(uint64_t sequence);
 
         std::pair<const EncounterObj&, const EncounterObj&> GetParticipants() const { return { npc1, npc2 }; }
         const ActorEncounter::EncounterObj* GetPartner(RE::Actor* a_actor) const;
@@ -126,6 +132,7 @@ namespace Registry::Statistics
         uint8_t _timesdominant{ 0 };
         uint8_t _timesvictim{ 0 };
         uint8_t _timesaggressor{ 0 };
+        Recency _recency{};  // Victim, Aggressor, Submissive, Dominant; stored in a separate record.
     };
 
     class StatisticsData :
@@ -166,13 +173,20 @@ namespace Registry::Statistics
         void Register();
         void Save(SKSE::SerializationInterface* a_intfc);
         void Load(SKSE::SerializationInterface* a_intfc, uint32_t version, uint32_t length);
+        void SaveEncounterRecency(SKSE::SerializationInterface* a_intfc);
+        void BeginLoad();
+        void LoadEncounterRecency(SKSE::SerializationInterface* a_intfc, uint32_t length);
+        void FinishLoad();
         void Revert(SKSE::SerializationInterface* a_intfc);
 
       private:
         std::vector<ActorEncounter>::iterator GetEncounterIter(RE::Actor* fst, RE::Actor* snd);  // caller holds _m
+        uint64_t NextEncounterSequence();  // caller holds _m
         mutable std::shared_mutex _m{};
         std::vector<ActorEncounter> _encounters;
         std::map<RE::FormID, ActorStats> _data;
+        uint64_t _nextEncounterSequence{ 0 };
+        std::map<std::pair<RE::FormID, RE::FormID>, ActorEncounter::Recency> _loadedRecency;
     };
 
 }  // namespace Registry::Statistics

@@ -280,6 +280,17 @@ namespace Registry
     void Scene::Save(YAML::Node& a_node) const
     {
         a_node["enabled"] = this->enabled;
+        auto furniture = a_node["furnitureOffset"];
+        furnitureOffset.Save(furniture);
+        a_node["annotations"] = YAML::Node{ YAML::NodeType::Sequence };
+        for (const auto& annotation : tags.GetAnnotations())
+            a_node["annotations"].push_back(annotation.data());
+        for (size_t i = 0; i < positions.size(); ++i) {
+            auto annotations = a_node["positions"][i]["annotations"];
+            annotations = YAML::Node{ YAML::NodeType::Sequence };
+            for (const auto& annotation : positions[i].annotations)
+                annotations.push_back(annotation.data());
+        }
         for (auto&& stage : stages) {
             auto node = a_node[stage->id];
             stage->Save(node);
@@ -290,6 +301,24 @@ namespace Registry
     {
         if (const auto enable = a_node["enabled"]; enable.IsDefined())
             this->enabled = enable.as<bool>();
+        if (const auto furniture = a_node["furnitureOffset"]; furniture.IsDefined())
+            furnitureOffset.Load(furniture);
+        if (const auto annotations = a_node["annotations"]; annotations.IsDefined()) {
+            std::vector<RE::BSFixedString> values;
+            for (const auto& annotation : annotations)
+                values.emplace_back(annotation.as<std::string>());
+            tags.SetAnnotations(values);
+        }
+        if (const auto positionNodes = a_node["positions"]; positionNodes.IsSequence()) {
+            for (size_t i = 0; i < positions.size() && i < positionNodes.size(); ++i) {
+                if (const auto annotations = positionNodes[i]["annotations"]; annotations.IsDefined()) {
+                    std::vector<RE::BSFixedString> values;
+                    for (const auto& annotation : annotations)
+                        values.emplace_back(annotation.as<std::string>());
+                    positions[i].annotations = std::move(values);
+                }
+            }
+        }
 
         for (auto&& stage : stages) {
             if (auto node = a_node[stage->id]; node.IsDefined()) {
@@ -301,8 +330,15 @@ namespace Registry
 
     bool PositionInfo::CanFillPosition(RE::Actor* a_actor) const
     {
-        auto fragment = ActorFragment(a_actor, false);
-        return CanFillPosition(fragment);
+        if (!a_actor)
+            return false;
+        try {
+            auto fragment = ActorFragment(a_actor, false);
+            return CanFillPosition(fragment);
+        } catch (const std::exception& error) {
+            logger::error("Cannot validate actor position: {}", error.what());
+            return false;
+        }
     }
 
     bool PositionInfo::CanFillPosition(const ActorFragment& a_fragment) const
@@ -338,8 +374,10 @@ namespace Registry
             SET_SEX(Futa);
 #undef SET_SEX
         } else {
-            const auto crtSex = sex.any(Sex::Female) ? PapyrusSex::CrtFemale : PapyrusSex::CrtMale;
-            ret.set(crtSex);
+            if (sex.any(Sex::Male))
+                ret.set(PapyrusSex::CrtMale);
+            if (sex.any(Sex::Female))
+                ret.set(PapyrusSex::CrtFemale);
         }
         return ret.get();
     }
@@ -484,7 +522,7 @@ namespace Registry
                 return true;
             }
 
-            int count[3];
+            int count[3]{};
             for (auto&& position : positions) {
                 if (position.data.IsHuman())
                     continue;
@@ -705,8 +743,10 @@ std::vector<const Stage*> Scene::GetLongestPath(const Stage* a_src) const
         constexpr size_t searchBudget = 100000;
         size_t remaining = searchBudget;
         bool exhausted = false;
+        const bool hasSink = std::ranges::any_of(reachable, [&](const Stage* node) { return graph.at(node).empty(); });
         std::set<const Stage*> visited{ a_src };
-        std::vector<const Stage*> current{ a_src }, best{ a_src };
+        // Keep a valid route even when the bounded cyclic search runs out of budget.
+        std::vector<const Stage*> current{ a_src }, best = hasSink ? GetShortestPath(a_src) : std::vector<const Stage*>{ a_src };
         // An explicit traversal stack avoids recursive path copies. Every edge
         // examined consumes budget, including edges back into the current path.
         std::vector<size_t> nextEdge{ 0 };
@@ -729,7 +769,7 @@ std::vector<const Stage*> Scene::GetLongestPath(const Stage* a_src) const
             visited.insert(next);
             current.push_back(next);
             nextEdge.push_back(0);
-            if (current.size() > best.size())
+            if (current.size() > best.size() && (!hasSink || graph.at(next).empty()))
                 best = current;
         }
         if (exhausted)

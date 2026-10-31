@@ -3,27 +3,34 @@
 #include "Registry/Library.h"
 #include "Registry/Util/RayCast/Offsets.h"
 #include "Thread/Hooks.h"
+#include "Thread/Interface/FurnSelectMenu.h"
 #include "Thread/Interface/SceneHUD.h"
 #include "Thread/Interface/StageSelectMenu.h"
 #include "Util/Script.h"
 
 namespace Thread
 {
-    void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference)
+    std::uint64_t Instance::ReserveCreation(RE::TESQuest* a_linkedQst)
     {
-        std::uint64_t generation;
+        std::unique_lock lock{ _mInstances };
+        return ++creationGenerations[a_linkedQst];
+    }
+
+    void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, std::uint64_t generation)
+    {
         {
             std::unique_lock lock{ _mInstances };
+            if (creationGenerations[a_linkedQst] != generation)
+                return;
             const auto matches = [a_linkedQst](const auto& instance) { return instance->linkedQst == a_linkedQst; };
             if (std::ranges::any_of(instances, matches) || std::ranges::any_of(pendingInstances, matches)) {
                 logger::warn("Thread instance already exists for quest {:X}.", a_linkedQst->formID);
                 DispatchContinueSetup(a_linkedQst, false);
                 return;
             }
-            generation = ++creationGenerations[a_linkedQst];
         }
         try {
-            auto instance = std::make_unique<Instance>(a_linkedQst, a_submissives, a_scenes, a_furniturePreference);
+            auto instance = std::make_unique<Instance>(a_linkedQst, a_submissives, a_scenes, a_furniturePreference, generation);
             std::unique_lock lock{ _mInstances };
             if (creationGenerations[a_linkedQst] != generation)
                 return;
@@ -50,6 +57,8 @@ namespace Thread
         Interface::SceneHUD::GetSingleton().SetSpeedControl(a_linkedQst, false);
         {
             std::unique_lock lock{ _mInstances };
+            Interface::FurnSelectMenu::GetSingleton().CancelForThread(a_linkedQst);
+            Interface::StageSelectMenu::GetSingleton().CancelForThread(a_linkedQst);
             ++creationGenerations[a_linkedQst];
             std::erase_if(pendingInstances, [&](const auto& instance) {
                 return instance->linkedQst == a_linkedQst;
@@ -62,6 +71,7 @@ namespace Thread
                     Hooks::SetWeaponDrawBlocked(false);
                 }
                 instance->ReleaseAnimations();
+                instance->RestoreActorAlphas();
                 return true;
             });
         }
@@ -86,6 +96,8 @@ namespace Thread
         std::unique_lock lock{ _mInstances };
         for (auto& entry : creationGenerations) {
             ++entry.second;
+            Interface::FurnSelectMenu::GetSingleton().CancelForThread(entry.first);
+            Interface::StageSelectMenu::GetSingleton().CancelForThread(entry.first);
         }
         pendingInstances.clear();
     }
@@ -99,6 +111,23 @@ namespace Thread
             }
         }
         return { std::move(lock), nullptr };
+    }
+
+    void Instance::RevertInstances()
+    {
+        std::vector<std::unique_ptr<Instance>> retired;
+        {
+            std::unique_lock lock{ _mInstances };
+            CancelPendingCreations();
+            DiscardPreparedActors();
+            retired.swap(instances);
+        }
+        Interaction::NiSurface::Manager::Clear();
+        for (const auto& instance : retired)
+            Interface::SceneHUD::GetSingleton().SetSpeedControl(instance->linkedQst, false);
+        retired.clear();
+        Hooks::SetWeaponDrawBlocked(false);
+        Interface::SceneHUD::GetSingleton().Destroy();
     }
 
     void Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result)
@@ -389,6 +418,17 @@ namespace Thread
         position->voice = a_voice;
     }
 
+    void Instance::RestoreActorAlphas()
+    {
+        for (auto& position : positions) {
+            if (!position.ghostAlpha)
+                continue;
+            if (const auto actor = position.data.GetActor())
+                actor->SetAlpha(*position.ghostAlpha);
+            position.ghostAlpha.reset();
+        }
+    }
+
     int32_t Instance::GetUniquePermutations(RE::Actor* a_actor)
     {
         const auto position = GetPosition(a_actor);
@@ -464,6 +504,9 @@ namespace Thread
             if (std::distance(it->begin(), actorIt) == *targetPosition) {
                 activeAssignment = it;
                 AdvanceScene(activeStage);
+                const auto script = Script::GetScriptObject(linkedQst, "sslThreadModel");
+                Script::CallbackPtr callback{};
+                Script::DispatchMethodCall(script, "OnPositionsChanged", callback);
                 logger::info("Actor {} changed to scene position {}.", a_actor->GetFormID(), *targetPosition + 1);
                 return true;
             }

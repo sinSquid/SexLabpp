@@ -177,10 +177,10 @@ namespace Registry::Statistics
         Util::WriteRecord(a_intfc, static_cast<uint8_t>(sex));
     }
 
-    ActorEncounter::ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type) :
+    ActorEncounter::ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type, uint64_t sequence) :
       npc1(fst), npc2(snd)
     {
-        Update(a_type);
+        Update(a_type, sequence);
     }
 
     ActorEncounter::ActorEncounter(Util::RecordReader<SKSE::SerializationInterface>& reader) :
@@ -236,7 +236,7 @@ namespace Registry::Statistics
                                  0;
     }
 
-    void ActorEncounter::Update(EncounterType a_type)
+    void ActorEncounter::Update(EncounterType a_type, uint64_t sequence)
     {
         _lastmet = RE::Calendar::GetSingleton()->GetCurrentGameTime();
         const auto increment = [](uint8_t& count) { if (count < 255) ++count; };
@@ -246,17 +246,51 @@ namespace Registry::Statistics
             break;
         case EncounterType::Aggressor:
             increment(_timesaggressor);
+            _recency[1] = sequence;
             __fallthrough;
         case EncounterType::Dominant:
             increment(_timesdominant);
+            _recency[3] = sequence;
             break;
         case EncounterType::Victim:
             increment(_timesvictim);
+            _recency[0] = sequence;
             __fallthrough;
         case EncounterType::Submissive:
             increment(_timessubmissive);
+            _recency[2] = sequence;
             break;
         }
+    }
+
+    uint64_t ActorEncounter::GetLastEncounterOrder(RE::FormID actor, EncounterType type) const
+    {
+        if (actor != npc1.id && actor != npc2.id)
+            return 0;
+        auto index = static_cast<int>(type) - 1;
+        if (index < 0 || index >= static_cast<int>(_recency.size()))
+            return 0;
+        if (actor != npc1.id)
+            index ^= 1;
+        return _recency[index];
+    }
+
+    bool ActorEncounter::SetRecency(const Recency& values)
+    {
+        const std::array counts{ _timesvictim, _timesaggressor, _timessubmissive, _timesdominant };
+        for (size_t i = 0; i < counts.size(); ++i)
+            if ((counts[i] != 0) != (values[i] != 0))
+                return false;
+        _recency = values;
+        return true;
+    }
+
+    void ActorEncounter::InitializeLegacyRecency(uint64_t sequence)
+    {
+        // Old records only preserve the pair's last encounter order. These
+        // estimates are replaced by the optional recency record when present.
+        _recency = { _timesvictim ? sequence : 0, _timesaggressor ? sequence : 0,
+            _timessubmissive ? sequence : 0, _timesdominant ? sequence : 0 };
     }
 
     void ActorEncounter::Save(SKSE::SerializationInterface* a_intfc)
@@ -330,6 +364,9 @@ namespace Registry::Statistics
             const auto [fst, snd] = encounter.GetParticipants();
             return fst.id == a_key || snd.id == a_key;
         });
+        std::erase_if(_loadedRecency, [&](const auto& entry) {
+            return entry.first.first == a_key || entry.first.second == a_key;
+        });
     }
 
     bool StatisticsData::ForEachStatistic(std::function<bool(ActorStats&)> a_func)
@@ -355,6 +392,7 @@ namespace Registry::Statistics
     void StatisticsData::AddEncounter(RE::Actor* fst, RE::Actor* snd, ActorEncounter::EncounterType a_type)
     {
         const std::unique_lock lock{ _m };
+        const auto sequence = NextEncounterSequence();
         if (auto enc = GetEncounterIter(fst, snd); enc != _encounters.end()) {
             if (enc->GetParticipants().first.id == snd->formID) {
                 switch (a_type) {
@@ -375,47 +413,53 @@ namespace Registry::Statistics
                     break;
                 }
             }
-            enc->Update(a_type);
+            enc->Update(a_type, sequence);
             std::rotate(enc, std::next(enc), _encounters.end());
             return;
         }
-        _encounters.emplace_back(fst, snd, a_type);
+        _encounters.emplace_back(fst, snd, a_type, sequence);
+    }
+
+    uint64_t StatisticsData::NextEncounterSequence()
+    {
+        if (_nextEncounterSequence == (std::numeric_limits<uint64_t>::max)()) {
+            std::map<uint64_t, uint64_t> orders{ { 0, 0 } };
+            for (const auto& encounter : _encounters)
+                for (const auto order : encounter.GetRecency())
+                    orders.try_emplace(order, 0);
+            _nextEncounterSequence = 0;
+            for (auto& [oldOrder, newOrder] : orders)
+                if (oldOrder)
+                    newOrder = ++_nextEncounterSequence;
+            for (auto& encounter : _encounters) {
+                auto values = encounter.GetRecency();
+                for (auto& value : values)
+                    value = orders.at(value);
+                encounter.SetRecency(values);
+            }
+        }
+        return ++_nextEncounterSequence;
     }
 
     RE::Actor* StatisticsData::GetMostRecentEncounter(RE::Actor* a_actor, ActorEncounter::EncounterType a_type)
     {
         const std::shared_lock lock{ _m };
+        RE::Actor* result = nullptr;
+        uint64_t newest = 0;
         for (auto it = _encounters.rbegin(); it != _encounters.rend(); it++) {
             const auto partnerobj = it->GetPartner(a_actor);
             const auto partner = partnerobj ? RE::TESForm::LookupByID<RE::Actor>(partnerobj->id) : nullptr;
             if (!partner)
                 continue;
-            switch (a_type) {
-            case ActorEncounter::EncounterType::Any:
+            if (a_type == ActorEncounter::EncounterType::Any)
                 return partner;
-            case ActorEncounter::EncounterType::Victim:
-                if (it->GetTimesVictim(a_actor->formID) > 0) {
-                    return partner;
-                }
-                break;
-            case ActorEncounter::EncounterType::Aggressor:
-                if (it->GetTimesAssailant(a_actor->formID) > 0) {
-                    return partner;
-                }
-                break;
-            case ActorEncounter::EncounterType::Submissive:
-                if (it->GetTimesSubmissive(a_actor->formID) > 0) {
-                    return partner;
-                }
-                break;
-            case ActorEncounter::EncounterType::Dominant:
-                if (it->GetTimesDominant(a_actor->formID) > 0) {
-                    return partner;
-                }
-                break;
+            const auto order = it->GetLastEncounterOrder(a_actor->formID, a_type);
+            if (order > newest) {
+                newest = order;
+                result = partner;
             }
         }
-        return nullptr;
+        return result;
     }
 
     int StatisticsData::GetNumberEncounters(RE::Actor* a_actor)
@@ -525,6 +569,85 @@ namespace Registry::Statistics
         const std::unique_lock lock{ _m };
         _data = std::move(data);
         _encounters = std::move(encounters);
+        _nextEncounterSequence = 0;
+        for (auto& encounter : _encounters)
+            encounter.InitializeLegacyRecency(++_nextEncounterSequence);
+    }
+
+    void StatisticsData::SaveEncounterRecency(SKSE::SerializationInterface* a_intfc)
+    {
+        const std::shared_lock lock{ _m };
+        try {
+            Util::WriteRecord(a_intfc, static_cast<uint64_t>(_encounters.size()));
+            for (const auto& encounter : _encounters) {
+                const auto [first, second] = encounter.GetParticipants();
+                Util::WriteRecord(a_intfc, first.id);
+                Util::WriteRecord(a_intfc, second.id);
+                for (const auto order : encounter.GetRecency())
+                    Util::WriteRecord(a_intfc, order);
+            }
+        } catch (const std::exception& error) {
+            logger::error("Encounter recency save failed: {}", error.what());
+        }
+    }
+
+    void StatisticsData::BeginLoad()
+    {
+        const std::unique_lock lock{ _m };
+        _loadedRecency.clear();
+    }
+
+    void StatisticsData::LoadEncounterRecency(SKSE::SerializationInterface* a_intfc, uint32_t length)
+    {
+        decltype(_loadedRecency) entries;
+        try {
+            Util::RecordReader reader(a_intfc, length);
+            const auto count = reader.Count(2 * sizeof(uint32_t) + 4 * sizeof(uint64_t));
+            for (uint64_t i = 0; i < count; ++i) {
+                auto first = reader.Read<uint32_t>();
+                auto second = reader.Read<uint32_t>();
+                ActorEncounter::Recency values;
+                for (auto& order : values)
+                    order = reader.Read<uint64_t>();
+                if (a_intfc->ResolveFormID(first, first) && a_intfc->ResolveFormID(second, second))
+                    entries.insert_or_assign({ first, second }, values);
+            }
+            if (reader.Remaining())
+                throw std::runtime_error("Unexpected trailing encounter recency data");
+        } catch (const std::exception& error) {
+            logger::error("Encounter recency record rejected; keeping statistics: {}", error.what());
+            return;
+        }
+        const std::unique_lock lock{ _m };
+        _loadedRecency = std::move(entries);
+    }
+
+    void StatisticsData::FinishLoad()
+    {
+        const std::unique_lock lock{ _m };
+        for (auto& encounter : _encounters) {
+            const auto [first, second] = encounter.GetParticipants();
+            auto entry = _loadedRecency.find({ first.id, second.id });
+            bool reversed = false;
+            if (entry == _loadedRecency.end()) {
+                entry = _loadedRecency.find({ second.id, first.id });
+                reversed = true;
+            }
+            if (entry == _loadedRecency.end())
+                continue;
+            auto values = entry->second;
+            if (reversed) {
+                std::swap(values[0], values[1]);
+                std::swap(values[2], values[3]);
+            }
+            if (!encounter.SetRecency(values)) {
+                logger::warn("Encounter recency disagrees with stored counts for {:X}, {:X}; keeping legacy estimate", first.id, second.id);
+                continue;
+            }
+            for (const auto order : values)
+                _nextEncounterSequence = std::max(_nextEncounterSequence, order);
+        }
+        _loadedRecency.clear();
     }
 
     void StatisticsData::Revert(SKSE::SerializationInterface*)
@@ -532,6 +655,8 @@ namespace Registry::Statistics
         const std::unique_lock lock{ _m };
         _data.clear();
         _encounters.clear();
+        _loadedRecency.clear();
+        _nextEncounterSequence = 0;
     }
 
 

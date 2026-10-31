@@ -43,7 +43,12 @@ namespace Papyrus::ThreadLibrary
             a_vm->TraceStack("Reference is none", a_stackID);
             return false;
         }
-        return static_cast<int32_t>(Registry::FurnitureType::GetBedType(a_reference));
+        switch (Registry::FurnitureType::GetBedType(a_reference)) {
+        case Registry::FurnitureType::BedRoll: return 1;
+        case Registry::FurnitureType::BedSingle: return 2;
+        case Registry::FurnitureType::BedDouble: return 3;
+        default: return 0;
+        }
     }
 
     bool IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference)
@@ -184,23 +189,26 @@ namespace Papyrus::ThreadLibrary
         }
         auto genders = GetLegacySex(a_positions);
         for (auto&& actor : valids) {
-            int targetsex;
-            if (genders[LegacySex::Male] < a_males) {
-                targetsex = LegacySex::Male;
-            } else if (genders[LegacySex::Female] < a_females) {
-                targetsex = LegacySex::Female;
-            } else {
-                targetsex = LegacySex::None;
-            }
+            if (std::ranges::contains(a_positions, actor))
+                continue;
             const auto sex = GetLegacySex(actor);
-            if (targetsex == LegacySex::None || sex == targetsex) {
+            if ((sex == LegacySex::Male && genders[sex] < a_males) ||
+                (sex == LegacySex::Female && genders[sex] < a_females)) {
                 a_positions.push_back(actor);
+                genders[sex]++;
                 if (a_positions.size() == a_total) {
                     return a_positions;
-                } else {
-                    genders[sex]++;
                 }
             }
+        }
+        if (genders[LegacySex::Male] < a_males || genders[LegacySex::Female] < a_females)
+            return a_positions;
+        for (auto&& actor : valids) {
+            if (std::ranges::contains(a_positions, actor))
+                continue;
+            a_positions.push_back(actor);
+            if (a_positions.size() == a_total)
+                break;
         }
         return a_positions;
     }
@@ -289,14 +297,17 @@ namespace Papyrus::ThreadLibrary
             return a_positions;
         }
         auto subcount = scene->CountSubmissives();
-        std::vector<Registry::ActorFragment> fragments;
+        std::vector<RE::Actor*> submissives;
         for (auto&& actor : a_positions) {
             const auto submissive = subcount > 0 && std::find(a_submissives.begin(), a_submissives.end(), actor) != a_submissives.end();
-            if (submissive)
+            if (submissive) {
                 subcount--;
-            const auto fragment = Registry::ActorFragment{ actor, submissive };
-            fragments.push_back(fragment);
+                submissives.push_back(actor);
+            }
         }
+        const auto fragments = Registry::ActorFragment::MakeFragmentList(a_positions, submissives);
+        if (fragments.empty())
+            return a_positions;
         auto ret = scene->FindAssignments(fragments);
         return ret.empty() ? a_positions : ret.front();
     }

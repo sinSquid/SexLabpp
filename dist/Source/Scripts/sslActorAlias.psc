@@ -470,10 +470,12 @@ State Ready
 				_VoiceDelay = _Config.FemaleVoiceDelay
 				If (_sex == 1)
 					_HadStrapon = _Config.WornStrapon(_ActorRef)
-					If (!_HadStrapon)
-						_Strapon = _Config.GetStrapon()
-					ElseIf (!_Strapon)
-						_Strapon = _HadStrapon
+					If (!_Strapon)
+						If (_HadStrapon)
+							_Strapon = _HadStrapon
+						Else
+							_Strapon = _Config.GetStrapon()
+						EndIf
 					EndIf
 				EndIf
 			EndIf
@@ -662,7 +664,7 @@ State Paused
 		If (_ActorLocked)
 			UnlockActor()
 		EndIf
-		If (sslLovense.IsLovenseInstalled())
+		If (_ActorRef == _PlayerRef && sslLovense.IsLovenseInstalled())
 			sslLovense.StopAllActions()
 		EndIf
 		_Thread.SetAnimationPlaybackSpeed(1.0)
@@ -917,10 +919,12 @@ State Animating
 				PlayLouder(snd, _ActorRef, _Config.VoiceVolume)
 			EndIf
 			PlayLouder(_Config.OrgasmFX, _ActorRef, _Config.SFXVolume)
-			If (sslLovense.IsLovenseInstalled())
+			If (_ActorRef == _PlayerRef && sslLovense.IsLovenseInstalled())
 				_LoopLovenseDelay = sslSystemConfig.GetSettingFlt("fLovenseDurationOrgasm")
 				int strength = sslSystemConfig.GetSettingInt("iLovenseStrengthOrgasm")
-				float duration = sslSystemConfig.GetSettingInt("fLovenseDurationOrgasm")
+				float duration = sslSystemConfig.GetSettingFlt("fLovenseDurationOrgasm")
+				_LovenseGenital = false
+				_LovenseAnal = false
 				sslLovense.StartOrgasmAction(strength, duration)
 			EndIf
 		EndIf
