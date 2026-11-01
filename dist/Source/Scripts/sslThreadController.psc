@@ -19,6 +19,7 @@ Function EnableHotkeys(bool forced = false)
 		return
 	EndIf
 	ToggleVisibilitySceneHUD(1)
+	SetSpeedHotkeysEnabled(true)
 	RegisterHotkeys()
 	If (Config.HasVRIK)
 		EnableGesturesVR()
@@ -26,6 +27,7 @@ Function EnableHotkeys(bool forced = false)
 EndFunction
 
 Function DisableHotkeys()
+	SetSpeedHotkeysEnabled(false)
 	SexLabUtil.ToggleFreeCamera(0)
 	ToggleVisibilitySceneHUD(-1)
 	UnregisterHotkeys()

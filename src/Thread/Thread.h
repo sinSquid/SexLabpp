@@ -99,6 +99,7 @@ namespace Thread
         void SetCenterRefSelected(size_t a_index);
 
         void SetAnimationPlaybackSpeed(float playbackSpeed);
+        [[nodiscard]] float GetAnimationPlaybackSpeed() const { return animationPlaybackSpeed; }
         bool RestartFixedLengthTimer();
         bool AdjustFixedLengthTimer(float a_delta);
         void SetFixedLengthTimerPaused(bool a_paused);

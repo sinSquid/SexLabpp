@@ -36,6 +36,7 @@ namespace Thread
 
     void Instance::DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors)
     {
+        Interface::SceneHUD::GetSingleton().SetSpeedControl(a_linkedQst, false);
         {
             std::unique_lock lock{ _mInstances };
             std::erase_if(instances, [&](const auto& instance) {
