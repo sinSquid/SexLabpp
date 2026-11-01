@@ -5,6 +5,7 @@ import sys
 
 ROOT=Path(__file__).resolve().parent
 TESTS=(
+    'setup_watchdog.py',
     'review_creation_lifecycle.py', 'review_thread_cleanup.py', 'review_revert_barrier.py',
     'review_geometry_contracts.py',
     'review_native_data_core.py', 'review_native_data_contracts.py',

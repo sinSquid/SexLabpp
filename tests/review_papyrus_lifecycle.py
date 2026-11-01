@@ -37,6 +37,7 @@ class LifecycleContracts(unittest.TestCase):
                 'LifecycleRevision': 1, 'self': 'thread', 'ActorAlias':Array(),
                 'Config':NS(DisableThreadControl=lambda *_:None), 'CenterAlias':NS(TryToClear=lambda:None),
                 'UnregisterForUpdate':lambda:None,'UnregisterForUpdateGameTime':lambda:None,
+                'DisarmSetupWatchdog':lambda:None,
                 'PapyrusUtil':NS(ActorArray=lambda n:Array([None]*n)),
                 'Utility':NS(CreateStringArray=lambda n:Array(['']*n),CreateFloatArray=lambda n:Array([0.]*n)),
                 'DestroyInstance':lambda:None,'GoToState':lambda *_:None,'STATE_IDLE':'Unlocked','FURNI_ALLOW':1,

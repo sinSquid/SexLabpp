@@ -602,9 +602,75 @@ String[] _Hooks
 
 	Every animation begins and ends in this state
 /;
+bool _SetupWatchdogActive
+int _SetupWatchdogRevision
+int _SetupWatchdogSerial
+float _SetupStartedAt
+int _SetupWatchdogPendingSerial = -1
+
+Function ArmSetupWatchdog()
+	_SetupWatchdogSerial += 1
+	_SetupWatchdogRevision = LifecycleRevision
+	_SetupStartedAt = Utility.GetCurrentRealTime()
+	_SetupWatchdogPendingSerial = -1
+	_SetupWatchdogActive = true
+	sslLog.Log("Thread[" + thread_id + "] SetupWatchdog armed, revision=" + _SetupWatchdogRevision + ", timeout=30 seconds excluding menus", true)
+EndFunction
+
+Function DisarmSetupWatchdog()
+	_SetupWatchdogActive = false
+	_SetupWatchdogSerial += 1
+	_SetupWatchdogPendingSerial = -1
+	_SetupStartedAt = 0.0
+	UnregisterForModEvent("SSL_SETUP_WATCHDOG_Thread" + thread_id)
+EndFunction
+
+Function CheckSetupWatchdog()
+	If (!_SetupWatchdogActive || _SetupWatchdogRevision != LifecycleRevision || GetState() != STATE_SETUP)
+		return
+	EndIf
+	int requestSerial = _SetupWatchdogSerial
+	If (_SetupWatchdogPendingSerial == requestSerial)
+		return
+	EndIf
+	_SetupWatchdogPendingSerial = requestSerial
+	RegisterForModEvent("SSL_SETUP_WATCHDOG_Thread" + thread_id, "OnSetupWatchdog")
+	If (_SetupWatchdogActive && _SetupWatchdogSerial == requestSerial && GetState() == STATE_SETUP)
+		SendModEvent("SSL_SETUP_WATCHDOG_Thread" + thread_id, "" + requestSerial)
+	EndIf
+	; Ordinary OnUpdate events cannot authorize a timeout.
+EndFunction
+
+Event OnSetupWatchdog(string asEventName, string asStringArg, float afNumArg, form akSender)
+	int requestSerial = asStringArg as int
+	int requestRevision = _SetupWatchdogRevision
+	If (akSender != Self || !_SetupWatchdogActive || requestSerial != _SetupWatchdogSerial || requestRevision != LifecycleRevision || GetState() != STATE_SETUP)
+		return
+	EndIf
+	; The engine's Wait timer excludes menus; wall-clock timestamps are diagnostic only.
+	Utility.Wait(30.0)
+	ExpireSetupWatchdog(requestRevision, requestSerial)
+EndEvent
+
+Function ExpireSetupWatchdog(int requestRevision, int requestSerial)
+	If (!_SetupWatchdogActive || _SetupWatchdogSerial != requestSerial || LifecycleRevision != requestRevision || GetState() != STATE_SETUP)
+		return
+	EndIf
+	float elapsedWall = Utility.GetCurrentRealTime() - _SetupStartedAt
+	If (!_SetupWatchdogActive || _SetupWatchdogSerial != requestSerial || LifecycleRevision != requestRevision || GetState() != STATE_SETUP)
+		return
+	EndIf
+	_SetupWatchdogActive = false
+	Fatal("Thread has timed out during setup. Resetting thread... revision=" + requestRevision + ", wait=30s excluding menus, elapsedWall=" + elapsedWall, "SetupWatchdog", false)
+	If (_SetupWatchdogSerial == requestSerial && LifecycleRevision == requestRevision && GetState() == STATE_SETUP)
+		Initialize()
+	EndIf
+EndFunction
+
 Auto State Unlocked
 	sslThreadModel Function Make()
 		LifecycleRevision += 1
+		ArmSetupWatchdog()
 		GoToState(STATE_SETUP)
 		return self
 	EndFunction
@@ -642,15 +708,10 @@ State Making
 		_CustomScenes = Utility.CreateStringArray(0)
 		_PrimaryScenes = Utility.CreateStringArray(0)
 		_LeadInScenes = Utility.CreateStringArray(0)
-		RegisterForSingleUpdate(30.0)
+		CheckSetupWatchdog()
 	EndEvent
 	Event OnUpdate()
-		Fatal("Thread has timed out during setup. Resetting thread...")
-		If (_QuickResetScenes)
-			_QuickResetScenes = false
-			GoToState(STATE_END)
-		EndIf
-		Initialize()
+		CheckSetupWatchdog()
 	EndEvent
 
 	int Function AddActor(Actor ActorRef, bool IsVictim = false, sslBaseVoice Voice = none, bool ForceSilent = false)
@@ -755,7 +816,9 @@ State Making
 	EndFunction
 
 	sslThreadController Function StartThread()
+		DisarmSetupWatchdog()
 		UnregisterForUpdate()
+		sslLog.Log("Thread[" + thread_id + "] SetupWatchdog StartThread entered, revision=" + LifecycleRevision, true)
 		_Positions = PapyrusUtil.RemoveActor(_Positions, none)
 		If(_Positions.Length <= 0 || _Positions.Length > POSITION_COUNT_MAX)
 			Fatal("Failed to start Thread: Thread has reached actor limit or no actors were added", "StartThread()")
@@ -1749,6 +1812,7 @@ State Ending
 		EndWhile
 		_Positions = PapyrusUtil.ActorArray(0)
 		DestroyInstance()
+		ArmSetupWatchdog()
 		GoToState(STATE_SETUP)
 		SetScenes(validScenes)
 		return AddActorsA(akNewPositions, akSubmissives) && StartThread()
@@ -1759,6 +1823,7 @@ State Ending
 		(self as sslThreadController).ToggleVisibilitySceneHUD(-1)
 		String[] validScenes = SexLabRegistry.LookupScenesA(_Positions, asTagString, GetSubmissives(), _furniStatus, CenterRef)
 		DestroyInstance(true)
+		ArmSetupWatchdog()
 		GoToState(STATE_SETUP)
 		SetScenes(validScenes)
 		If (!StartThread())
@@ -2259,6 +2324,7 @@ EndFunction
 
 ; Reset this thread to base status
 Function Initialize()
+	DisarmSetupWatchdog()
 	LifecycleRevision += 1
 	UnregisterForUpdate()
 	UnregisterForUpdateGameTime()
