@@ -42,7 +42,9 @@ code = f'constexpr float kInitialSpeed = {initial}f;\n' + r'''
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
+struct Settings { static inline int iOpenSceneSelect=-1,iSceneSelectModifier=-1; };
 namespace RE {
  enum class INPUT_DEVICE {kKeyboard,kMouse,kGamepad};
  enum class BSEventNotifyControl {kContinue};
@@ -50,6 +52,9 @@ namespace RE {
  struct TESQuest {};
  struct UI {bool paused=false; static UI* GetSingleton(){static UI u;return &u;} bool GameIsPaused(){return paused;}};
  struct BSInputDeviceManager {
+  struct Device {int held=-1;bool IsPressed(uint32_t key)const{return held>=0&&key==uint32_t(held);}};
+  Device keyboard,mouse,gamepad;
+  Device* GetKeyboard(){return &keyboard;}Device* GetMouse(){return &mouse;}Device* GetGamepad(){return &gamepad;}
   int registrations=0;
   static BSInputDeviceManager* GetSingleton(){static BSInputDeviceManager m;return &m;}
   void AddEventSink(void*){++registrations;}
@@ -65,10 +70,12 @@ namespace RE {
   uint32_t key;bool down;
   ButtonEvent(uint32_t k,bool d=true,INPUT_DEVICE dev=INPUT_DEVICE::kKeyboard):key(k),down(d){device=dev;}
   ButtonEvent* AsButtonEvent()override{return this;}
-  bool IsDown(){return down;}uint32_t GetIDCode(){return key;}
+  bool IsDown(){return down;}bool IsPressed(){return down;}uint32_t GetIDCode(){return key;}
  };
 }
 namespace SKSE {
+ namespace InputMap {constexpr int kMacro_MouseButtonOffset=256,kMacro_GamepadOffset=266;
+ uint32_t GamepadKeycodeToMask(uint32_t key){return 1u<<(key-kMacro_GamepadOffset);}}
  struct Tasks {
   std::vector<std::function<void()>> pending;
   void AddTask(std::function<void()> f){pending.push_back(f);}
@@ -113,6 +120,7 @@ struct SceneHUD {
  bool IsActive()const{return _linkedThread!=nullptr;}
  void SetSpeedControl(RE::TESQuest*,bool);
  bool CanAdjustSpeed()const;
+ bool IsSceneSelectKey(uint32_t,RE::InputEvent*)const;
  void Destroy();
  RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const*,RE::BSTEventSource<RE::InputEvent*>*);
 };
@@ -125,6 +133,7 @@ for source, signature in [
     (hud, 'void SceneHUD::SetSpeedControl('),
     (hud, 'void SceneHUD::Destroy('),
     (hud, 'bool SceneHUD::CanAdjustSpeed('),
+    (hud, 'bool SceneHUD::IsSceneSelectKey('),
     (hud, 'RE::BSEventNotifyControl SceneHUD::ProcessEvent('),
 ]:
     code += '\n' + function(source, signature)
@@ -140,6 +149,15 @@ int main(){
  assert(RE::BSInputDeviceManager::GetSingleton()->registrations==1);
  send(right);assert(speed()==kInitialSpeed&&SKSE::tasks.pending.size()==1);
  drain();assert(speed()==kInitialSpeed+.25f&&Script::baseSpeed==kInitialSpeed+.25f);
+ Settings::iOpenSceneSelect=205;Settings::iSceneSelectModifier=29;
+ RE::BSInputDeviceManager::GetSingleton()->keyboard.held=29;
+ send(right);assert(SKSE::tasks.pending.empty());
+ RE::BSInputDeviceManager::GetSingleton()->keyboard.held=-1;
+ RE::ButtonEvent modifierDown(29);modifierDown.next=&right;
+ send(modifierDown);assert(SKSE::tasks.pending.empty());
+ Settings::iOpenSceneSelect=34;Settings::iSceneSelectModifier=203;
+ send(left);assert(SKSE::tasks.pending.empty());
+ Settings::iOpenSceneSelect=Settings::iSceneSelectModifier=-1;
  send(left);drain();assert(speed()==kInitialSpeed);
  send(release);send(other);send(mouse);RE::InputEvent unknown;send(unknown);
  h.ProcessEvent(nullptr,nullptr);assert(SKSE::tasks.pending.empty());

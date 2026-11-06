@@ -299,8 +299,10 @@ $SSL_SceneManipulation	Scene Manipulation
 $SSL_iToggleSceneHUD	Toggle SceneHUD
 $SSL_iFocusSceneHUD	Focus SceneHUD
 $SSL_iOpenSceneSelect	打开 Scenes 列表
-$SSL_iOpenSceneSelectHighlight	直接打开当前动画的 Scenes 列表。默认未绑定；按 Esc 清除绑定。使用 Alt、Esc 或 Return 退出界面。
-$SSL_SceneSelectKeyConflict	该键已用于其他 SexLab 控制（含左右调速及 Shift 修饰键），请选择其他按键。
+$SSL_iSceneSelectModifier	Scenes 修饰键
+$SSL_iSceneSelectModifierHighlight	可选修饰键，默认未绑定。绑定后先按住所选键，再按主键打开列表；修饰键单独按下不触发同键的 P+ 操作。按 Esc 清空。
+$SSL_iOpenSceneSelectHighlight	直接打开 Scenes 列表。修饰键为空时单键生效，否则需按住修饰键；不同组合可复用主键。主键与修饰键不能相同。
+$SSL_SceneSelectKeyConflict	该主键与修饰键相同，或完整组合与已有 P+ 操作冲突。请先调整主键或修饰键。
 $SSL_iToggleSceneGraph	Toggle Scene Graph
 $SSL_iKeyAdvance	Advance Scene
 $SSL_iKeyEnd	End Scene

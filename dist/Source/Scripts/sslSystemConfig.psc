@@ -707,14 +707,33 @@ EndEvent
 Event OnKeyDown(int keyCode)
   If (Utility.IsInMenuMode())
     return
-  ElseIf (keyCode == ToggleFreeCamera)
+  ElseIf (_ActiveControl && IsSceneSelectModifier(keyCode))
+    return
+  ElseIf (_ActiveControl && IsSceneSelectMainKey(keyCode))
+    ; This is the only dispatcher for the configured main key.
+    _ActiveControl.HandleSceneSelectMainKey(keyCode)
+    return
+  EndIf
+  HandleGlobalHotkey(keyCode)
+EndEvent
+
+bool Function HandleGlobalHotkey(int keyCode)
+  If (keyCode == ToggleFreeCamera)
     SexLabUtil.ToggleFreeCamera()
+    return true
   ElseIf (keyCode == TargetActor && !_ActiveControl)
     SetTargetActor(_CrosshairRef, true)
+    return true
   ElseIf (keyCode == ToggleThreadControl)
     ToggleThreadControl()
+    return true
   EndIf
-EndEvent
+  return false
+EndFunction
+
+bool Function IsGlobalHotkey(int keyCode)
+  return keyCode == ToggleFreeCamera || keyCode == TargetActor || keyCode == ToggleThreadControl
+EndFunction
 
 Function SetTargetActor(Actor akActor = None, bool abThreadControl = false)
   If (!akActor || akActor == Game.GetPlayer())
@@ -748,6 +767,70 @@ Function ToggleThreadControl()
       GetThreadControl(TargetThread as sslThreadController)
     EndIf
   EndIf
+EndFunction
+
+bool Function IsSceneSelectMainKey(int keyCode)
+  int mainKey = GetSettingInt("iOpenSceneSelect")
+  return mainKey >= 0 && keyCode == mainKey
+EndFunction
+
+bool Function IsSceneSelectModifier(int keyCode)
+  int mainKey = GetSettingInt("iOpenSceneSelect")
+  int modifier = GetSettingInt("iSceneSelectModifier")
+  return mainKey >= 0 && modifier >= 0 && mainKey != modifier && keyCode == modifier
+EndFunction
+
+bool Function IsSceneSelectShortcut(int keyCode)
+  int mainKey = GetSettingInt("iOpenSceneSelect")
+  int modifier = GetSettingInt("iSceneSelectModifier")
+  If (mainKey < 0 || keyCode != mainKey || mainKey == modifier)
+    return false
+  EndIf
+  return modifier < 0 || Input.IsKeyPressed(modifier)
+EndFunction
+
+bool Function HasSceneSelectKeyConflict(string changedSetting, int newKey)
+  int mainKey = GetSettingInt("iOpenSceneSelect")
+  int modifier = GetSettingInt("iSceneSelectModifier")
+  If (changedSetting == "iOpenSceneSelect")
+    mainKey = newKey
+  ElseIf (changedSetting == "iSceneSelectModifier")
+    modifier = newKey
+  EndIf
+  If (mainKey < 0)
+    return false
+  ElseIf (mainKey == modifier)
+    return true
+  EndIf
+  String[] controls
+  If (modifier < 0)
+    If (mainKey == 203 || mainKey == 205 || mainKey == 42 || mainKey == 54)
+      return true
+    EndIf
+    controls = StringUtil.Split("iToggleSceneHUD,iFocusSceneHUD,iToggleSceneGraph,iKeyAdvance,iKeyEnd,iKeyMod,iChangeAnimation,iMoveScene,iTargetActor,iToggleFreeCamera,iToggleThreadControl,iGameRaiseEnjKey,iGameHoldbackKey", ",")
+  Else
+    int legacyModifier = GetSettingInt("iKeyMod")
+    If (changedSetting == "iKeyMod")
+      legacyModifier = newKey
+    EndIf
+    If (modifier != legacyModifier && modifier != 42 && modifier != 54)
+      return false
+    EndIf
+    ; These actions already assign separate behavior to modifier + main key.
+    controls = StringUtil.Split("iKeyAdvance,iTargetActor,iGameRaiseEnjKey,iGameHoldbackKey", ",")
+  EndIf
+  int i = 0
+  While (i < controls.Length)
+    int boundKey = GetSettingInt(controls[i])
+    If (changedSetting == controls[i])
+      boundKey = newKey
+    EndIf
+    If (boundKey == mainKey)
+      return true
+    EndIf
+    i += 1
+  EndWhile
+  return false
 EndFunction
 
 bool function ModifierPressed()

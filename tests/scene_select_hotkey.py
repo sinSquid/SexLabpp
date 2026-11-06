@@ -8,11 +8,13 @@ import os
 import re
 import subprocess
 import tempfile
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 controller = Path(os.environ.get('SCENE_CONTROLLER_SOURCE', ROOT / 'dist/Source/Scripts/sslThreadController.psc')).read_text(encoding='utf-8')
 menu = (ROOT / 'dist/Source/Scripts/sslConfigMenu.psc').read_text(encoding='utf-8')
 hud = (ROOT / 'src/Thread/Interface/SceneHUD.cpp').read_text(encoding='utf-8')
+system = (ROOT / 'dist/Source/Scripts/sslSystemConfig.psc').read_text(encoding='utf-8')
 
 
 def cpp_function(signature):
@@ -79,19 +81,20 @@ int main() {
  assert(!h.PrepareSceneSelect(&q) && !h.OpenSceneSelect(&q));
 }
 '''
-with tempfile.TemporaryDirectory(prefix='scene-select-') as directory:
-    source, binary = Path(directory) / 'test.cpp', Path(directory) / 'test'
-    source.write_text(cpp, encoding='utf-8')
-    subprocess.run([os.environ.get('CXX', 'g++'), '-std=c++20', str(source), '-o', str(binary)], check=True)
-    subprocess.run([str(binary)], check=True)
+if '--papyrus-only' not in sys.argv:
+    with tempfile.TemporaryDirectory(prefix='scene-select-') as directory:
+        source, binary = Path(directory) / 'test.cpp', Path(directory) / 'test'
+        source.write_text(cpp, encoding='utf-8')
+        subprocess.run([os.environ.get('CXX', 'g++'), '-std=c++20', str(source), '-o', str(binary)], check=True)
+        subprocess.run([str(binary)], check=True)
 
 
 class Returned(Exception):
-    pass
+    def __init__(self, value=None): self.value = value
 
 
 def translated_body(source, name):
-    match = re.search(r'(?im)^\s*(?:Function|Event) ' + name + r'\([^\n]*\)\s*\n(.*?)^\s*End(?:Function|Event)', source, re.S)
+    match = re.search(r'(?im)^\s*(?:bool )?(?:Function|Event) ' + name + r'\([^\n]*\)\s*\n(.*?)^\s*End(?:Function|Event)', source, re.S)
     assert match, name
     result, indent = [], 0
     for raw in match[1].splitlines():
@@ -102,6 +105,9 @@ def translated_body(source, name):
         if low in ('endif', 'endwhile'):
             indent -= 1
             continue
+        declaration = re.fullmatch(r'(?:bool|int|string)(?:\[\])?\s+(\w+)', line, re.I)
+        if declaration:
+            line = declaration[1] + ' = None'
         line = re.sub(r'^(?:bool|int|string|sslThreadController)(?:\[\])?\s+', '', line, flags=re.I)
         line = re.sub(r'\bnew int\[(\d+)\]', r'([-1] * \1)', line, flags=re.I)
         line = re.sub(r'\b([\w]+)\.Length\b', r'len(\1)', line)
@@ -120,8 +126,8 @@ def translated_body(source, name):
             line = 'if ' + line[2:].strip() + ':'
         elif low.startswith('while '):
             line = 'while ' + line[6:] + ':'
-        elif low == 'return':
-            line = 'raise Returned()'
+        elif low == 'return' or low.startswith('return '):
+            line = 'raise Returned(' + line[6:].strip() + ')'
         result.append('    ' * indent + line)
         if line.endswith(':'):
             indent += 1
@@ -132,17 +138,32 @@ def translated_body(source, name):
 bodies = {name: translated_body(controller, name) for name in (
     'InitHotkeys', 'RegisterHotkeys', 'UnregisterHotkeys', 'RefreshSceneSelectHotkey', 'OpenSceneSelect', 'ToggleFocusSceneHUD', 'ToggleFocusSceneHUDForRevision')}
 bodies['OnKeyMapChangeST'] = translated_body(menu, 'OnKeyMapChangeST')
+bodies['IsOtherThreadHotkey'] = translated_body(controller, 'IsOtherThreadHotkey')
+for name in ('HandleSceneSelectMainKey', 'HandleThreadHotkey'):
+    bodies[name] = translated_body(controller, name)
+for name in ('HasSceneSelectKeyConflict', 'IsSceneSelectShortcut', 'IsSceneSelectModifier', 'IsSceneSelectMainKey', 'HandleGlobalHotkey', 'IsGlobalHotkey'):
+    bodies[name] = translated_body(system, name)
 bodies['PauseTimer'] = translated_body((ROOT / 'dist/Source/Scripts/sslThreadModel.psc').read_text(encoding='utf-8'), 'PauseTimer')
 
 
 def fixture():
     calls, registered, settings = [], set(), {'iOpenSceneSelect': -1}
+    thread_keys, config_keys = set(), set()
+    def register(owner, key):
+        owner.add(key)
+        registered.add(key)
+    def unregister(owner, key):
+        owner.discard(key)
+        if key not in thread_keys and key not in config_keys:
+            registered.discard(key)
     e = dict(Returned=Returned, find=lambda items, value: items.index(value) if value in items else -1,
              _SceneHotkeysEnabled=True, _OpeningSceneSelect=False,
              _SceneSelectRevision=1, _bOpenedSceneHUD=False, _bFocusedSceneHUD=False,
              _bOpenedSceneGraph=False, ElementUI_GameHUD=True, STATUS_INSCENE=3,
              HasPlayer=True, Hotkeys=[], GetStatus=lambda: 3, GetAdjustPos=lambda: None,
-             RegisterForKey=registered.add, UnregisterForKey=registered.discard,
+             RegisterForKey=lambda key: register(thread_keys, key),
+             UnregisterForKey=lambda key: unregister(thread_keys, key),
+             threadKeys=thread_keys, configKeys=config_keys,
              Utility=SimpleNamespace(IsInMenuMode=lambda: False),
              RefreshPropertiesSceneHUD=lambda mode: calls.append('properties'),
              PrepareSceneSelectImpl=lambda: True, OpenSceneSelectImpl=lambda: True,
@@ -159,11 +180,30 @@ def fixture():
     def run(name):
         try:
             exec(bodies[name], e)
-        except Returned:
-            pass
+        except Returned as result:
+            return result.value
+
+    def evaluate(name, **params):
+        scope = dict(e, **params)
+        try:
+            exec(bodies[name], scope)
+        except Returned as result:
+            return result.value
 
     for name in bodies:
         e[name] = lambda name=name: run(name)
+    e['GetSettingInt'] = lambda key: settings.get(key, -1)
+    e['Input'] = SimpleNamespace(IsKeyPressed=lambda key: key in e.get('pressedKeys', set()))
+    e['IsOtherThreadHotkey'] = lambda key: evaluate('IsOtherThreadHotkey', aiKey=key)
+    config.HasSceneSelectKeyConflict = lambda setting, key: evaluate('HasSceneSelectKeyConflict', changedSetting=setting, newKey=key)
+    config.IsSceneSelectShortcut = lambda key: evaluate('IsSceneSelectShortcut', keyCode=key)
+    config.IsSceneSelectModifier = lambda key: evaluate('IsSceneSelectModifier', keyCode=key)
+    config.IsSceneSelectMainKey = lambda key: evaluate('IsSceneSelectMainKey', keyCode=key)
+    config.HandleGlobalHotkey = lambda key: evaluate('HandleGlobalHotkey', keyCode=key)
+    config.IsGlobalHotkey = lambda key: evaluate('IsGlobalHotkey', keyCode=key)
+    config.RegisterForKey = lambda key: register(config_keys, key)
+    config.UnregisterForKey = lambda key: unregister(config_keys, key)
+    e.update(ToggleFreeCamera=81, TargetActor=49, ToggleThreadControl=21, _ActiveControl=False)
 
     e['SetFocusSceneHUDImpl'] = lambda value: e.__setitem__('nativeFocused', value)
     e['SetFixedLengthTimerPaused'] = lambda value: e.__setitem__('timerPaused', value)
@@ -289,6 +329,8 @@ def release_control(e, registered):
     e['_TimerPaused'] = False
     e['nativeFocused'] = False
     registered.clear()
+    e['threadKeys'].clear()
+    e['configKeys'].clear()
 
 
 # Execute the actual focus body; release before/after its native effect completes.
@@ -374,7 +416,7 @@ for boundary in ('UnregisterForKey', 'RegisterForKey'):
         settings['iOpenSceneSelect'] = 34
         e['RegisterHotkeys']()
         settings['iOpenSceneSelect'] = 35
-        native = e[boundary]
+        native = getattr(e['Config'], boundary)
         fired = [False]
 
         def interrupted_key(key, native=native, release_first=release_first):
@@ -389,7 +431,7 @@ for boundary in ('UnregisterForKey', 'RegisterForKey'):
             else:
                 native(key)
 
-        e[boundary] = interrupted_key
+        setattr(e['Config'], boundary, interrupted_key)
         e['RefreshSceneSelectHotkey']()
         assert fired[0] and not registered, (boundary, registered)
 
@@ -405,7 +447,7 @@ for next_key in (35, 36):
         e['_SceneHotkeysEnabled'] = True
         e['Hotkeys'] = [184] + [-1] * 9 + [next_key]
         registered.update((184, next_key, key))
-    e['RegisterForKey'] = reacquire_during_registration
+    e['Config'].RegisterForKey = reacquire_during_registration
     e['RefreshSceneSelectHotkey']()
     assert registered == {184, next_key}
 
@@ -422,14 +464,14 @@ for next_key in (34, 36):
         e['Hotkeys'] = [184] + [-1] * 9 + [next_key]
         registered.update((184, next_key))
         registered.discard(key)
-    e['UnregisterForKey'] = reacquire_during_unregister
+    e['Config'].UnregisterForKey = reacquire_during_unregister
     e['RefreshSceneSelectHotkey']()
     assert registered == {184, next_key}
 
-assert controller.index('aiKey == Hotkeys[kOpenSceneSelect]') < controller.index('If (_bFocusedSceneHUD || _bOpenedSceneGraph)')
+assert controller.index('Function HandleSceneSelectMainKey') < controller.index('If (_bFocusedSceneHUD || _bOpenedSceneGraph)')
 assert 'MCM_SETTING(iOpenSceneSelect, -1)' in (ROOT / 'src/UserData/mcm.def').read_text()
 for lang in ('ENGLISH', 'CHINESE'):
     table = (ROOT / f'dist/Interface/Translations/SexLab_{lang}.txt').read_text(encoding='utf-16')
     for key in ('iOpenSceneSelect', 'iOpenSceneSelectHighlight', 'SceneSelectKeyConflict'):
         assert table.count('$SSL_' + key + '\t') == 1
-print('PASS: native idempotent opening/ownership/failure guards; extracted Papyrus registration, MCM bind/rebind/unbind/conflicts, focus, graph, failure and lifecycle cases; translation keys.')
+print('PASS: extracted Papyrus registration, MCM bind/rebind/unbind/conflicts, focus and lifecycle cases; native C++ ' + ('SKIPPED (no compilation)' if '--papyrus-only' in sys.argv else 'passed'))

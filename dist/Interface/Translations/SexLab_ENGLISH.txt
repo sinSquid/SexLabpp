@@ -299,8 +299,10 @@ $SSL_SceneManipulation	Scene Manipulation
 $SSL_iToggleSceneHUD	Toggle SceneHUD
 $SSL_iFocusSceneHUD	Focus SceneHUD
 $SSL_iOpenSceneSelect	Open Scenes list
-$SSL_iOpenSceneSelectHighlight	Open the current animation Scenes list directly. Unbound by default; press Escape to unbind. Use Alt, Escape or Return to leave the UI.
-$SSL_SceneSelectKeyConflict	This key is reserved by another SexLab control (including speed arrows and Shift modifiers). Please choose a different key.
+$SSL_iSceneSelectModifier	Scenes modifier key
+$SSL_iSceneSelectModifierHighlight	Optional; unbound by default. Hold this key before pressing the main key. While controlling a scene, the modifier alone does not trigger another P+ action on that key. Escape clears the binding.
+$SSL_iOpenSceneSelectHighlight	Open Scenes directly. Without a modifier this is a single key; otherwise hold the configured modifier first. Different chords can reuse the main key. Main and modifier must differ.
+$SSL_SceneSelectKeyConflict	Main and modifier are identical, or the complete binding conflicts with another P+ action. Change the main key or modifier first.
 $SSL_iToggleSceneGraph	Toggle Scene Graph
 $SSL_iKeyAdvance	Advance Scene
 $SSL_iKeyEnd	End Scene

@@ -145,6 +145,46 @@ namespace Thread::Interface
             (!IsActive() || !_focused || _activePanel == PanelId::kNone);
     }
 
+    bool SceneHUD::IsSceneSelectKey(std::uint32_t a_key, RE::InputEvent* a_events) const
+    {
+        const auto mainKey = Settings::iOpenSceneSelect;
+        const auto modifier = Settings::iSceneSelectModifier;
+        if (mainKey < 0 || modifier < 0 || mainKey == modifier)
+            return false;
+        if (a_key == static_cast<std::uint32_t>(modifier))
+            return true;
+        if (a_key != static_cast<std::uint32_t>(mainKey))
+            return false;
+        const auto modifierKey = static_cast<std::uint32_t>(modifier);
+        // A fresh modifier has heldDownSecs == 0, so prefer this poll's events.
+        std::optional<bool> pressed;
+        for (auto* event = a_events; event; event = event->next) {
+            auto* button = event->AsButtonEvent();
+            if (!button)
+                continue;
+            const auto code = button->GetIDCode();
+            if ((event->GetDevice() == RE::INPUT_DEVICE::kKeyboard && modifierKey < 256 && code == modifierKey) ||
+                (event->GetDevice() == RE::INPUT_DEVICE::kMouse && modifierKey >= 256 && modifierKey < 266 && code == modifierKey - 256) ||
+                (event->GetDevice() == RE::INPUT_DEVICE::kGamepad && modifierKey >= 266 && code == SKSE::InputMap::GamepadKeycodeToMask(modifierKey)))
+                pressed = button->IsPressed();
+        }
+        if (pressed.has_value())
+            return *pressed;
+        auto* input = RE::BSInputDeviceManager::GetSingleton();
+        if (!input)
+            return false;
+        if (modifierKey < SKSE::InputMap::kMacro_MouseButtonOffset) {
+            const auto* device = input->GetKeyboard();
+            return device && device->IsPressed(modifierKey);
+        }
+        if (modifierKey < SKSE::InputMap::kMacro_GamepadOffset) {
+            const auto* device = input->GetMouse();
+            return device && device->IsPressed(modifierKey - SKSE::InputMap::kMacro_MouseButtonOffset);
+        }
+        const auto* device = input->GetGamepad();
+        return device && device->IsPressed(SKSE::InputMap::GamepadKeycodeToMask(modifierKey));
+    }
+
     RE::BSEventNotifyControl SceneHUD::ProcessEvent(RE::InputEvent* const* a_event,
         RE::BSTEventSource<RE::InputEvent*>*)
     {
@@ -160,6 +200,8 @@ namespace Thread::Interface
                 continue;
             const auto key = button->GetIDCode();
             if (key != kLeftArrow && key != kRightArrow)
+                continue;
+            if (IsSceneSelectKey(key, *a_event))
                 continue;
             const bool increase = key == kRightArrow;
             auto* linkedThread = _speedThread;

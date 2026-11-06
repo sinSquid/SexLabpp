@@ -73,6 +73,7 @@ namespace Thread::Interface
         RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* a_event,
             RE::BSTEventSource<RE::InputEvent*>* a_eventSource) override;
         [[nodiscard]] bool CanAdjustSpeed() const;
+        [[nodiscard]] bool IsSceneSelectKey(std::uint32_t a_key, RE::InputEvent* a_events) const;
         void Render();
 
         RE::TESQuest* _linkedThread{};

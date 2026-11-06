@@ -95,7 +95,7 @@ Function RegisterHotkeys()
 	RegisterForKey(Hotkeys[kMoveScene])
 	RegisterForKey(Hotkeys[kChangePartner])
 	If (Hotkeys[kOpenSceneSelect] >= 0)
-		RegisterForKey(Hotkeys[kOpenSceneSelect])
+		Config.RegisterForKey(Hotkeys[kOpenSceneSelect])
 	EndIf
 EndFunction
 
@@ -107,6 +107,12 @@ Function UnregisterHotkeys()
 		EndIf
 		i += 1
 	EndWhile
+	If (Hotkeys.Length > kOpenSceneSelect)
+		int mainKey = Hotkeys[kOpenSceneSelect]
+		If (mainKey >= 0 && !Config.IsGlobalHotkey(mainKey))
+			Config.UnregisterForKey(mainKey)
+		EndIf
+	EndIf
 EndFunction
 
 ; ------------------------------------------------------- ;
@@ -117,12 +123,30 @@ Actor _AdjustActor = None     ; The actor (!=PlayerRef) currently selected for a
 bool _SkipHotkeyEvents = False
 
 Event OnKeyDown(int aiKey)
+	; Config owns this key even when it is also registered for a legacy action.
+	If (Config.IsSceneSelectMainKey(aiKey))
+		return
+	EndIf
+	HandleThreadHotkey(aiKey)
+EndEvent
+
+Function HandleSceneSelectMainKey(int aiKey)
+	If (!_SceneHotkeysEnabled || Utility.IsInMenuMode() || _SkipHotkeyEvents || !Config.IsSceneSelectMainKey(aiKey))
+		return
+	EndIf
+	If (Config.IsSceneSelectShortcut(aiKey))
+		OpenSceneSelect()
+	ElseIf (!Config.HandleGlobalHotkey(aiKey))
+		HandleThreadHotkey(aiKey)
+	EndIf
+EndFunction
+
+Function HandleThreadHotkey(int aiKey)
 	If (Utility.IsInMenuMode() || _SkipHotkeyEvents)
 		return
 	EndIf
 	; SceneHUD
-	If (Hotkeys.Length > kOpenSceneSelect && aiKey == Hotkeys[kOpenSceneSelect] && aiKey >= 0)
-		OpenSceneSelect()
+	If (_SceneHotkeysEnabled && Config.IsSceneSelectModifier(aiKey))
 		return
 	EndIf
 	If (aiKey == Hotkeys[kToggleSceneHUD])
@@ -163,11 +187,24 @@ Event OnKeyDown(int aiKey)
 		CycleTargetPartner(abModifier)
 	EndIf
 	_SkipHotkeyEvents = false
-EndEvent
+EndFunction
 
 ; ------------------------------------------------------- ;
 ; --- SCENE HUD                                       --- ;
 ; ------------------------------------------------------- ;
+bool Function IsOtherThreadHotkey(int aiKey)
+	int i = 0
+	While (i < kOpenSceneSelect && i < Hotkeys.Length)
+		If (Hotkeys[i] == aiKey)
+			If ((i != kGameRaiseEnj && i != kGameHoldback) || (Config.GameEnabled && HasPlayer))
+				return true
+			EndIf
+		EndIf
+		i += 1
+	EndWhile
+	return false
+EndFunction
+
 Function RefreshSceneSelectHotkey()
 	If (!_SceneHotkeysEnabled || Hotkeys.Length <= kOpenSceneSelect)
 		return
@@ -178,23 +215,23 @@ Function RefreshSceneSelectHotkey()
 	If (oldKey == newKey)
 		return
 	EndIf
-	If (oldKey >= 0)
-		UnregisterForKey(oldKey)
+	If (oldKey >= 0 && !Config.IsGlobalHotkey(oldKey))
+		Config.UnregisterForKey(oldKey)
 	EndIf
 	If (!_SceneHotkeysEnabled || refreshRevision != _SceneSelectRevision)
 		; A newer session may have registered the same key before the old unregister completed.
-		If (_SceneHotkeysEnabled && oldKey >= 0 && Hotkeys.Find(oldKey) >= 0)
-			RegisterForKey(oldKey)
+		If (_SceneHotkeysEnabled && oldKey >= 0 && oldKey == Hotkeys[kOpenSceneSelect])
+			Config.RegisterForKey(oldKey)
 		EndIf
 		return
 	EndIf
 	Hotkeys[kOpenSceneSelect] = newKey
 	If (newKey >= 0)
-		RegisterForKey(newKey)
+		Config.RegisterForKey(newKey)
 		; A release can finish while RegisterForKey is in flight.
 		; Never unregister a key now owned by a newer control session.
-		If (!_SceneHotkeysEnabled || (refreshRevision != _SceneSelectRevision && Hotkeys.Find(newKey) < 0))
-			UnregisterForKey(newKey)
+		If ((!_SceneHotkeysEnabled || (refreshRevision != _SceneSelectRevision && newKey != Hotkeys[kOpenSceneSelect])) && !Config.IsGlobalHotkey(newKey))
+			Config.UnregisterForKey(newKey)
 		EndIf
 	EndIf
 EndFunction
