@@ -292,6 +292,29 @@ namespace Thread::Interface
         _activePanel = a_panel;
     }
 
+    bool SceneHUD::PrepareSceneSelect(RE::TESQuest* a_quest)
+    {
+        if (!a_quest || _speedThread != a_quest || !Instance::GetInstance(a_quest) ||
+            !_registered || !_renderEnabled || RE::UI::GetSingleton()->GameIsPaused())
+            return false;
+        if (IsActive() && !GetForThread(a_quest))
+            return false;
+        if (!IsActive())
+            Init(a_quest);
+        return GetForThread(a_quest) && _elements && _threadScript;
+    }
+
+    bool SceneHUD::OpenSceneSelect(RE::TESQuest* a_quest)
+    {
+        if (!a_quest || _speedThread != a_quest || !GetForThread(a_quest) ||
+            !Instance::GetInstance(a_quest) || !_elements || !_focused || !ShouldRender())
+            return false;
+        // OpenPanel toggles an already-open panel; the hotkey must be idempotent.
+        if (!IsPanelOpen(PanelId::kSceneSelect))
+            OpenPanel(PanelId::kSceneSelect);
+        return IsPanelOpen(PanelId::kSceneSelect);
+    }
+
     void SceneHUD::UpdateStageTimer(float a_duration, float a_timer)
     {
         if (_elements)

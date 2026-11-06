@@ -1964,6 +1964,8 @@ Function InitSceneHUDImpl() native
 Function DestroySceneHUDImpl() native
 Function SetSpeedHotkeysEnabled(bool abEnabled) native
 Function SetFocusSceneHUDImpl(bool abFocused) native
+bool Function PrepareSceneSelectImpl() native
+bool Function OpenSceneSelectImpl() native
 
 Function UpdateMenuTimerDisplay(float afDuration, float afTime) native
 Function OnStageChangedUpdateHUD() native

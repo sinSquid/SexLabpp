@@ -696,6 +696,16 @@ namespace Papyrus::ThreadModel
         return instance->SetFocusSceneHUDImpl(a_focused);
     }
 
+    bool PrepareSceneSelectImpl(QUESTARGS)
+    {
+        return Thread::Interface::SceneHUD::GetSingleton().PrepareSceneSelect(a_qst);
+    }
+
+    bool OpenSceneSelectImpl(QUESTARGS)
+    {
+        return Thread::Interface::SceneHUD::GetSingleton().OpenSceneSelect(a_qst);
+    }
+
     void UpdateMenuTimerDisplay(QUESTARGS, float a_duration, float a_time)
     {
         GET_INSTANCE();

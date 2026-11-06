@@ -19,6 +19,9 @@ Function EnableHotkeys(bool forced = false)
 		return
 	EndIf
 	ToggleVisibilitySceneHUD(1)
+	_SceneSelectRevision += 1
+	_SceneHotkeysEnabled = true
+	_OpeningSceneSelect = false
 	SetSpeedHotkeysEnabled(true)
 	RegisterHotkeys()
 	If (Config.HasVRIK)
@@ -27,6 +30,9 @@ Function EnableHotkeys(bool forced = false)
 EndFunction
 
 Function DisableHotkeys()
+	_SceneHotkeysEnabled = false
+	_SceneSelectRevision += 1
+	_OpeningSceneSelect = false
 	SetSpeedHotkeysEnabled(false)
 	SexLabUtil.ToggleFreeCamera(0)
 	ToggleVisibilitySceneHUD(-1)
@@ -41,6 +47,9 @@ EndFunction
 ; ------------------------------------------------------- ;
 
 int[] Hotkeys
+bool _SceneHotkeysEnabled = false
+bool _OpeningSceneSelect = false
+int _SceneSelectRevision = 0
 int Property kToggleSceneHUD    = 0  AutoReadOnly
 int Property kFocusSceneHUD     = 1  AutoReadOnly
 int Property kToggleSceneGraph  = 2  AutoReadOnly
@@ -51,9 +60,10 @@ int Property kGameHoldback      = 6  AutoReadOnly
 int Property kChangeAnimation   = 7  AutoReadOnly
 int Property kMoveScene         = 8  AutoReadOnly
 int Property kChangePartner     = 9  AutoReadOnly
+int Property kOpenSceneSelect   = 10 AutoReadOnly
 
 Function InitHotkeys()
-	Hotkeys = new int[10]
+	Hotkeys = new int[11]
 	Hotkeys[kToggleSceneHUD]    = Config.ToggleSceneHUD
 	Hotkeys[kFocusSceneHUD]     = Config.FocusSceneHUD
 	Hotkeys[kToggleSceneGraph]  = Config.ToggleSceneGraph
@@ -64,6 +74,7 @@ Function InitHotkeys()
 	Hotkeys[kChangeAnimation]   = Config.ChangeAnimation
 	Hotkeys[kMoveScene]         = Config.MoveScene
 	Hotkeys[kChangePartner]     = Config.TargetActor
+	Hotkeys[kOpenSceneSelect]   = sslSystemConfig.GetSettingInt("iOpenSceneSelect")
 EndFunction
 
 Function RegisterHotkeys()
@@ -83,12 +94,17 @@ Function RegisterHotkeys()
 	RegisterForKey(Hotkeys[kChangeAnimation])
 	RegisterForKey(Hotkeys[kMoveScene])
 	RegisterForKey(Hotkeys[kChangePartner])
+	If (Hotkeys[kOpenSceneSelect] >= 0)
+		RegisterForKey(Hotkeys[kOpenSceneSelect])
+	EndIf
 EndFunction
 
 Function UnregisterHotkeys()
 	int i = 0
 	While (i < Hotkeys.Length)
-		UnregisterForKey(Hotkeys[i])
+		If (Hotkeys[i] >= 0)
+			UnregisterForKey(Hotkeys[i])
+		EndIf
 		i += 1
 	EndWhile
 EndFunction
@@ -105,6 +121,10 @@ Event OnKeyDown(int aiKey)
 		return
 	EndIf
 	; SceneHUD
+	If (Hotkeys.Length > kOpenSceneSelect && aiKey == Hotkeys[kOpenSceneSelect] && aiKey >= 0)
+		OpenSceneSelect()
+		return
+	EndIf
 	If (aiKey == Hotkeys[kToggleSceneHUD])
 		ToggleVisibilitySceneHUD()
 		return
@@ -148,6 +168,71 @@ EndEvent
 ; ------------------------------------------------------- ;
 ; --- SCENE HUD                                       --- ;
 ; ------------------------------------------------------- ;
+Function RefreshSceneSelectHotkey()
+	If (!_SceneHotkeysEnabled || Hotkeys.Length <= kOpenSceneSelect)
+		return
+	EndIf
+	int refreshRevision = _SceneSelectRevision
+	int oldKey = Hotkeys[kOpenSceneSelect]
+	int newKey = sslSystemConfig.GetSettingInt("iOpenSceneSelect")
+	If (oldKey == newKey)
+		return
+	EndIf
+	If (oldKey >= 0)
+		UnregisterForKey(oldKey)
+	EndIf
+	If (!_SceneHotkeysEnabled || refreshRevision != _SceneSelectRevision)
+		; A newer session may have registered the same key before the old unregister completed.
+		If (_SceneHotkeysEnabled && oldKey >= 0 && Hotkeys.Find(oldKey) >= 0)
+			RegisterForKey(oldKey)
+		EndIf
+		return
+	EndIf
+	Hotkeys[kOpenSceneSelect] = newKey
+	If (newKey >= 0)
+		RegisterForKey(newKey)
+		; A release can finish while RegisterForKey is in flight.
+		; Never unregister a key now owned by a newer control session.
+		If (!_SceneHotkeysEnabled || (refreshRevision != _SceneSelectRevision && Hotkeys.Find(newKey) < 0))
+			UnregisterForKey(newKey)
+		EndIf
+	EndIf
+EndFunction
+
+Function OpenSceneSelect()
+	If (!_SceneHotkeysEnabled || _OpeningSceneSelect || GetStatus() != STATUS_INSCENE || Utility.IsInMenuMode())
+		return
+	EndIf
+	_OpeningSceneSelect = true
+	int revision = _SceneSelectRevision
+	bool wasFocused = _bFocusedSceneHUD
+	If (_bOpenedSceneGraph)
+		ToggleVisibilitySceneGraph(-1)
+	EndIf
+	If (!_bOpenedSceneHUD)
+		RefreshPropertiesSceneHUD("Get")
+	EndIf
+	bool ready = PrepareSceneSelectImpl()
+	If (revision != _SceneSelectRevision)
+		return
+	EndIf
+	If (ready && _SceneHotkeysEnabled && GetStatus() == STATUS_INSCENE)
+		_bOpenedSceneHUD = true
+		If (!ElementUI_GameHUD)
+			SexLabUtil.HideElementsGameHUD(true)
+		EndIf
+		ToggleFocusSceneHUD(1, revision)
+		bool opened = OpenSceneSelectImpl()
+		If (revision != _SceneSelectRevision)
+			return
+		EndIf
+		If (!opened && !wasFocused)
+			ToggleFocusSceneHUD(-1)
+		EndIf
+	EndIf
+	_OpeningSceneSelect = false
+EndFunction
+
 bool _bOpenedSceneHUD = false
 bool _bFocusedSceneHUD = false
 bool _bOpenedSceneGraph = false
@@ -169,8 +254,12 @@ Function ToggleVisibilitySceneHUD(int aiForceState = 0)
 	EndIf
 EndFunction
 
-Function ToggleFocusSceneHUD(int aiForceState = 0)
+Function ToggleFocusSceneHUD(int aiForceState = 0, int aiExpectedRevision = -1)
 	;[-1:ForceUnfocus, 0:Toggle, 1:ForceFocus]
+	; Only the direct Scenes request supplies a revision; existing callers are unchanged.
+	If (aiExpectedRevision >= 0 && (!_SceneHotkeysEnabled || aiExpectedRevision != _SceneSelectRevision))
+		return
+	EndIf
 	If (!_bOpenedSceneHUD)
 		return
 	EndIf
@@ -184,9 +273,28 @@ Function ToggleFocusSceneHUD(int aiForceState = 0)
 		PauseTimer(false)
 	ElseIf (aiForceState == 1 || (aiForceState == 0 && !_bFocusedSceneHUD))
 		SetFocusSceneHUDImpl(true)
+		If (aiExpectedRevision >= 0 && (!_SceneHotkeysEnabled || aiExpectedRevision != _SceneSelectRevision))
+			If (!_SceneHotkeysEnabled)
+				SetFocusSceneHUDImpl(false)
+			Else
+				SetFocusSceneHUDImpl(_bFocusedSceneHUD)
+			EndIf
+			return
+		EndIf
 		_bFocusedSceneHUD = true
 		EnjoymentPaused = true
 		PauseTimer(true)
+		If (aiExpectedRevision >= 0 && (!_SceneHotkeysEnabled || aiExpectedRevision != _SceneSelectRevision))
+			If (!_SceneHotkeysEnabled)
+				_bFocusedSceneHUD = false
+				EnjoymentPaused = false
+				PauseTimer(false)
+				SetFocusSceneHUDImpl(false)
+			Else
+				; Reconcile only the late native timer write; keep the newer UI's state.
+				PauseTimer(_bFocusedSceneHUD || _bOpenedSceneGraph)
+			EndIf
+		EndIf
 	EndIf
 EndFunction
 

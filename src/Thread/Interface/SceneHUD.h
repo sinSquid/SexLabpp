@@ -33,6 +33,8 @@ namespace Thread::Interface
 
         void SetFocus(bool a_focused);
         void OpenPanel(PanelId a_panel);
+        bool PrepareSceneSelect(RE::TESQuest* a_quest);
+        bool OpenSceneSelect(RE::TESQuest* a_quest);
         void CloseAllPanels();
         void SetRenderEnabled(bool a_enabled) { _renderEnabled = a_enabled; }
 

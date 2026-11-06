@@ -71,6 +71,7 @@ MCM_SETTING(iToggleThreadControl, 0x15)    // Y
 // KeyBinds/Scene Control Related
 MCM_SETTING(iToggleSceneHUD, 0x35)         // Slash
 MCM_SETTING(iFocusSceneHUD, 0xB8)          // Right Alt
+MCM_SETTING(iOpenSceneSelect, -1)         // Unbound
 MCM_SETTING(iToggleSceneGraph, 0x9C)       // Numpad Enter
 MCM_SETTING(iKeyAdvance, 0x39)             // Space
 MCM_SETTING(iKeyEnd, 0xCF)                 // End

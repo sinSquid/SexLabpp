@@ -1409,6 +1409,25 @@ Event OnKeyMapChangeST(int newKeyCode, string conflictControl, string conflictNa
       return
     EndIf
   EndIf
+  ; Keep the direct Scenes key distinct from scene/global controls in either direction.
+  If (newKeyCode >= 0)
+    If (s[i] == "iOpenSceneSelect")
+      String[] controls = StringUtil.Split("iToggleSceneHUD,iFocusSceneHUD,iToggleSceneGraph,iKeyAdvance,iKeyEnd,iKeyMod,iChangeAnimation,iMoveScene,iTargetActor,iToggleFreeCamera,iToggleThreadControl,iGameRaiseEnjKey,iGameHoldbackKey", ",")
+      int controlIndex = 0
+      bool internalConflict = newKeyCode == 203 || newKeyCode == 205 || newKeyCode == 42 || newKeyCode == 54
+      While (controlIndex < controls.Length && !internalConflict)
+        internalConflict = sslSystemConfig.GetSettingInt(controls[controlIndex]) == newKeyCode
+        controlIndex += 1
+      EndWhile
+      If (internalConflict)
+        ShowMessage("$SSL_SceneSelectKeyConflict", false, "$Ok")
+        return
+      EndIf
+    ElseIf (newKeyCode == sslSystemConfig.GetSettingInt("iOpenSceneSelect"))
+      ShowMessage("$SSL_SceneSelectKeyConflict", false, "$Ok")
+      return
+    EndIf
+  EndIf
   If (needsRegister)
     int oldKeyCode = sslSystemConfig.GetSettingInt(s[i])
     If (oldKeyCode != -1)
@@ -1419,6 +1438,12 @@ Event OnKeyMapChangeST(int newKeyCode, string conflictControl, string conflictNa
     EndIf
   EndIf
 	sslSystemConfig.SetSettingInt(s[i], newKeyCode)
+  If (s[i] == "iOpenSceneSelect")
+    sslThreadController controlled = Config.GetThreadControlled()
+    If (controlled)
+      controlled.RefreshSceneSelectHotkey()
+    EndIf
+  EndIf
   SetKeyMapOptionValueST(newKeyCode)
 EndEvent
 
@@ -1495,6 +1520,7 @@ function PlayerHotkeys()
 	AddStateOptionKey("iToggleSceneHUD", "$SSL_iToggleSceneHUD", true, true)
 	AddStateOptionKey("iKeyAdvance", "$SSL_iKeyAdvance", true, true)
 	AddStateOptionKey("iFocusSceneHUD", "$SSL_iFocusSceneHUD", true, true)
+	AddStateOptionKey("iOpenSceneSelect", "$SSL_iOpenSceneSelect")
 	AddStateOptionKey("iKeyEnd", "$SSL_iKeyEnd", true, true)
 	AddStateOptionKey("iToggleSceneGraph", "$SSL_iToggleSceneGraph", true, true)
 	AddStateOptionKey("iKeyMod", "$SSL_iKeyMod", true, true)
