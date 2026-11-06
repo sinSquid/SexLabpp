@@ -50,7 +50,8 @@ namespace Thread::Interface
         const auto* scene = lib->GetSceneById(RE::BSFixedString{ e.id.c_str() });
         if (!scene)
             return;
-        for (const auto& a : scene->tags.GetAnnotations()) {
+        const auto previousAnnotations = scene->tags.GetAnnotations();
+        for (const auto& a : previousAnnotations) {
             lib->EditScene(RE::BSFixedString{ e.id.c_str() }, [&](Registry::Scene* s) {
                 s->tags.RemoveAnnotation(a);
             });

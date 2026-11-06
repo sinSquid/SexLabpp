@@ -533,7 +533,8 @@ namespace Papyrus::ThreadModel
                     continue;
                 if (a_positions[i] == a_actor) {
                     const auto& p = scene->GetNthPosition(i);
-                    sub = p->IsSubmissive();
+                    if (p->IsSubmissive())
+                        sub = 1;
                     continue;
                 }
                 if (sub != 1 && scene->GetNthPosition(i)->IsSubmissive()) {

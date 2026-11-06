@@ -643,24 +643,40 @@ namespace Registry
             return { a_src };
 
         std::set<const Stage*> visited{};
+        std::map<const Stage*, std::vector<const Stage*>> cachedPaths;
+        bool hasCycle = false;
         std::function<std::vector<const Stage*>(const Stage*)> DFS = [&](const Stage* src) -> std::vector<const Stage*> {
-            if (visited.contains(src))
+            if (visited.contains(src)) {
+                hasCycle = true;
                 return {};
+            }
+            if (!hasCycle) {
+                if (const auto cached = cachedPaths.find(src); cached != cachedPaths.end())
+                    return cached->second;
+            }
             visited.insert(src);
 
-            std::vector<const Stage*> longest_path{ src };
+            std::vector<const Stage*> longest_path;
             const auto& neighbours = this->graph.find(src);
             assert(neighbours != this->graph.end());
+            if (neighbours->second.empty())
+                longest_path.push_back(src);
             for (auto&& n : neighbours->second) {
                 const auto cmp = DFS(n);
-                if (cmp.size() + 1 > longest_path.size()) {
+                if (!cmp.empty() && cmp.size() + 1 > longest_path.size()) {
                     longest_path.assign(cmp.begin(), cmp.end());
                     longest_path.insert(longest_path.begin(), src);
                 }
             }
+            visited.erase(src);  // Cycle guard belongs to this path, not other branches.
+            if (!hasCycle)
+                cachedPaths.emplace(src, longest_path);
             return longest_path;
         };
-        return DFS(a_src);
+        auto path = DFS(a_src);
+        // DAG suffixes are context-independent. Once a cycle is found, recompute
+        // without cached suffixes: a simple path must exclude its own ancestors.
+        return hasCycle ? DFS(a_src) : path;
     }
 
     std::vector<const Stage*> Scene::GetShortestPath(const Stage* a_src) const
@@ -680,8 +696,8 @@ namespace Registry
                     if (visited.contains(n))
                         continue;
                     if (GetStageNodeType(n) == NodeType::Sink) {
-                        std::vector<const Stage*> ret{};
-                        auto p = pred.at(it);
+                        std::vector<const Stage*> ret{ n };
+                        auto p = it;
                         while (p != nullptr) {
                             ret.push_back(p);
                             p = pred.at(p);
@@ -694,7 +710,8 @@ namespace Registry
                 }
                 queue.pop();
             }
-            return { src };
+            // A root with no edges is also a valid one-node path.
+            return graph.at(src).empty() ? std::vector<const Stage*>{ src } : std::vector<const Stage*>{};
         };
         return BFS(a_src);
     }

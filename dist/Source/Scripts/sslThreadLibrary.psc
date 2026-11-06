@@ -34,10 +34,10 @@ bool Function IsBedRoll(ObjectReference BedRef)
   return GetBedType(BedRef) == BedType_BedRoll
 EndFunction
 bool function IsDoubleBed(ObjectReference BedRef)
-  return GetBedType(BedRef) == BedType_Single
+  return GetBedType(BedRef) == BedType_Double
 endFunction
 bool function IsSingleBed(ObjectReference BedRef)
-  return GetBedType(BedRef) == BedType_Double
+  return GetBedType(BedRef) == BedType_Single
 endFunction
 
 bool Function IsBedAvailable(ObjectReference BedRef)

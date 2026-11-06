@@ -982,6 +982,19 @@ float _StageDuration		; duration of the current stage
 bool _TimerPaused		; whether timer drain for current stage should be paused
 float _SFXTimer				; so long until new SFX effect
 float[] _CustomTimers	; Custom set of timers to use for this animation
+int Property PlaybackRevision = 0 Auto Hidden
+
+bool Function IsCurrentPlayback(int aiRevision)
+	return aiRevision == PlaybackRevision && GetState() == STATE_PLAYING
+EndFunction
+
+Function ResumePlaybackUpdates(int aiRevision)
+	; A delayed UI answer must not register the Making state's setup watchdog.
+	If (IsCurrentPlayback(aiRevision) && !_animationSyncPending)
+		RegisterForSingleUpdate(ANIMATING_UPDATE_INTERVAL)
+	EndIf
+EndFunction
+
 float[] Property Timers hidden
 	{In use timer set of the active scene}
 	float[] Function Get()
@@ -997,6 +1010,7 @@ EndProperty
 
 State Animating
 	Event OnBeginState()
+		PlaybackRevision += 1
 		SetFurnitureIgnored(true)
 		_SFXTimer = Config.SFXDelay
 		_animationSyncPending = false
@@ -1055,6 +1069,7 @@ State Animating
 				Log("Unable to reset scene. New scene is invalid for this thread")
 				_animationSyncPending = false
 				_sceneResetSyncPending = false
+				RegisterForSingleUpdate(ANIMATING_UPDATE_INTERVAL)
 				return false
 			EndIf
 			SortAliasesToPositions()
@@ -1214,16 +1229,18 @@ State Animating
 	EndFunction
 
 	float Function GetStageTimer(int maxstage)
+		float[] stageTimers = Timers
+		If (stageTimers.Length == 0)
+			stageTimers = Config.StageTimer
+		EndIf
 		int[] c = SexLabRegistry.GetClimaxingActors(GetActiveScene(), GetActiveStage())
 		bool isClimaxStage = c.Length > 0
 		If (isClimaxStage)
-			return Timers[Timers.Length - 1]
+			return stageTimers[stageTimers.Length - 1]
 		EndIf
-		int lastTimerIdx = Timers.Length - 2
-		If (_StageHistory.Length < lastTimerIdx)
-			return Timers[_StageHistory.Length]
-		EndIf
-		return Timers[lastTimerIdx]
+		int lastTimerIdx = PapyrusUtil.ClampInt(stageTimers.Length - 2, 0, stageTimers.Length - 1)
+		int timerIdx = PapyrusUtil.ClampInt(_StageHistory.Length - 1, 0, lastTimerIdx)
+		return stageTimers[timerIdx]
 	Endfunction
 	
 	Function AdvanceFromTimer()
@@ -1277,20 +1294,36 @@ State Animating
 	EndEvent
 
 	Function CenterOnObject(ObjectReference CenterOn, bool resync = true)
+		int centerRevision = PlaybackRevision
 		If (!CenterOn)
 			return
 		ElseIf (CenterOn as Actor && _Positions.Find(CenterOn as Actor) == -1)
 			Form xMarker = Game.GetForm(0x3B)
 			CenterOn = CenterOn.PlaceAtMe(xMarker, 1, false)
 		EndIf
+		If (!IsCurrentPlayback(centerRevision))
+			return
+		EndIf
 		SetFurnitureIgnored(false)
-		If (!ReassignCenter(CenterOn))
-			If (Config.HasThreadControl(Self) && InvalidCenterMsg.Show() == 1)
+		bool reassigned = ReassignCenter(CenterOn)
+		If (!IsCurrentPlayback(centerRevision))
+			return
+		EndIf
+		If (!reassigned)
+			bool endScene = false
+			If (Config.HasThreadControl(Self))
+				endScene = InvalidCenterMsg.Show() == 1
+				If (!IsCurrentPlayback(centerRevision))
+					return
+				EndIf
+			EndIf
+			If (endScene)
 				Log("Cannot relocate center, end scene by player choice", "CenterOnObject")
 				EndAnimation()
 				return
 			Else
 				Log("Cannot relocate center, cancel relocation", "CenterOnObject")
+				ResumePlaybackUpdates(centerRevision)
 			EndIf
 		Else
 			SendThreadEvent("ActorsRelocated")
@@ -1343,6 +1376,7 @@ State Animating
 	EndFunction
 	Function EndAnimation(bool Quickly = false)
 		UnregisterForUpdate()
+		PlaybackRevision += 1
 		If ((sslSystemConfig.GetSettingInt("iClimaxType") == Config.CLIMAXTYPE_LEGACY) && (!_QuickResetScenes))
 			SendThreadEvent("OrgasmStart")
 			int i = 0
@@ -1443,6 +1477,7 @@ State Animating
 
 	Event OnEndState()
 		UnregisterForUpdate()
+		PlaybackRevision += 1
 		SetFurnitureIgnored(false)
 	EndEvent
 EndState

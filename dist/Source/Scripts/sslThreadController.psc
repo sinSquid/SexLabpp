@@ -332,7 +332,6 @@ Function PickRandomScene(String asNewScene)
 		Log("PickRandomScene: No other scenes to pick from")
 		return
 	EndIf
-	UnregisterForUpdate()
 	If (asNewScene == "")
 		int i = sceneSet.Find(GetActiveScene())
 		int r = Utility.RandomInt(0, sceneSet.Length - 1)
@@ -347,8 +346,15 @@ Function PickRandomScene(String asNewScene)
 EndFunction
 
 Function MoveScene()
+	int moveRevision = PlaybackRevision
+	If (!IsCurrentPlayback(moveRevision))
+		return
+	EndIf
 	If (!SexLabRegistry.IsCompatibleCenter(GetActiveScene(), Game.GetPlayer()))
 		Debug.Notification("This scene does not support repositioning")
+		return
+	EndIf
+	If (!IsCurrentPlayback(moveRevision))
 		return
 	EndIf
 	UnregisterForUpdate()
@@ -361,11 +367,15 @@ Function MoveScene()
 	If (StorageUtil.GetIntValue(none, "SEXLAB_REPOSITIONMSG_INFO", 0) == 0)
 		; "You have 30 secs to position yourself to a new center location.\nHold down the 'Move Scene' hotkey to relocate the center instantly to your current position"
 		int choice = RepositionInfoMsg.Show()
+		If (!IsCurrentPlayback(moveRevision))
+			return
+		EndIf
 		If (choice == 1)
 			If (abClosedSceneHUD)
 				ToggleVisibilitySceneHUD(1)
 				_bFocusedSceneHUD = false
 			EndIf
+			ResumePlaybackUpdates(moveRevision)
 			return
 		ElseIf (choice == 2)
 			StorageUtil.SetIntValue(none, "SEXLAB_REPOSITIONMSG_INFO", 1)

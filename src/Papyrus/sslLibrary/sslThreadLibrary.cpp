@@ -23,9 +23,13 @@ namespace Papyrus::ThreadLibrary
         const auto center = a_center->GetPosition();
         std::vector<RE::TESObjectREFR*> ret{};
         Util::ForEachObjectInRange(a_center, a_radius, [&](RE::TESObjectREFR* ref) {
-            if (!ref || !ref->GetBaseObject()->Is(RE::FormType::Furniture) && a_radiusZ > 0.0f ? (std::fabs(center.z - ref->GetPosition().z) <= a_radiusZ) : true)
-                if (Registry::FurnitureType::IsBedType(ref))
-                    ret.push_back(ref);
+            const auto base = ref ? ref->GetBaseObject() : nullptr;
+            if (!base || !base->Is(RE::FormType::Furniture))
+                return RE::BSContainer::ForEachResult::kContinue;
+            if (a_radiusZ > 0.0f && std::fabs(center.z - ref->GetPosition().z) > a_radiusZ)
+                return RE::BSContainer::ForEachResult::kContinue;
+            if (Registry::FurnitureType::IsBedType(ref))
+                ret.push_back(ref);
             return RE::BSContainer::ForEachResult::kContinue;
         });
         std::sort(ret.begin(), ret.end(), [&](RE::TESObjectREFR* a_refA, RE::TESObjectREFR* a_refB) {
@@ -40,7 +44,9 @@ namespace Papyrus::ThreadLibrary
             a_vm->TraceStack("Reference is none", a_stackID);
             return false;
         }
-        return static_cast<int32_t>(Registry::FurnitureType::GetBedType(a_reference));
+        // The Papyrus API uses sequential IDs; native furniture types are bit flags.
+        const auto type = Registry::FurnitureType::GetBedType(a_reference);
+        return type.Is(Registry::FurnitureType::BedDouble) ? 3 : static_cast<int32_t>(type.value);
     }
 
     bool IsBed(VM* a_vm, RE::VMStackID a_stackID, RE::StaticFunctionTag*, RE::TESObjectREFR* a_reference)
@@ -78,6 +84,7 @@ namespace Papyrus::ThreadLibrary
             return a_targetsex;
         }();
         std::vector<RE::Actor*> ret{};
+        const auto centerPosition = a_center->GetPosition();
         const auto& highactors = RE::ProcessLists::GetSingleton()->highActorHandles;
         for (auto&& handle : highactors) {
             const auto& actor = handle.get();
@@ -88,6 +95,8 @@ namespace Papyrus::ThreadLibrary
                 actor.get() == ignore_ref04)
                 continue;
 
+            if (centerPosition.GetDistance(actor->GetPosition()) > a_radius)
+                continue;
             if (!targetrace.IsCompatibleWith(actor.get()))
                 continue;
             if (targetsex != LegacySex::None && GetLegacySex(actor.get()) != targetsex)
@@ -217,25 +226,27 @@ namespace Papyrus::ThreadLibrary
         for (auto&& position : scene->positions) {
             RE::Actor* fill = nullptr;
             for (auto& include : a_includes) {
-                if (include && position.CanFillPosition(include)) {
-                    include = nullptr;
+                if (include && !std::ranges::contains(ret, include) && position.CanFillPosition(include)) {
                     fill = include;
+                    include = nullptr;
                     break;
                 }
             }
             if (fill) {
+                ret.push_back(fill);
                 continue;
             }
             for (auto& valid : valids) {
-                if (valid && position.CanFillPosition(valid)) {
-                    valid = nullptr;
+                if (valid && !std::ranges::contains(ret, valid) && position.CanFillPosition(valid)) {
                     fill = valid;
+                    valid = nullptr;
                     break;
                 }
             }
             if (!fill) {
                 return {};
             }
+            ret.push_back(fill);
         }
         return ret;
     }

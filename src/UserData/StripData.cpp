@@ -2,6 +2,45 @@
 
 namespace UserData
 {
+    void StripData::RemoveArmor(RE::TESForm* a_form)
+    {
+        strips.erase(a_form->formID);
+        const auto file = a_form->GetFile(0);
+        if (!file || !_root.IsMap())
+            return;
+        for (const auto& mod : _root) {
+            const auto name = mod.first.as<std::string>("");
+            if (_stricmp(name.c_str(), file->fileName) != 0 || !mod.second.IsMap())
+                continue;
+            auto entries = mod.second;
+            // Match numeric IDs even when the existing YAML key uses hex notation.
+            std::vector<YAML::Node> keys;
+            for (const auto& entry : entries) {
+                if (entry.first.as<uint32_t>(0xFFFFFFFF) == a_form->GetLocalFormID())
+                    keys.push_back(entry.first);
+            }
+            for (const auto& key : keys)
+                entries.remove(key);
+        }
+    }
+
+    void StripData::RemoveArmorAll()
+    {
+        strips.clear();
+        // Preserve overrides for temporarily missing plugins.
+        if (!_root.IsMap())
+            return;
+        const auto handler = RE::TESDataHandler::GetSingleton();
+        std::vector<std::string> loadedPlugins;
+        for (const auto& mod : _root) {
+            const auto name = mod.first.as<std::string>("");
+            if (const auto file = handler->LookupModByName(name); file && file->compileIndex != 0xFF)
+                loadedPlugins.push_back(name);
+        }
+        for (const auto& name : loadedPlugins)
+            _root.remove(name);
+    }
+
     void StripData::Load()
     {
         try {

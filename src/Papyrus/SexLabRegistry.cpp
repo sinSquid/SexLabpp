@@ -54,10 +54,14 @@ namespace Papyrus::SexLabRegistry
 
     std::vector<int32_t> GetRaceIDA(STATICARGS, RE::Actor* a_actor)
     {
-        const auto key = GetRaceID(a_vm, a_stackID, nullptr, a_actor);
-        if (key == 0) {
+        if (!a_actor) {
+            a_vm->TraceStack("Cannot get race ids of a none ref", a_stackID);
             return {};
         }
+        const Registry::RaceKey racekey{ a_actor };
+        if (!racekey.IsValid())
+            return {};
+        const auto key = static_cast<int32_t>(racekey);
         std::vector<int32_t> ret{ key };
         const auto alternate = Registry::RaceKey(Registry::RaceKey::Value(key)).GetMetaRace();
         if (alternate.IsValid()) {
@@ -68,12 +72,13 @@ namespace Papyrus::SexLabRegistry
 
     std::vector<int32_t> MapRaceKeyToIDA(STATICARGS, RE::BSFixedString a_racekey)
     {
-        const auto key = MapRaceKeyToID(a_vm, a_stackID, nullptr, a_racekey);
-        if (key == 0) {
+        const Registry::RaceKey racekey{ a_racekey };
+        if (!racekey.IsValid()) {
+            a_vm->TraceStack("Invalid race key", a_stackID);
             return {};
         }
+        const auto key = static_cast<int32_t>(racekey);
         std::vector<int32_t> ret{ key };
-        const Registry::RaceKey racekey{ a_racekey };
         const auto alternate = racekey.GetMetaRace();
         if (alternate.IsValid()) {
             ret.push_back(static_cast<int32_t>(alternate.value));
@@ -691,7 +696,7 @@ namespace Papyrus::SexLabRegistry
     std::vector<RE::BSFixedString> GetClimaxStages(STATICARGS, RE::BSFixedString a_id, int32_t n)
     {
         SCENE({});
-        if (n >= scene->positions.size()) {
+        if (n < -1 || (n >= 0 && static_cast<size_t>(n) >= scene->positions.size())) {
             a_vm->TraceStack("Invalid position idx", a_stackID);
             return {};
         }
@@ -920,7 +925,7 @@ namespace Papyrus::SexLabRegistry
 
     void ResetStageOffset(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, int n)
     {
-        bool foundScene = !Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
+        bool foundScene = Registry::Library::GetSingleton()->EditScene(a_id, [&](auto scene) {
             const auto stage = scene->GetStageByID(a_stage);
             if (!stage) {
                 a_vm->TraceStack("Invalid stage id", a_stackID);

@@ -53,21 +53,37 @@ sslBaseAnimation[] function EmptyAnimationArray() global
 endFunction
 
 sslBaseAnimation[] function MergeAnimationLists(sslBaseAnimation[] List1, sslBaseAnimation[] List2) global
-	int Count = List2.Length
-	int i = List2.Length
-	while i
-		i -= 1
-		Count -= ((List1.Find(List2[i]) != -1) as int)
-	endWhile
-	sslBaseAnimation[] Output = sslUtility.IncreaseAnimation(Count, List1)
-	i = List2.Length
-	while i && Count
-		i -= 1
-		if List1.Find(List2[i]) == -1
-			Count -= 1
-			Output[Count] = List2[i]
-		endIf
-	endWhile
+	If (List1.Length >= 128 || List2.Length == 0)
+		return List1
+	EndIf
+	int Count = 0
+	bool[] append = Utility.CreateBoolArray(List2.Length)
+	int i = 0
+	While (i < List2.Length && List1.Length + Count < 128)
+		If (List1.Find(List2[i]) == -1 && List2.Find(List2[i]) == i)
+			append[i] = true
+			Count += 1
+		EndIf
+		i += 1
+	EndWhile
+	If (Count == 0)
+		return List1
+	EndIf
+	sslBaseAnimation[] Output = AnimationArray(List1.Length + Count)
+	i = 0
+	While (i < List1.Length)
+		Output[i] = List1[i]
+		i += 1
+	EndWhile
+	int outputIndex = List1.Length
+	i = 0
+	While (i < List2.Length && outputIndex < Output.Length)
+		If (append[i])
+			Output[outputIndex] = List2[i]
+			outputIndex += 1
+		EndIf
+		i += 1
+	EndWhile
 	return Output
 endFunction
 

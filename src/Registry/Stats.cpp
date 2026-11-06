@@ -5,6 +5,32 @@
 
 namespace Registry::Statistics
 {
+    namespace
+    {
+        template <class T>
+        T ReadStatisticsValue(SKSE::SerializationInterface* a_intfc, uint32_t& a_remaining)
+        {
+            T value{};
+            if (sizeof(T) > a_remaining || a_intfc->ReadRecordData(value) != sizeof(T))
+                throw std::runtime_error("Truncated statistics record");
+            a_remaining -= static_cast<uint32_t>(sizeof(T));
+            return value;
+        }
+
+        std::string ReadStatisticsString(SKSE::SerializationInterface* a_intfc, uint32_t& a_remaining)
+        {
+            const auto size = ReadStatisticsValue<size_t>(a_intfc, a_remaining);
+            if (!size || size > a_remaining)
+                throw std::runtime_error("Invalid statistics string length");
+            std::string value(size, '\0');
+            if (a_intfc->ReadRecordData(value.data(), static_cast<uint32_t>(size)) != size || value.back() != '\0')
+                throw std::runtime_error("Invalid statistics string payload");
+            a_remaining -= static_cast<uint32_t>(size);
+            value.resize(size - 1);
+            return value;
+        }
+    }
+
     ActorStats::ActorStats(RE::Actor* owner) :
       _stats(StatisticID::Total)
     {
@@ -66,28 +92,33 @@ namespace Registry::Statistics
         }
     }
 
-    ActorStats::ActorStats(SKSE::SerializationInterface* a_intfc) :
+    ActorStats::ActorStats(SKSE::SerializationInterface* a_intfc, uint32_t a_version, uint32_t& a_remaining) :
       _stats(StatisticID::Total), _custom({})
     {
         for (size_t i = 0; i < StatisticID::Total; i++) {
-            a_intfc->ReadRecordData(_stats[i]);
+            _stats[i] = ReadStatisticsValue<float>(a_intfc, a_remaining);
         }
-        size_t numRegs;
-        a_intfc->ReadRecordData(numRegs);
-
-        std::string key;
-        size_t alternative;
+        const auto numRegs = ReadStatisticsValue<size_t>(a_intfc, a_remaining);
         for (size_t i = 0; i < numRegs; i++) {
-            stl::read_string(a_intfc, key);
-            a_intfc->ReadRecordData(alternative);
+            const auto key = ReadStatisticsString(a_intfc, a_remaining);
+            const auto alternative = ReadStatisticsValue<uint32_t>(a_intfc, a_remaining);
             if (alternative == 0) {
-                float obj;
-                a_intfc->ReadRecordData(obj);
+                float obj{};
+                if (a_version == 1) {
+                    // Version 1's MSVC x64 writer dumped the variant object.
+                    // Measured with CommonLib's BSFixedString: 16 bytes, float at offset 0.
+                    // Padding is ignored; no serialized pointer is ever dereferenced.
+                    static_assert(sizeof(std::variant<float, RE::BSFixedString>) == 16);
+                    const auto legacy = ReadStatisticsValue<std::array<std::byte, 16>>(a_intfc, a_remaining);
+                    std::memcpy(&obj, legacy.data(), sizeof(obj));
+                } else {
+                    obj = ReadStatisticsValue<float>(a_intfc, a_remaining);
+                }
                 _custom[key] = obj;
+            } else if (alternative == 1) {
+                _custom[key] = RE::BSFixedString{ ReadStatisticsString(a_intfc, a_remaining) };
             } else {
-                std::string obj;
-                stl::read_string(a_intfc, obj);
-                _custom[key] = obj;
+                throw std::runtime_error("Invalid statistics variant tag");
             }
         }
     }
@@ -161,13 +192,13 @@ namespace Registry::Statistics
                 continue;
             }
             if (std::holds_alternative<float>(stat)) {
-                a_intfc->WriteRecordData(0);
-                if (!a_intfc->WriteRecordData(stat)) {
+                a_intfc->WriteRecordData(uint32_t{ 0 });
+                if (!a_intfc->WriteRecordData(std::get<float>(stat))) {
                     logger::error("Failed to save custom statistic {}", id);
                     continue;
                 }
             } else {
-                a_intfc->WriteRecordData(1);
+                a_intfc->WriteRecordData(uint32_t{ 1 });
                 auto save = std::get<RE::BSFixedString>(stat);
                 if (!stl::write_string(a_intfc, save)) {
                     logger::error("Failed to save custom statistic {}", id);
@@ -178,7 +209,7 @@ namespace Registry::Statistics
     }
 
     ActorEncounter::EncounterObj::EncounterObj(RE::Actor* obj) :
-      id(obj->GetFormID()), sex(Registry::GetSex(obj)) {}
+      id(obj->GetFormID()), race(obj), sex(Registry::GetSex(obj)) {}
 
     ActorEncounter::EncounterObj::EncounterObj(SKSE::SerializationInterface* a_intfc)
     {
@@ -195,7 +226,7 @@ namespace Registry::Statistics
     }
 
     ActorEncounter::ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type) :
-      npc1(fst), npc2(snd), _lastmet(0), _timesmet(0), _timesaggressor(0), _timesvictim(0)
+      npc1(fst), npc2(snd), _lastmet(0), _timesmet(0), _timessubmissive(0), _timesdominant(0), _timesvictim(0), _timesaggressor(0)
     {
         Update(a_type);
     }
@@ -471,7 +502,7 @@ namespace Registry::Statistics
 
     StatisticsData::EventResult StatisticsData::ProcessEvent(const RE::TESResetEvent* a_event, RE::BSTEventSource<RE::TESResetEvent>*)
     {
-        if (!a_event || !a_event->object || !a_event->object->IsNot(RE::FormType::ActorCharacter))
+        if (!a_event || !a_event->object || a_event->object->IsNot(RE::FormType::ActorCharacter))
             return EventResult::kContinue;
 
         DeleteStatistics(a_event->object->formID);
@@ -499,21 +530,29 @@ namespace Registry::Statistics
         logger::info("Saved {} statistics", _data.size());
     }
 
-    void StatisticsData::Load(SKSE::SerializationInterface* a_intfc)
+    void StatisticsData::Load(SKSE::SerializationInterface* a_intfc, uint32_t a_version, uint32_t a_length)
     {
         const std::unique_lock lock{ _m };
         _data.clear();
-        std::size_t numRegs;
-        a_intfc->ReadRecordData(numRegs);
-
-        RE::FormID formID;
-        for (size_t i = 0; i < numRegs; i++) {
-            a_intfc->ReadRecordData(formID);
-            if (!a_intfc->ResolveFormID(formID, formID)) {
-                logger::warn("Error reading formID ({:X})", formID);
-                continue;
+        _encounters.clear();
+        if (a_version != 1 && a_version != 2)
+            return;
+        try {
+            const auto numRegs = ReadStatisticsValue<size_t>(a_intfc, a_length);
+            for (size_t i = 0; i < numRegs; i++) {
+                auto formID = ReadStatisticsValue<RE::FormID>(a_intfc, a_length);
+                // Consume the complete entry even when its owning plugin is missing.
+                ActorStats stats{ a_intfc, a_version, a_length };
+                if (!a_intfc->ResolveFormID(formID, formID)) {
+                    logger::warn("Error resolving statistics formID ({:X})", formID);
+                    continue;
+                }
+                _data.insert(std::make_pair(formID, std::move(stats)));
             }
-            _data.insert(std::make_pair(formID, ActorStats{ a_intfc }));
+        } catch (const std::exception& e) {
+            _data.clear();
+            logger::error("Unable to load statistics record version {}: {}", a_version, e.what());
+            return;
         }
         logger::info("Loaded {} statistics", _data.size());
     }
@@ -522,6 +561,7 @@ namespace Registry::Statistics
     {
         const std::unique_lock lock{ _m };
         _data.clear();
+        _encounters.clear();
     }
 
 

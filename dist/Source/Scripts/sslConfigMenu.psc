@@ -683,6 +683,7 @@ Function ExpressionEditor()
 			_phaseIdx = 0
 		EndIf
 		_low = sslBaseExpression.GetNthValues(_expression[_expressionIdx], _editFemale, _phaseidx)
+		_high = Utility.CreateFloatArray(0)
 		If (maxphase > _phaseidx + 1)
 			_high = sslBaseExpression.GetNthValues(_expression[_expressionIdx], _editFemale, _phaseidx + 1)
 		EndIf
@@ -722,8 +723,10 @@ Function ExpressionEditor()
 		Else
 			If (!_high.Length)
 				flag = OPTION_FLAG_DISABLED
+				values = new float[32]
+			Else
+				values = _high
 			EndIf
-			values = _high
 		EndIf
 		AddHeaderOption("$SSL_EditExpressions_" + i)
 		AddMenuOptionST("expredit_" + 30 + "_" + i, "$SSL_MoodType", _moods[values[30] as int], flag)

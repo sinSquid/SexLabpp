@@ -88,10 +88,15 @@ EndFunction
 ; Get the stage represented by some depth, or the max depth stage if aiDepth is greater than max depth
 String Function GetStageBounded(int aiDepth)
 	String[] maxpath = SexLabRegistry.GetPathMax(Registry, "")
-	If (maxpath.Length >= aiDepth)
+	If (!maxpath.Length)
+		return ""
+	ElseIf (aiDepth <= 1)
+		return maxpath[0]
+	ElseIf (aiDepth >= maxpath.Length)
 		return maxpath[maxpath.Length - 1]
 	EndIf
-	return maxpath[aiDepth]
+	; Legacy stages are one-based; zero remains an alias for the first stage.
+	return maxpath[aiDepth - 1]
 EndFunction
 
 ; *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-* ;
@@ -172,7 +177,7 @@ string[] function FetchStage(int Stage)
 		Log("Unknown Stage, '"+Stage+"' given", "FetchStage")
 		return none
 	endif
-	return SexlabRegistry.GetAnimationEventA(Registry, Stage)
+	return SexlabRegistry.GetAnimationEventA(Registry, GetStageBounded(Stage))
 endFunction
 
 function GetAnimEvents(string[] AnimEvents, int Stage)
@@ -181,7 +186,7 @@ function GetAnimEvents(string[] AnimEvents, int Stage)
 		Log("Invalid Call(" + AnimEvents + ", " + Stage + "/" + depth + ")", "GetAnimEvents")
 		return
 	endif
-	String[] anims = SexlabRegistry.GetAnimationEventA(Registry, Stage)
+	String[] anims = SexlabRegistry.GetAnimationEventA(Registry, GetStageBounded(Stage))
 	int i = 0
 	while i < anims.Length
 		AnimEvents[i] = anims[i]
@@ -190,8 +195,7 @@ function GetAnimEvents(string[] AnimEvents, int Stage)
 endFunction
 
 string function FetchPositionStage(int Position, int Stage)
-	String GetStageBounded = GetStageBounded(Stage)
-	return SexLabRegistry.GetAnimationEvent(Registry, Stage, Position)
+	return SexLabRegistry.GetAnimationEvent(Registry, GetStageBounded(Stage), Position)
 endFunction
 
 function SetPositionStage(int Position, int Stage, string AnimationEvent)
@@ -300,9 +304,9 @@ float[] function GetAllAdjustments(string AdjustKey)
 	float[] ret = Utility.CreateFloatArray(path.Length * count * 4)
 	int i = 0
 	While (i < path.Length)
-		int base = i * count
 		int n = 0
 		While (n < count)
+			int base = (i * count + n) * 4
 			float[] offsets = SexLabRegistry.GetStageOffset(Registry, path[i], n)
 			ret[base + 0] = offsets[0]
 			ret[base + 1] = offsets[1]
@@ -393,7 +397,7 @@ function UpdateAdjustmentAll(string AdjustKey, int Position, int Slot, float Adj
 	int d = GetMaxDepth()
 	int i = 0
 	While (i < d)
-		UpdateAdjustment(AdjustKey, Position, i, Slot, AdjustBy)
+		UpdateAdjustment(AdjustKey, Position, i + 1, Slot, AdjustBy)
 		i += 1
 	EndWhile
 endFunction

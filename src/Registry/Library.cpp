@@ -220,7 +220,7 @@ namespace Registry
         std::shared_lock lock{ _mVoice };
         std::vector<const Voice*> ret{};
         for (const auto& [_, voice] : voices) {
-            if (!tags.MatchTags(voice.tags))
+            if (!voice.enabled || !tags.MatchTags(voice.tags))
                 continue;
             ret.push_back(&voice);
         }
@@ -232,7 +232,7 @@ namespace Registry
         std::shared_lock lock{ _mVoice };
         std::vector<const Voice*> ret{};
         for (auto&& [_, voice] : voices) {
-            if (!voice.HasRace(a_race))
+            if (!voice.enabled || !voice.HasRace(a_race))
                 continue;
             ret.push_back(&voice);
         }
@@ -439,7 +439,7 @@ namespace Registry
         std::shared_lock lock{ _mExpressions };
         std::vector<const Expression*> ret{};
         for (auto&& [id, expression] : expressions) {
-            if (a_details.MatchTags(expression.GetTags())) {
+            if (expression.IsEnabled() && a_details.MatchTags(expression.GetTags())) {
                 ret.push_back(&expression);
             }
         }

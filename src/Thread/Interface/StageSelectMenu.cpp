@@ -115,7 +115,7 @@ namespace Thread::Interface
 
     void StageSelectMenu::RefreshSceneGraphView(RE::TESQuest* a_quest)
     {
-        if (!a_quest)
+        if (!a_quest || a_quest != _linkedThread)
             return;
         auto* inst = Instance::GetInstance(a_quest);
         if (!inst)
@@ -477,6 +477,11 @@ namespace Thread::Interface
 
     void StageSelectMenu::RenderSceneGraphView()
     {
+        auto* inst = Instance::GetInstance(_linkedThread);
+        if (!inst) {
+            Close();
+            return;
+        }
         auto& scale = SceneHUD::GetSingleton().GetScale();
         auto* io = ImGuiMCP::GetIO();
         const float dw = io->DisplaySize.x;
@@ -656,10 +661,6 @@ namespace Thread::Interface
                 ImGuiMCP::ImDrawListManager::AddTriangleFilled(dl, tip, wLeft, wRight, UI::Theme::Color.borderHovered);
             }
         }
-
-        auto* inst = Instance::GetInstance(_linkedThread);
-        if (!inst)
-            return;
 
         // Nodes
         int graphClickedIndex = -1;

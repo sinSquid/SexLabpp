@@ -35,7 +35,7 @@ namespace Registry::Statistics
 
             Total
         };
-        ActorStats(SKSE::SerializationInterface* a_intfc);
+        ActorStats(SKSE::SerializationInterface* a_intfc, uint32_t a_version, uint32_t& a_remaining);
         ActorStats(RE::Actor* owner);
         ~ActorStats() = default;
 
@@ -156,7 +156,7 @@ namespace Registry::Statistics
 
         void Register();
         void Save(SKSE::SerializationInterface* a_intfc);
-        void Load(SKSE::SerializationInterface* a_intfc);
+        void Load(SKSE::SerializationInterface* a_intfc, uint32_t a_version, uint32_t a_length);
         void Revert(SKSE::SerializationInterface* a_intfc);
 
       private:

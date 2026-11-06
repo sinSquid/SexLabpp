@@ -521,9 +521,11 @@ namespace Thread
 
     void Instance::OnStageChangedUpdateHUD()
     {
-        if (auto* sceneHUD = Interface::SceneHUD::GetSingleton().GetForThread(linkedQst))
+        if (auto* sceneHUD = Interface::SceneHUD::GetSingleton().GetForThread(linkedQst)) {
             sceneHUD->RefreshStageOffsets();
-            Interface::StageSelectMenu::GetSingleton().RefreshSceneGraphView(linkedQst);
+        }
+        // The choice window can outlive the HUD; its own quest guard owns refresh.
+        Interface::StageSelectMenu::GetSingleton().RefreshSceneGraphView(linkedQst);
     }
 
     bool Instance::OpenStageSelectMenuImpl()

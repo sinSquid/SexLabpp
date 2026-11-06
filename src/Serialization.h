@@ -25,6 +25,7 @@ namespace Serialization
         enum : std::uint32_t
         {
             _Version = 1,
+            _StatisticsVersion = 2,
 
             _Statistics = 'stcs',
             _Tracking = 'trcn'
@@ -32,35 +33,38 @@ namespace Serialization
 
         static void SaveCallback(SKSE::SerializationInterface* a_intfc)
         {
-#define SAVE(type, func)                                   \
-    if (!a_intfc->OpenRecord(type, _Version)) {            \
+#define SAVE(type, version, func)                          \
+    if (!a_intfc->OpenRecord(type, version)) {              \
         std::string insert = #type##s;                     \
         logger::error("Failed to open record {}", insert); \
     } else {                                               \
         func;                                              \
     }
-            SAVE(_Statistics, Registry::Statistics::StatisticsData::GetSingleton()->Save(a_intfc))
-            SAVE(_Tracking, Papyrus::Tracking::GetSingleton()->Save(a_intfc))
+            SAVE(_Statistics, _StatisticsVersion, Registry::Statistics::StatisticsData::GetSingleton()->Save(a_intfc))
+            SAVE(_Tracking, _Version, Papyrus::Tracking::GetSingleton()->Save(a_intfc))
 
 #undef SAVE
         }
 
         static void LoadCallback(SKSE::SerializationInterface* a_intfc)
         {
-            const auto v = static_cast<uint32_t>(_Version);
             uint32_t type, version, length;
             while (a_intfc->GetNextRecordInfo(type, version, length)) {
-                if (version != v) {
-                    logger::info("Invalid Version for loaded Data of Type = {}. Expected = {}; Got = {}", GetTypeName(type), v, version);
-                    continue;
-                }
                 logger::info("Loading record {}", GetTypeName(type));
                 switch (type) {
                 case _Statistics:
-                    Registry::Statistics::StatisticsData::GetSingleton()->Load(a_intfc);
+                    if (version == _Version || version == _StatisticsVersion) {
+                        Registry::Statistics::StatisticsData::GetSingleton()->Load(a_intfc, version, length);
+                    } else {
+                        logger::warn("Unsupported statistics record version: {}", version);
+                    }
                     break;
                 case _Tracking:
-                    Papyrus::Tracking::GetSingleton()->Load(a_intfc);
+                    if (version == _Version) {
+                        Papyrus::Tracking::GetSingleton()->Load(a_intfc);
+                    } else {
+                        logger::warn("Unsupported tracking record version: {}", version);
+                    }
                     break;
                 default:
                     break;

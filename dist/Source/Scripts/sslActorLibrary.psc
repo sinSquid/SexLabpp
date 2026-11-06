@@ -300,14 +300,14 @@ Form[] Function StripActorImpl(Actor akActor, int aiSlots, bool abStripWeapons =
 		Form RightHand = akActor.GetEquippedObject(1)
 		If(RightHand && IsStrippable(RightHand))
 			akActor.UnequipItemEX(RightHand, akActor.EquipSlot_RightHand, false)
-			ret = PapyrusUtil.PushForm(ret, LeftHand)
+			ret = PapyrusUtil.PushForm(ret, RightHand)
 			StorageUtil.SetIntValue(RightHand, "Hand", 1)
 		EndIf
 		Form LeftHand = akActor.GetEquippedObject(0)
 		If(LeftHand && IsStrippable(LeftHand))
 			akActor.UnequipItemEX(LeftHand, akActor.EquipSlot_LeftHand, false)
 			ret = PapyrusUtil.PushForm(ret, LeftHand)
-			StorageUtil.SetIntValue(RightHand, "Hand", 2)
+			StorageUtil.SetIntValue(LeftHand, "Hand", 2)
 		EndIf
 	EndIf
 	If(abAnimate)
