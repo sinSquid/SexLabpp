@@ -130,7 +130,7 @@ def translated_body(source, name):
 
 
 bodies = {name: translated_body(controller, name) for name in (
-    'InitHotkeys', 'RegisterHotkeys', 'UnregisterHotkeys', 'RefreshSceneSelectHotkey', 'OpenSceneSelect', 'ToggleFocusSceneHUD')}
+    'InitHotkeys', 'RegisterHotkeys', 'UnregisterHotkeys', 'RefreshSceneSelectHotkey', 'OpenSceneSelect', 'ToggleFocusSceneHUD', 'ToggleFocusSceneHUDForRevision')}
 bodies['OnKeyMapChangeST'] = translated_body(menu, 'OnKeyMapChangeST')
 bodies['PauseTimer'] = translated_body((ROOT / 'dist/Source/Scripts/sslThreadModel.psc').read_text(encoding='utf-8'), 'PauseTimer')
 
@@ -173,9 +173,13 @@ def fixture():
     e['PauseTimer'] = pause
     e['EnjoymentPaused'] = False
 
-    def focus(value, revision=-1):
+    def guarded_focus(value, revision):
         calls.append(('focus', value))
         e['aiForceState'], e['aiExpectedRevision'] = value, revision
+        run('ToggleFocusSceneHUDForRevision')
+
+    def focus(value):
+        e['aiForceState'] = value
         run('ToggleFocusSceneHUD')
 
     def graph(value):
@@ -183,6 +187,7 @@ def fixture():
         e['_bOpenedSceneGraph'] = False
 
     e['ToggleFocusSceneHUD'], e['ToggleVisibilitySceneGraph'] = focus, graph
+    e['ToggleFocusSceneHUDForRevision'] = guarded_focus
     e.update(StringUtil=SimpleNamespace(Split=lambda s, sep: s.split(sep)),
              GetState=lambda: 'iOpenSceneSelect', conflictControl='', conflictName='',
              ShowMessage=lambda *args: calls.append(('message', args)) or True,

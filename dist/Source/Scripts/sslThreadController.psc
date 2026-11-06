@@ -221,7 +221,7 @@ Function OpenSceneSelect()
 		If (!ElementUI_GameHUD)
 			SexLabUtil.HideElementsGameHUD(true)
 		EndIf
-		ToggleFocusSceneHUD(1, revision)
+		ToggleFocusSceneHUDForRevision(1, revision)
 		bool opened = OpenSceneSelectImpl()
 		If (revision != _SceneSelectRevision)
 			return
@@ -254,7 +254,12 @@ Function ToggleVisibilitySceneHUD(int aiForceState = 0)
 	EndIf
 EndFunction
 
-Function ToggleFocusSceneHUD(int aiForceState = 0, int aiExpectedRevision = -1)
+Function ToggleFocusSceneHUD(int aiForceState = 0)
+	; Native Return/Escape and existing callers use this one-argument ABI.
+	ToggleFocusSceneHUDForRevision(aiForceState, -1)
+EndFunction
+
+Function ToggleFocusSceneHUDForRevision(int aiForceState, int aiExpectedRevision)
 	;[-1:ForceUnfocus, 0:Toggle, 1:ForceFocus]
 	; Only the direct Scenes request supplies a revision; existing callers are unchanged.
 	If (aiExpectedRevision >= 0 && (!_SceneHotkeysEnabled || aiExpectedRevision != _SceneSelectRevision))
