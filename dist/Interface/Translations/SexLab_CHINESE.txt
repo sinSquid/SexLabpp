@@ -1,634 +1,634 @@
 # --------------- Global -----------------------------------------------------
-$SSL_ClickHere	Click Here
-$SSL_Random	Random
-$SSL_Never	Never
-$SSL_Sometimes	Sometimes
-$SSL_Everything	Everything
-$SSL_Always	Always
-$SSL_Unknown	Unknown
-$SSL_Remove	Remove
-$SSL_Seconds	{0} Seconds
-$SSL_Male	Male
-$SSL_Female	Female
-$SSL_Futa	Futa
-$SSL_Creature	Creature
-$SSL_NoTarget	(No Target)
-$SSL_Apply	Apply
-$SSL_Enabled	Enabled
-$SSL_PrevPage	<< PREVIOUS PAGE
-$SSL_NextPage	NEXT PAGE >>
-$SSL_Low	Low
-$SSL_High	High
-$SSL_ConflictControl{}{}	This key is already mapped to:\n{} ({})\n\nAre you sure you want to continue?
-$SSL_ConflictControl{}	This key is already mapped to:\n{}\n\nAre you sure you want to continue?
-$SSL_KeyCannotBeDisabled	This key is mandatory to be assigned and cannot be disabled.
-$SSL_TSModeSelect	Scenes Category
-$SSL_TSModeSelectHighlight	Choose the category of scenes for which the strip settings on this page are being configured
+$SSL_ClickHere	点击这里
+$SSL_Random	随机
+$SSL_Never	永不
+$SSL_Sometimes	有时
+$SSL_Everything	一切
+$SSL_Always	总是
+$SSL_Unknown	未知
+$SSL_Remove	移除
+$SSL_Seconds	{0} 秒
+$SSL_Male	男性
+$SSL_Female	女性
+$SSL_Futa	扶她
+$SSL_Creature	生物
+$SSL_NoTarget	(无目标)
+$SSL_Apply	用
+$SSL_Enabled	启用
+$SSL_PrevPage	<< 上一页
+$SSL_NextPage	下一页 >>
+$SSL_Low	低
+$SSL_High	高
+$SSL_ConflictControl{}{}	此密钥已映射到:\n{} ({})\n\n确实要继续吗？
+$SSL_ConflictControl{}	此密钥已映射到:\n{}\n\n确实要继续吗？ ?
+$SSL_KeyCannotBeDisabled	此密钥是必须分配的，不能禁用。
+$SSL_TSModeSelect	场景类别
+$SSL_TSModeSelectHighlight	选择本页面上条带设置所针对的场景类别
 
 # --------------- Races -----------------------------------------------------
 
-$SSL_Creatures	Creatures
-$SSL_Humans	Humans
+$SSL_Creatures	生物
+$SSL_Humans	人类
 
-$SSL_Race_0	Humans
-$SSL_Race_1	Ash Hopper
-$SSL_Race_2	Bear
-$SSL_Race_3	Boar
-$SSL_Race_4	Boar Mounted
-$SSL_Race_5	Boar Single
-$SSL_Race_6	Canine
-$SSL_Race_7	Chaurus
-$SSL_Race_8	Chaurus Hunter
-$SSL_Race_9	Chaurus Reaper
-$SSL_Race_10	Chicken
-$SSL_Race_11	Cow
-$SSL_Race_12	Deer
-$SSL_Race_13	Dog
-$SSL_Race_14	Dragon
-$SSL_Race_15	Dragon Priest
-$SSL_Race_16	Draugr
-$SSL_Race_17	Dwarven Ballista
-$SSL_Race_18	Dwarven Centurion
-$SSL_Race_19	Dwarven Sphere
-$SSL_Race_20	Dwarven Spider
-$SSL_Race_21	Falmer
-$SSL_Race_22	Flame Atronach
-$SSL_Race_23	Fox
-$SSL_Race_24	Frost Atronach
-$SSL_Race_25	Gargoyle
-$SSL_Race_26	Giant
-$SSL_Race_27	Giant Spider
-$SSL_Race_28	Goat
-$SSL_Race_29	Hagraven
-$SSL_Race_30	Rabbit
-$SSL_Race_31	Horker
-$SSL_Race_32	Horse
-$SSL_Race_33	Ice Wraith
-$SSL_Race_34	Large Spider
-$SSL_Race_35	Lurker
-$SSL_Race_36	Mammoth
-$SSL_Race_37	Mudcrab
-$SSL_Race_38	Netch
-$SSL_Race_39	Riekling
-$SSL_Race_40	Sabrecat
-$SSL_Race_41	Seeker
-$SSL_Race_42	Skeever
-$SSL_Race_43	Slaughterfish
-$SSL_Race_44	Spider
-$SSL_Race_45	Spriggan
-$SSL_Race_46	Storm Atronach
-$SSL_Race_47	Troll
-$SSL_Race_48	Vampire Lord
-$SSL_Race_49	Werewolf
-$SSL_Race_50	Wisp
-$SSL_Race_51	Wispmother
-$SSL_Race_52	Wolf
+$SSL_Race_0	人类
+$SSL_Race_1	灰烬跳虫
+$SSL_Race_2	熊
+$SSL_Race_3	野猪
+$SSL_Race_4	野猪（骑乘型）
+$SSL_Race_5	野猪（独立型）
+$SSL_Race_6	狗
+$SSL_Race_7	巢蚁
+$SSL_Race_8	巢蚁猎人
+$SSL_Race_9	巢蚁收割者
+$SSL_Race_10	小鸡
+$SSL_Race_11	乳牛
+$SSL_Race_12	鹿
+$SSL_Race_13	狗
+$SSL_Race_14	龙
+$SSL_Race_15	龙祭司
+$SSL_Race_16	尸鬼
+$SSL_Race_17	矮人弩炮
+$SSL_Race_18	矮人百夫长
+$SSL_Race_19	矮人机械球
+$SSL_Race_20	矮人蜘蛛
+$SSL_Race_21	伐莫
+$SSL_Race_22	火焰元素
+$SSL_Race_23	狐狸
+$SSL_Race_24	寒霜元素
+$SSL_Race_25	石像鬼
+$SSL_Race_26	巨人
+$SSL_Race_27	巨型蜘蛛
+$SSL_Race_28	山羊
+$SSL_Race_29	乌鸦鬼婆
+$SSL_Race_30	兔子
+$SSL_Race_31	海象
+$SSL_Race_32	马
+$SSL_Race_33	冰怨灵
+$SSL_Race_34	巨型蜘蛛
+$SSL_Race_35	潜伏者
+$SSL_Race_36	长毛象
+$SSL_Race_37	泥沼蟹
+$SSL_Race_38	气母
+$SSL_Race_39	蓝客灵矮妖
+$SSL_Race_40	剑齿虎
+$SSL_Race_41	追寻者
+$SSL_Race_42	恶鼠
+$SSL_Race_43	食人鱼
+$SSL_Race_44	蜘蛛
+$SSL_Race_45	树精
+$SSL_Race_46	风暴元素
+$SSL_Race_47	巨魔
+$SSL_Race_48	吸血鬼领主
+$SSL_Race_49	狼人
+$SSL_Race_50	幽魂
+$SSL_Race_51	幽魂之母
+$SSL_Race_52	狼
 
 # --------------- Sex Journal (Sex Diary) -----------------------------------------------------
-$SSL_SexJournal	Sex Journal
-$SSL_SexDiary	Sex Diary
+$SSL_SexJournal	性爱日志
+$SSL_SexDiary	性爱日记
 
-$SSL_StatSelectingMenu	Viewing Statistics
-$SSL_StatSelectingMenuHighlight	The currently selected Reference which's statistics are being displayed.
+$SSL_StatSelectingMenu	查看统计信息
+$SSL_StatSelectingMenuHighlight	当前选中的引用，其统计数据正在显示。
 
-$SSL_Reset{}Stats	Reset {} Stats
-$SSL_ResetStatHighlight	Delete the selected Actor from the statistics registry, effectively resetting their statistics, default and custom ones.
-$SSL_WarnReset{}Stats	Running this will reset all sexual experience and stats for {}. Do you want to continue?
+$SSL_Reset{}Stats	重置 {} 的统计数据
+$SSL_ResetStatHighlight	从统计登记表中删除选中的角色，从而有效重置其统计数据，包括默认和自定义的。
+$SSL_WarnReset{}Stats	运行此项将重置{}的所有性经验和统计数据。是否要继续？
 
 # ------ Statistics
-$SSL_Statistics	Statistics
+$SSL_Statistics	统计
 
-$SSL_LastTimeInScene	Date of last Scene
-$SSL_TimeInScenes	Time spent in Scenes
-$SSL_Statistic_2	Vaginal Experience
-$SSL_Statistic_3	Anal Experience
-$SSL_Statistic_4	Oral Experience
+$SSL_LastTimeInScene	上次场景日期
+$SSL_TimeInScenes	场景中花费的时间
+$SSL_Statistic_2	阴道经验
+$SSL_Statistic_3	肛交经验
+$SSL_Statistic_4	口交经验
 
-$SSL_Unskilled	Unskilled
-$SSL_Novice	Novice
-$SSL_Apprentice	Apprentice
-$SSL_Journeyman	Journeyman
-$SSL_Expert	Expert
-$SSL_Master	Master
-$SSL_GrandMaster	Grand Master
+$SSL_Unskilled	未熟练
+$SSL_Novice	新手
+$SSL_Apprentice	学徒
+$SSL_Journeyman	熟练者
+$SSL_Expert	专家
+$SSL_Master	大师
+$SSL_GrandMaster	宗师
 
-$SSL_Statistic_5	Partners: Male
-$SSL_Statistic_6	Partners: Female
-$SSL_Statistic_7	Partners: Futa
-$SSL_Statistic_8	Partners: Creature
+$SSL_Statistic_5	伴侣：男性
+$SSL_Statistic_6	伴侣：女性
+$SSL_Statistic_7	伴侣：扶她
+$SSL_Statistic_8	伴侣：生物
 
-$SSL_Sexuality	Sexuality
-$SSL_SexualityHighlight	Click to change this Actors sexuality.
+$SSL_Sexuality	性取向
+$SSL_SexualityHighlight	点击更改此角色的性取向。
 
-$SSL_Lesbian	Lesbian
-$SSL_Gay	Gay
-$SSL_Bisexual	Bisexual
-$SSL_Heterosexual	Heterosexual
+$SSL_Lesbian	女同性恋
+$SSL_Gay	同性恋
+$SSL_Bisexual	双性恋
+$SSL_Heterosexual	异性恋
 
-$SSL_Statistic_9	Times Oral
-$SSL_Statistic_10	Times Vaginal
-$SSL_Statistic_11	Times Anal
-$SSL_Statistic_12	Times Masturbated
-$SSL_Statistic_13	Times Submissive
-$SSL_Statistic_14	Times Dominant
-$SSL_Statistic_15	Times Total
+$SSL_Statistic_9	口交次数
+$SSL_Statistic_10	阴道次数
+$SSL_Statistic_11	肛交次数
+$SSL_Statistic_12	自慰次数
+$SSL_Statistic_13	顺从次数
+$SSL_Statistic_14	支配次数
+$SSL_Statistic_15	总次数
 
 # ----------------- Animation Settings ---------------------------------------------------
-$SSL_AnimationSettings	Animation Settings
+$SSL_AnimationSettings	动画设置
 
 # ------ Player settings
-$SSL_PlayerSettings	Player Settings
+$SSL_PlayerSettings	玩家设置
 
-$SSL_bAutoAdvance	Auto Advance Stages
-$SSL_bAutoAdvanceHighlight	Animations will automatically advance by timer when player is involved.
-$SSL_bDisablePlayer	Disable Victim Controls
-$SSL_bDisablePlayerHighlight	When player is the victim in an animation, animation controls are not enabled.
-$SSL_bAutoTFC	Automatic Free Camera
-$SSL_bAutoTFCHighlight	If enabled, will automatically enable the free flying camera (TFC) when animation involving the player starts.
-$SSL_fAutoSUCSM	Free Camera Speed
-$SSL_fAutoSUCSMHighlight	When starting the free camera this will be the default speed it will move at.
-$SSL_PlayerSex	Player Sex
-$SSL_{}Sex	{}'s Sex
-$SSL_SexSelectHighlight	How SexLab perceives this actor's sex. This is used to determine which position(s) an actor can be placed in during scenes. Has no direct influence on how an actor acts or looks.
+$SSL_bAutoAdvance	自动推进阶段
+$SSL_bAutoAdvanceHighlight	当玩家参与时，动画将按计时器自动推进。
+$SSL_bDisablePlayer	禁用受害者控制
+$SSL_bDisablePlayerHighlight	当玩家在动画中是受害者时，动画控制不会启用。
+$SSL_bAutoTFC	自动自由相机
+$SSL_bAutoTFCHighlight	如果启用，当涉及玩家的动画开始时，将自动启用自由飞行相机（TFC）。
+$SSL_fAutoSUCSM	自由相机速度
+$SSL_fAutoSUCSMHighlight	启动自由相机时，这将是其移动的默认速度。
+$SSL_PlayerSex	玩家性别
+$SSL_{}Sex	{}的性别
+$SSL_SexSelectHighlight	SexLab 如何看待此角色的性别。这用于确定在场景中可以将一个角色放置在哪些位置。对角色的行为或外观没有直接影响。
 
 # ------ Extra effects
-$SSL_ExtraEffects	Extra Effects
+$SSL_ExtraEffects	额外效果
 
-$SSL_ClimaxType	Climax Type
-$SSL_ClimaxTypeHighlight	The behavior of climaxes during Scenes.
-$SSL_Climax_0	Scene (Orgasm Stages)
-$SSL_Climax_1	Legacy (Animation End)
-$SSL_Climax_2	Separate (SLSO)
+$SSL_ClimaxType	高潮类型
+$SSL_ClimaxTypeHighlight	场景中高潮表现的方式。
+$SSL_Climax_0	场景（高潮阶段）
+$SSL_Climax_1	传奇（动画结束）
+$SSL_Climax_2	单独高潮（SLSO）
 
-$SSL_bOrgasmEffects	Play Orgasm Effects
-$SSL_bOrgasmEffectsHighlight	If enabled, orgasm sounds effects will be played on each actor orgasm, also the camera shake on player orgasm.
-$SSL_fShakeStrength	Shake Camera Strength
-$SSL_fShakeStrengthHighlight	If "Play Orgasm Effects" is enabled, set the strength of the camera shake on player orgasm.\nSet on "0" to disable it.
-$SSL_bUseCum	Apply Cum Effects
-$SSL_bUseCumHighlight	Apply a cum texture effect to receiver/victim characters after a male partner/aggressor orgasm.
-$SSL_fCumTimer	Cum Effect Timer
-$SSL_fCumTimerHighlight	How long the above cum effect will display on a character.
-$SSL_bUseExpressions	Apply Facial Expressions
-$SSL_bUseExpressionsHighlight	Applies selected MFG presets to an actor during animation which increases as the animation progresses in relation to that particular characters applicable skills. WARNING: The expression presets can cause graphical oddities when combined with the voice lip syncing option.
-$SSL_bUseLipSync	Play Lip Sync Animation
-$SSL_bUseLipSyncHighlight	Whenever an actor moans, a basic mouth movement animation will be played. WARNING: The animation tends to fail to play correctly when combined with MFG facial expressions.
+$SSL_bOrgasmEffects	播放高潮效果
+$SSL_bOrgasmEffectsHighlight	如果启用，每个角色高潮时都会播放高潮音效，玩家高潮时还会播放镜头震动。
+$SSL_fShakeStrength	镜头震动强度
+$SSL_fShakeStrengthHighlight	如果启用了“播放高潮效果”，则设置玩家高潮时镜头震动的强度。\n设为“0”可禁用它。
+$SSL_bUseCum	应用精液效果
+$SSL_bUseCumHighlight	在男性伴侣/侵犯者高潮后，对接受者/受害者角色应用精液纹理效果。
+$SSL_fCumTimer	精液效果计时器
+$SSL_fCumTimerHighlight	上述精液效果会在角色身上显示多久。
+$SSL_bUseExpressions	应用面部表情
+$SSL_bUseExpressionsHighlight	在动画期间将选定的 MFG 预设应用到角色，该效果会随着动画进展并根据该特定角色的适用技能而增强。警告：与语音唇形同步选项结合使用时，表情预设可能会导致图形异常。
+$SSL_bUseLipSync	播放唇形同步动画
+$SSL_bUseLipSyncHighlight	每当角色呻吟时，都会播放一个基础嘴部运动动画。警告：与 MFG 面部表情结合使用时，该动画往往无法正确播放。
 
 # ------ Lovense
 $SSL_Lovense	Lovense
-$SSL_iLovenseStrength	Default Strength
-$SSL_iLovenseStrengthHighlight	Vibration strength of Lovense Toys during scenes. Only applies to scenes the player is involved.
-$SSL_iLovenseStrengthOrgasm	Orgasm Strength
-$SSL_iLovenseStrengthOrgasmHighlight	Vibration strength of Lovense Toys after an orgasm occurs. Only applies to the player's orgasms.
-$SSL_iLovenseDurationOrgasm	Orgasm Duration
-$SSL_iLovenseDurationOrgasmHighlight	How long the vibration will last before resetting when an orgasm occurs.
+$SSL_iLovenseStrength	默认强度
+$SSL_iLovenseStrengthHighlight	场景期间 Lovense 玩具的振动强度。仅适用于玩家参与的场景。
+$SSL_iLovenseStrengthOrgasm	高潮强度
+$SSL_iLovenseStrengthOrgasmHighlight	高潮发生后 Lovense 玩具的振动强度。仅适用于玩家的高潮。
+$SSL_iLovenseDurationOrgasm	高潮持续时间
+$SSL_iLovenseDurationOrgasmHighlight	高潮发生时，振动在重置前会持续多久。
 
 # ------ Creatures
-$SSL_bAllowCreatures	Allow Creature Animation
-$SSL_bAllowCreaturesHighlight	Allows creatures to be used in animations.
-$SSL_bCreatureGender	Match Creature Sex
-$SSL_bCreatureGenderHighlight	If SexLab should differ between male and female creatures.\nSexLab usually treats all non-human actors as male.
+$SSL_bAllowCreatures	允许生物动画
+$SSL_bAllowCreaturesHighlight	允许在动画中使用生物。
+$SSL_bCreatureGender	匹配生物性别
+$SSL_bCreatureGenderHighlight	如果 SexLab 应区分雄性和雌性生物。\nSexLab 通常将所有非人类角色视为雄性。
 
 # ------ Animation Handling
-$SSL_AnimationHandling	Animation Handling
+$SSL_AnimationHandling	动画处理
 
-$SSL_UseFade	Use Fade
-$SSL_UseFadeHighlight	Apply an image modifier effect at the beginning of an animation.
-$SSL_UseBlur	Blur
-$SSL_UseBlack	Black
-$SSL_bUndressAnimation	Undress Animation
-$SSL_bUndressAnimationHighlight	Actors will play an undressing animation when initially stripping.
-$SSL_bRedressVictim	Victim's Re-dress
-$SSL_bRedressVictimHighlight	Victims in animations will not automatically dress after the animation ends.
-$SSL_bDisableTeleport	Disable Starting Teleport
-$SSL_bDisableTeleportHighlight	On animation start, actors will attempt to approach each other prior to the animation fully starting.
-$SSL_bShowInMap	Show Scenes on Map
-$SSL_bShowInMapHighlight	Get a miscellaneous quest marker for each scene playing nearby (except the ones you are participating in yourself).
-$SSL_bSetAnimSpeedByEnjoyment	Enjoyment affected Animation Speed
-$SSL_bSetAnimSpeedByEnjoymentHighlight	Base animation speed changes depending on actor enjoyment (+/-20%).
-$SSL_bEnjInterText	Enjoyment Interaction Text
-$SSL_bEnjInterTextHighlight	Toggles the current interactions string for SceneHUD's enjoyment bars.
-$SSL_AdjustStage	Adjust Stage Only
-$SSL_AdjustStageHighlight	Toggles whether all edits to position/stage offsets will apply for currently playing stage only.
-$SSL_fAdjustStepSize	Offset Step Size
-$SSL_fAdjustStepSizeHighlight	Determines the step size for offset adjustments.
-$SSL_bHideHUD	Hide Game HUD
-$SSL_bHideHUDHighlight	Hides the elements from game's HUD, not the scene HUD.
-$SSL_FurnitureNPC	Furniture Use: NPC
-$SSL_FurnitureNPCHighlight	Decide how NPC use Furniture. Specifically, decide if NPC use the furniture scenes over regular ones, when available.
-$SSL_AskNotSub	Ask (Unless Submissive)
-$SSL_AskAlways	Ask (Always)
-$SSL_FurniturePlayer	Furniture Use: Player
-$SSL_FurniturePlayerHighlight	Decide when you want to use Furniture Scenes (when applicable). This overwrites the corresponding NPC setting for scenes involved the player. 'Ask'-Options open a menu to select a furniture. If submissive (and the 'Unless Submissive' version is set), falls back into NPC settings.
+$SSL_UseFade	使用淡入淡出
+$SSL_UseFadeHighlight	在动画开始时应用图像修饰效果。
+$SSL_UseBlur	模糊
+$SSL_UseBlack	黑色
+$SSL_bUndressAnimation	脱衣动画
+$SSL_bUndressAnimationHighlight	角色在初次脱衣时将播放脱衣动画。
+$SSL_bRedressVictim	受害者重新着装
+$SSL_bRedressVictimHighlight	动画中的受害者不会在动画结束后自动穿衣。
+$SSL_bDisableTeleport	禁用起始传送
+$SSL_bDisableTeleportHighlight	动画开始时，角色会在动画完全开始前尝试互相靠近。
+$SSL_bShowInMap	在地图上显示场景
+$SSL_bShowInMapHighlight	为附近正在播放的每个场景获取一个杂项任务标记（你自己参与的场景除外）。
+$SSL_bSetAnimSpeedByEnjoyment	愉悦度影响动画速度
+$SSL_bSetAnimSpeedByEnjoymentHighlight	基础动画速度会根据角色愉悦度变化（+/-20%）。
+$SSL_bEnjInterText	愉悦互动文本
+$SSL_bEnjInterTextHighlight	切换 SceneHUD 愉悦度条的当前交互字符串。
+$SSL_AdjustStage	仅调整阶段
+$SSL_AdjustStageHighlight	切换所有对位置/阶段偏移的编辑是否仅应用于当前正在播放的阶段。
+$SSL_fAdjustStepSize	偏移步长
+$SSL_fAdjustStepSizeHighlight	确定偏移调整的步长。
+$SSL_bHideHUD	隐藏游戏 HUD
+$SSL_bHideHUDHighlight	隐藏游戏 HUD 中的元素，而不是场景 HUD。
+$SSL_FurnitureNPC	家具使用：NPC
+$SSL_FurnitureNPCHighlight	决定 NPC 如何使用家具。具体来说，决定在可用时 NPC 是否优先使用家具场景而非普通场景。
+$SSL_AskNotSub	询问（除非顺从）
+$SSL_AskAlways	询问（始终）
+$SSL_FurniturePlayer	家具使用：玩家
+$SSL_FurniturePlayerHighlight	决定你希望何时使用家具场景（适用时）。这会覆盖涉及玩家的场景对应的 NPC 设置。‘询问’选项会打开菜单以选择家具。如果处于顺从状态（并且设置了‘除非顺从’版本），则回退到 NPC 设置。
 
 # ---- COMEBACK: Might delete
-$SSL_bDisableScale	Disable Scaling / CTD Fix
-$SSL_bDisableScaleHighlight	!!! Only Enable if Needed !!!\nDisables all internal uses of SetScale() within SexLab, which is known to cause crashes during animation start for some users. Some scaling may still occur through other means, such as furniture use, which SexLab will be unable to correct for while this is enabled. Your results may vary.
+$SSL_bDisableScale	禁用缩放 / CTD 修复
+$SSL_bDisableScaleHighlight	!!! 仅在需要时启用 !!!\n禁用 SexLab 内所有对 SetScale() 的内部使用，已知这会导致部分用户在动画开始时崩溃。某些缩放仍可能通过其他方式发生，例如家具使用，而启用此选项时 SexLab 将无法对其修正。你的结果可能有所不同。
 
 # ----------------- Voices & SFX ---------------------------------------------------
-$SSL_SoundSettings	Voices & SFX
+$SSL_SoundSettings	语音&SFX
 
-$SSL_fSFXVolume	SFX Volume
-$SSL_fSFXVolumeHighlight	The overall volume of the SFX from 0.0 as silent to 1.0 as full volume.
-$SSL_fSFXDelay	SFX Delay
-$SSL_fSFXDelayHighlight	Applicable sound effects will start out at this interval and will decrease with each stage.
-$SSL_fVoiceVolume	Voice Volume
-$SSL_fVoiceVolumeHighlight	The overall volume of the voices from 0.0 as silent to 1.0 as full volume.
-$SSL_fMaleVoiceDelay	Male Voice Delay
-$SSL_fMaleVoiceDelayHighlight	Male's will start out voicing at this interval and will decrease with each stage.
-$SSL_fFemaleVoiceDelay	Female Voice Delay
-$SSL_fFemaleVoiceDelayHighlight	Female's will start out voicing at this interval and will decrease with each stage.
+$SSL_fSFXVolume	SFX 音量
+$SSL_fSFXVolumeHighlight	SFX 的总音量，从 0.0 为静音到 1.0 为全音量。
+$SSL_fSFXDelay	SFX 延迟
+$SSL_fSFXDelayHighlight	适用的音效将从此间隔开始，并随每个阶段递减。
+$SSL_fVoiceVolume	语音音量
+$SSL_fVoiceVolumeHighlight	语音的总音量，从 0.0 为静音到 1.0 为全音量。
+$SSL_fMaleVoiceDelay	男性语音延迟
+$SSL_fMaleVoiceDelayHighlight	男性将从此间隔开始发声，并随每个阶段递减。
+$SSL_fFemaleVoiceDelay	女性语音延迟
+$SSL_fFemaleVoiceDelayHighlight	女性将从此间隔开始发声，并随每个阶段递减。
 
-$SSL_CachedVoices	Cached Voices
-$SSL_SelectVoiceCache	Selected Actor
-$SSL_SelectVoiceCacheHighlight	The actor which's voice you are currently viewing.
-$SSL_SelectVoiceCacheV	Actor Voice
-$SSL_SelectVoiceCacheVHighlight	The SexLab Voice this actor is using.\nVoices (if not manually selected) will be set the first time an actor partakes in an animation.
+$SSL_CachedVoices	缓存的语音
+$SSL_SelectVoiceCache	选中的角色
+$SSL_SelectVoiceCacheHighlight	你当前正在查看其语音的角色。
+$SSL_SelectVoiceCacheV	角色语音
+$SSL_SelectVoiceCacheVHighlight	此角色使用的 SexLab 声音。\n若未手动指定，将在角色首次参与动画时自动选择声音。
 
-$SSL_ToggleVoices	Toggle Voices
-$SSL_ActiveVoices	Viewed Voices
-$SSL_ActiveVoicesHighlight	The voices you are currently viewing, filtered by the specified Race.
+$SSL_ToggleVoices	切换语音
+$SSL_ActiveVoices	查看的语音
+$SSL_ActiveVoicesHighlight	你当前正在查看的语音，按指定种族筛选。
 
-$SSL_FemaleAverage	[SL] Female Average
-$SSL_FemaleBreathy	[SL] Female Breathy
-$SSL_FemaleClassic	[SL] Female Classic
-$SSL_FemaleExcitable	[SL] Female Excitable
-$SSL_FemaleMature	[SL] Female Mature
-$SSL_FemaleQuiet	[SL] Female Quiet
-$SSL_FemaleStimulated	[SL] Female Stimulated
-$SSL_FemaleYoung	[SL] Female Young
-$SSL_FemaleFlat	[SL] Female Flat
-$SSL_FemaleRebellious	[SL] Female Rebellious
-$SSL_FemaleRebellious2	[SL] Female Rebellious (Alt)
-$SSL_FemaleRough	[SL] Female Rough
-$SSL_FemaleSeductive	[SL] Female Seductive
-$SSL_FemaleShy	[SL] Female Shy
-$SSL_FemaleShy2	[SL] Female Shy (Alt)
-$SSL_FemaleWarrior	[SL] Female Warrior
+$SSL_FemaleAverage	[SL] 女声：普通
+$SSL_FemaleBreathy	[SL] 女声：气息
+$SSL_FemaleClassic	[SL] 女声：经典
+$SSL_FemaleExcitable	[SL] 女声：兴奋
+$SSL_FemaleMature	[SL] 女声：成熟
+$SSL_FemaleQuiet	[SL] 女声：轻柔
+$SSL_FemaleStimulated	[SL] 女声：激动
+$SSL_FemaleYoung	[SL] 女声：年轻
+$SSL_FemaleFlat	[SL] 女声：平淡
+$SSL_FemaleRebellious	[SL] 女声：叛逆
+$SSL_FemaleRebellious2	[SL] 女声：叛逆（替代）
+$SSL_FemaleRough	[SL] 女声：粗犷
+$SSL_FemaleSeductive	[SL] 女声：诱惑
+$SSL_FemaleShy	[SL] 女声：害羞
+$SSL_FemaleShy2	[SL] 女声：害羞（替代）
+$SSL_FemaleWarrior	[SL] 女声：战士
 
-$SSL_MaleAverage	[SL] Male Average
-$SSL_MaleCalm	[SL] Male Calm
-$SSL_MaleNeutral	[SL] Male Neutral
-$SSL_MaleRough	[SL] Male Rough
+$SSL_MaleAverage	[SL] 男声：普通
+$SSL_MaleCalm	[SL] 男声：平静
+$SSL_MaleNeutral	[SL] 男声：中性
+$SSL_MaleRough	[SL] 男声：粗犷
 
-$SSL_ChaurusVoice01	[SL] Chaurus Default
-$SSL_DogVoice01	[SL] Dog Default
-$SSL_DraugrVoice01	[SL] Draugr Default
-$SSL_FalmerVoice01	[SL] Falmer Default
-$SSL_GiantVoice01	[SL] Giant Default
-$SSL_HorseVoice01	[SL] Horse Default
-$SSL_SprigganVoice01	[SL] Spriggan Default
-$SSL_TrollVoice01	[SL] Troll Default
-$SSL_WerewolfVoice01	[SL] Werewolf Default
-$SSL_WolfVoice01	[SL] Wolf Default
+$SSL_ChaurusVoice01	[SL] 巢蚁默认声音
+$SSL_DogVoice01	[SL] 狗默认声音
+$SSL_DraugrVoice01	[SL] 尸鬼默认声音
+$SSL_FalmerVoice01	[SL] 雪精灵默认声音
+$SSL_GiantVoice01	[SL] 巨人默认声音
+$SSL_HorseVoice01	[SL] 马默认声音
+$SSL_SprigganVoice01	[SL] 树精默认声音
+$SSL_TrollVoice01	[SL] 巨魔默认声音
+$SSL_WerewolfVoice01	[SL] 狼人默认声音
+$SSL_WolfVoice01	[SL] 狼默认声音
 
 # ------------------Player Hotkeys--------------------------------------------------
-$SSL_PlayerHotkeys	Player Hotkeys
+$SSL_PlayerHotkeys	玩家热键
 
 # ------ Global SexLab Hotkeys
-$SSL_GlobalHotkeys	Global SexLab Hotkeys
+$SSL_GlobalHotkeys	全局 SexLab 热键
 
-$SSL_iTargetActor	Target Actor / Change Partner
-$SSL_iTargetActorHighlight	After pressing this hotkey, place your crosshairs in game over an actor until your receive a notification that the actor is targeted, afterwards the actor will be available for editing purposes in various menu pages.
-$SSL_iToggleFreeCamera	Toggle Free Camera Mode
-$SSL_iToggleFreeCameraHighlight	Toggles the camera mode into a free flying camera state, same as entering TFC into console, this hotkey is enabled at all times regardless of animation.
-$SSL_iToggleThreadControl	Toggle Thread Control
+$SSL_iTargetActor	目标角色 / 更换伙伴
+$SSL_iTargetActorHighlight	按下此热键后，在游戏内将准星对准一名角色，直到你收到该角色已成为目标的通知，之后该角色将可在各种菜单页面中供编辑使用。
+$SSL_iToggleFreeCamera	切换自由相机模式
+$SSL_iToggleFreeCameraHighlight	将相机模式切换为自由飞行相机状态，等同于在控制台输入 TFC，此热键无论动画如何都会始终启用。
+$SSL_iToggleThreadControl	切换线程控制
 
 # ------ Scene Manipulation
-$SSL_SceneManipulation	Scene Manipulation
+$SSL_SceneManipulation	场景操作
 
-$SSL_iToggleSceneHUD	Toggle SceneHUD
-$SSL_iFocusSceneHUD	Focus SceneHUD
+$SSL_iToggleSceneHUD	切换 SceneHUD
+$SSL_iFocusSceneHUD	聚焦 SceneHUD
 $SSL_iOpenSceneSelect	打开 Scenes 列表
 $SSL_iSceneSelectModifier	Scenes 修饰键
 $SSL_iSceneSelectModifierHighlight	可选修饰键，默认未绑定。绑定后先按住所选键，再按主键打开列表；修饰键单独按下不触发同键的 P+ 操作。按 Esc 清空。
 $SSL_iOpenSceneSelectHighlight	直接打开 Scenes 列表。修饰键为空时单键生效，否则需按住修饰键；不同组合可复用主键。主键与修饰键不能相同。
 $SSL_SceneSelectKeyConflict	该主键与修饰键相同，或完整组合与已有 P+ 操作冲突。请先调整主键或修饰键。
-$SSL_iToggleSceneGraph	Toggle Scene Graph
-$SSL_iKeyAdvance	Advance Scene
-$SSL_iKeyEnd	End Scene
-$SSL_iKeyMod	Modifier
-$SSL_iKeyModHighlight	Toggles alternative effect for other hotkeys.\nNext/Prev: ChangePartner, AdvanceStage.\nAdjustTarget: EnjRaise, EnjHoldback.\nThe hotkeys changing their mode to "AdjustTarget" with ModifierKey affect Player on their own.
-$SSL_iChangeAnimation	Change Animation
-$SSL_iMoveScene	Move Scene
+$SSL_iToggleSceneGraph	切换场景图
+$SSL_iKeyAdvance	推进场景
+$SSL_iKeyEnd	结束场景
+$SSL_iKeyMod	修改
+$SSL_iKeyModHighlight	切换其他热键的替代效果。\n下一个/上一个：更换伴侣，推进阶段。\n调整目标：EnjRaise，EnjHoldback。\n使用修饰键将模式更改为“调整目标”的热键会自行影响玩家。
+$SSL_iChangeAnimation	更改动画
+$SSL_iMoveScene	移动场景
 
 # ------------------- Timers & Stripping -------------------------------------------------
-$SSL_TimersStripping	Timers & Stripping
+$SSL_TimersStripping	计时器与脱衣
 
 # ------ Timers
-$SSL_Timers	Timers
-$SSL_StageTimer_0	Stage 1 Length
-$SSL_StageTimer_1	Stage 2 Length
-$SSL_StageTimer_2	Stage 3 Length
-$SSL_StageTimer_3	Ending Stage Length
+$SSL_Timers	计时器
+$SSL_StageTimer_0	阶段 1 长度
+$SSL_StageTimer_1	阶段 2 长度
+$SSL_StageTimer_2	阶段 3 长度
+$SSL_StageTimer_3	结束阶段长度
 
 # ------ Stripping
-$SSL_Stripping	Stripping
+$SSL_Stripping	脱衣
 
-$SSL_DefaultStripping	Standard/Default Scenes
-$SSL_DominantStripping	Dominant Scenes
+$SSL_DefaultStripping	标准/默认场景
+$SSL_DominantStripping	支配场景
 
-$SSL_StrippingFst_0	Male Actors
-$SSL_StrippingSnd_0	Female Actors 
-$SSL_StrippingFst_1	Dominant Actors
-$SSL_StrippingSnd_1	Submissive Actors
-$SSL_ExtraSlots	Extra Slots, not always accurately labeled
+$SSL_StrippingFst_0	男性角色
+$SSL_StrippingSnd_0	女性角色 
+$SSL_StrippingFst_1	支配角色
+$SSL_StrippingSnd_1	顺从角色
+$SSL_ExtraSlots	额外槽位，标签并不总是准确
 
-$SSL_Strip_0	[30] Head
-$SSL_Strip_1	[31] Hair
-$SSL_Strip_2	[32] Torso
-$SSL_Strip_3	[33] Hands
-$SSL_Strip_4	[34] Forearms
-$SSL_Strip_5	[35] Amulet
-$SSL_Strip_6	[36] Ring
-$SSL_Strip_7	[37] Feet
-$SSL_Strip_8	[38] Calves
-$SSL_Strip_9	[39] Shield
-$SSL_Strip_10	[40] Tail
-$SSL_Strip_11	[41] Long Hair
-$SSL_Strip_12	[42] Circlet
-$SSL_Strip_13	[43] Ears
-$SSL_Strip_14	[44] Face/Mouth
-$SSL_Strip_15	[45] Neck
-$SSL_Strip_16	[46] Chest
-$SSL_Strip_17	[47] Back
-$SSL_Strip_18	[48] Misc Slot
-$SSL_Strip_19	[49] Pelvis/Outergarments
-$SSL_Strip_20	[50] Decapitated Head
-$SSL_Strip_21	[51] Decapitate
-$SSL_Strip_22	[52] Pelvis/Undergarments
-$SSL_Strip_23	[53] Legs/Right Leg
-$SSL_Strip_24	[54] Legs/Left Leg
-$SSL_Strip_25	[55] Face/Jewelry
-$SSL_Strip_26	[56] Chest/Undergarments
-$SSL_Strip_27	[57] Shoulders
-$SSL_Strip_28	[58] Arms/Left Arm/Undergarments
-$SSL_Strip_29	[59] Arms/Right Arm/Outergarments
-$SSL_Strip_30	[60] *3BA Bodies
-$SSL_Strip_31	[61] *Spell FX
-$SSL_Weapons	[--] Weapons
+$SSL_Strip_0	[30] 头部
+$SSL_Strip_1	[31] 头发
+$SSL_Strip_2	[32] 躯干
+$SSL_Strip_3	[33] 双手
+$SSL_Strip_4	[34] 前臂
+$SSL_Strip_5	[35] 项链
+$SSL_Strip_6	[36] 戒指
+$SSL_Strip_7	[37] 双脚
+$SSL_Strip_8	[38] 小腿
+$SSL_Strip_9	[39] 盾牌
+$SSL_Strip_10	[40] 尾巴
+$SSL_Strip_11	[41] 长发
+$SSL_Strip_12	[42] 头饰
+$SSL_Strip_13	[43] 耳部
+$SSL_Strip_14	[44] 面部/嘴部
+$SSL_Strip_15	[45] 颈部
+$SSL_Strip_16	[46] 胸部
+$SSL_Strip_17	[47] 背部
+$SSL_Strip_18	[48] 杂项槽位
+$SSL_Strip_19	[49] 骨盆/外衣
+$SSL_Strip_20	[50] 断头
+$SSL_Strip_21	[51] 断颈
+$SSL_Strip_22	[52] 骨盆/内衣
+$SSL_Strip_23	[53] 腿部/右腿
+$SSL_Strip_24	[54] 腿部/左腿
+$SSL_Strip_25	[55] 面部/首饰
+$SSL_Strip_26	[56] 胸部/内衣
+$SSL_Strip_27	[57] 肩部
+$SSL_Strip_28	[58] 手臂/左臂/内衣
+$SSL_Strip_29	[59] 手臂/右臂/外衣
+$SSL_Strip_30	[60] *3BA 身体
+$SSL_Strip_31	[61] *法术 FX
+$SSL_Weapons	[--] 武器
 
 # ------------------ Toggle Animations --------------------------------------------------
-$SSL_ToggleAnimations	Toggle Animations
-$SSL_TogglePackage	Filter by Animation Pack
-$SSL_TogglePackageHighlight	Filter animations of a specific animation pack/module only
-$SSL_ToggleGroup	Filter by Group
-$SSL_togglecategoryHighlight	Filter animations by human/creature category
-$SSL_ToggleVisible	Toggle Visible
-$SSL_ToggleVisibleHighlight	Enable or disable all animations filtered on this page
-$SSL_TagFilter	Filter by Tags
-$SSL_toggletagsHighlight	Filter animations by tags
-$SSL_Page{}{}	Page {}/{}
+$SSL_ToggleAnimations	切换动画
+$SSL_TogglePackage	按动画包筛选
+$SSL_TogglePackageHighlight	仅筛选特定动画包/模块的动画
+$SSL_ToggleGroup	按组筛选
+$SSL_togglecategoryHighlight	按人类/生物类别筛选动画
+$SSL_ToggleVisible	切换可见性
+$SSL_ToggleVisibleHighlight	启用或禁用此页面上筛选出的所有动画
+$SSL_TagFilter	按标签筛选
+$SSL_toggletagsHighlight	按标签筛选动画
+$SSL_Page{}{}	页 {}/{}
 
 
 # ------------------ Matchmaker --------------------------------------------------
-$SSL_MatchMaker	Matchmaker
+$SSL_MatchMaker	魅惑
 
-$SSL_ToggleMatchMaker	Enable Matchmaker
-$SSL_ToggleMatchMakerHighlight	Enable Matchmaker. Spells will be added to the spell menu
+$SSL_ToggleMatchMaker	启用魅惑
+$SSL_ToggleMatchMakerHighlight	启用魅惑。法术将添加到法术菜单
 
 # ------ Tag Settings
-$SSL_MatchMakerTagsSettings	Tag Settings
-$SSL_InputTags	Tags:
-$SSL_matchmakerInputTagsHighlight	Resulting tag string based on tag inputs below
-$SSL_InputRequiredTags	Required Tags:
-$SSL_matchmakerInputRequiredTagsHighlight	A list of comma-separated tags, all of which must be present simultaneously in the filtered scene(s)
-$SSL_InputExcludedTags	Excluded Tags:
-$SSL_matchmakerInputExcludedTagsHighlight	A list of comma-separated tags, none of which shall be present in the filtered scene(s)
-$SSL_InputOptionalTags	Optional Tags:
-$SSL_matchmakerInputOptionalTagsHighlight	A list of comma-separated tags, at least one of which shall be present in the filtered scene(s)
-$SSL_TextResetTags	Reset Tags
-$SSL_TextResetTagsHighlight	Resets all tag input fields
-$SSL_ResetTagsHere	Click
-$SSL_TagResetAreYouSure	Reset all tags, are you sure?
+$SSL_MatchMakerTagsSettings	标签设置
+$SSL_InputTags	标签：
+$SSL_matchmakerInputTagsHighlight	基于下方标签输入生成的结果标签字符串
+$SSL_InputRequiredTags	必需标签：
+$SSL_matchmakerInputRequiredTagsHighlight	以逗号分隔的标签列表，所有这些标签必须同时存在于被筛选的场景中
+$SSL_InputExcludedTags	排除标签：
+$SSL_matchmakerInputExcludedTagsHighlight	用逗号分隔的标签列表，其中任何一个都不得存在于筛选后的场景中
+$SSL_InputOptionalTags	可选标签：
+$SSL_matchmakerInputOptionalTagsHighlight	用逗号分隔的标签列表，其中至少一个应存在于筛选后的场景中
+$SSL_TextResetTags	重置标签
+$SSL_TextResetTagsHighlight	重置所有标签输入字段
+$SSL_ResetTagsHere	点击
+$SSL_TagResetAreYouSure	重置所有标签，你确定吗？
 
 # ------ Actor Settings
-$SSL_MatchMakerActorSettings	Actor Settings
-$SSL_bSubmissivePlayer	Submissive Player
-$SSL_bSubmissivePlayerHighlight	Filter scenes with player in the submissive position
-$SSL_bSubmissiveTarget	Submissive Target
-$SSL_bSubmissiveTargetHighlight	Filter scenes with target actor in the submissive position
+$SSL_MatchMakerActorSettings	角色设置
+$SSL_bSubmissivePlayer	顺从玩家
+$SSL_bSubmissivePlayerHighlight	筛选玩家处于顺从位置的场景
+$SSL_bSubmissiveTarget	顺从目标
+$SSL_bSubmissiveTargetHighlight	筛选目标角色处于顺从位置的场景
 
 # ------------------ Enjoyment --------------------------------------------------
-$SSL_EnjoymentSettings	Enjoyment Settings
-$SSL_EnjPrimarySettings	Primary Settings
-$SSL_EnjGeneralConfigs	General Configs
-$SSL_EnjGameConfigs	Game Configs
-$SSL_EnjPainConfigs	Pain Configs
-$SSL_EnjGameHotkeys	Game Hotkeys
-$SSL_EnjMiscRateMult	Misc Rate Mult
+$SSL_EnjoymentSettings	愉悦设置
+$SSL_EnjPrimarySettings	主要设置
+$SSL_EnjGeneralConfigs	常规配置
+$SSL_EnjGameConfigs	游戏配置
+$SSL_EnjPainConfigs	疼痛配置
+$SSL_EnjGameHotkeys	游戏热键
+$SSL_EnjMiscRateMult	杂项速率倍率
 
 # ------ Primary Settings
-$SSL_bInternalEnjoymentEnabled	Enable Internal Enjoyment
-$SSL_bInternalEnjoymentEnabledHighlight	Toggles the internal enjoyment system. Should stay enabled unless an external mod desires to take full control of the enjoyment calculus.
-$SSL_fEnjRaiseMultInter	EnjRaise Mult: Interactions
-$SSL_fEnjRaiseMultInterHighlight	The main multiplier/factor determining the rate at which enjoyment increases for an actor based on detected interactions. Higher values mean faster enjoyment raise and vice versa.\n Can be reduced to zero if user desires enjoyment raise to depend solely on the enjoyment minigame.
-$SSL_bGameEnabled	Enable Enjoyment Game
-$SSL_bGameEnabledHighlight	Toggles the enjoyment minigame inspired from SLSO's implementation.
+$SSL_bInternalEnjoymentEnabled	启用内部愉悦
+$SSL_bInternalEnjoymentEnabledHighlight	切换内部愉悦系统。应保持启用，除非外部模组希望完全控制愉悦计算。
+$SSL_fEnjRaiseMultInter	愉悦提升倍率：互动
+$SSL_fEnjRaiseMultInterHighlight	主要倍率/因素，基于检测到的互动决定角色的愉悦提升速率。数值越高表示愉悦提升越快，反之亦然。\n 如果用户希望愉悦提升仅取决于愉悦小游戏，则可将其降至零。
+$SSL_bGameEnabled	启用愉悦游戏
+$SSL_bGameEnabledHighlight	切换受 SLSO 实现启发的愉悦小游戏。
 
 # ------ General Configs
-$SSL_bNoStaminaEndsScene	No Stamina Ends Scene
-$SSL_bNoStaminaEndsSceneHighlight	Ends the scene automatically when the actor's stamina is depleted.
-$SSL_bMaleOrgasmEndsScene	Male Orgasm Ends Scene
-$SSL_bMaleOrgasmEndsSceneHighlight	Ends the scene after the first male orgasm.
-$SSL_bDomMustOrgasm	Dom Actor Must Orgasm
-$SSL_bDomMustOrgasmHighlight	Requires the dominant actor to orgasm before scene ends.\nThread is perpetuated by changing to similar animations till the dominant actor has orgasmed once.
-$SSL_bPlayerMustOrgasm	Player Must Orgasm
-$SSL_bPlayerMustOrgasmHighlight	Requires the player to orgasm before scene ends\nThread is perpetuated by changing to similar animations till the player has orgasmed once.
-$SSL_bHighEnjOrgasmWait	High Enj Orgasm Wait
-$SSL_bHighEnjOrgasmWaitHighlight	Scene perpetuates if an actor's enjoyment is >75 or if the actor is in edging state regardless of orgasms count.\nThread is perpetuated by changing to similar animations till the actor with high enjoyment has orgasmed.
-$SSL_iMaxNoPainOrgasmMale	Max NoPain Orgasms Male
-$SSL_iMaxNoPainOrgasmMaleHighlight	Determines the number of orgasms till which no pain penalty will be imposed on male actors. Once the orgasm counts goes higher than the limit here, each subsequent orgasm will inflict successively higher pain penalties.
-$SSL_iMaxNoPainOrgasmFemale	Max NoPain Orgasms Female
-$SSL_iMaxNoPainOrgasmFemaleHighlight	Determines the number of orgasms till which no pain penalty will be imposed on female/futa actors. Once the orgasm counts goes higher than the limit here, each subsequent orgasm will inflict successively higher pain penalties.
-$SSL_iNoPainRequiredTime	Pain Decay Time
-$SSL_iNoPainRequiredTimeHighlight	Time required in seconds for pain effects (e.g. from penetration for inexperienced actors) to decay during a scene. 
-$SSL_iNoPainRequiredXP	Pain Avoidance XP
-$SSL_iNoPainRequiredXPHighlight	Determines the Anal and Vaginal XP required to avoid pain effects from penetration interactions.
+$SSL_bNoStaminaEndsScene	无体力结束场景
+$SSL_bNoStaminaEndsSceneHighlight	当角色的体力耗尽时自动结束场景。
+$SSL_bMaleOrgasmEndsScene	男性高潮结束场景
+$SSL_bMaleOrgasmEndsSceneHighlight	在第一次男性高潮后结束场景。
+$SSL_bDomMustOrgasm	支配角色必须高潮
+$SSL_bDomMustOrgasmHighlight	要求支配角色在场景结束前高潮。\n通过切换到相似动画来延续线程，直到支配角色高潮一次。
+$SSL_bPlayerMustOrgasm	玩家必须高潮
+$SSL_bPlayerMustOrgasmHighlight	要求玩家在场景结束前高潮\n通过切换到相似动画来延续线程，直到玩家高潮一次。
+$SSL_bHighEnjOrgasmWait	高愉悦高潮等待
+$SSL_bHighEnjOrgasmWaitHighlight	如果角色的愉悦 >75，或角色处于边缘状态，则无论高潮次数如何，场景都会持续。\n通过切换到相似动画来延续线程，直到高愉悦角色高潮。
+$SSL_iMaxNoPainOrgasmMale	男性无疼痛高潮上限
+$SSL_iMaxNoPainOrgasmMaleHighlight	决定在达到多少次高潮前不会对男性角色施加疼痛惩罚。一旦高潮次数超过此上限，之后每次高潮都会施加逐次更高的疼痛惩罚。
+$SSL_iMaxNoPainOrgasmFemale	女性最大无痛高潮次数
+$SSL_iMaxNoPainOrgasmFemaleHighlight	决定在达到多少次高潮前不会对女性/扶他角色施加疼痛惩罚。一旦高潮次数超过此上限，之后每次高潮都会施加逐次更高的疼痛惩罚。
+$SSL_iNoPainRequiredTime	疼痛衰减时间
+$SSL_iNoPainRequiredTimeHighlight	场景中疼痛效果（例如无经验角色因插入产生的疼痛）衰减所需的秒数。 
+$SSL_iNoPainRequiredXP	疼痛规避经验
+$SSL_iNoPainRequiredXPHighlight	决定避免插入互动疼痛效果所需的肛交和阴道经验。
 
 # ------ Misc Multipliers
-$SSL_fEnjMultVictim	EnjRaise Mult: Victim
-$SSL_fEnjMultVictimHighlight	Additional enjoyment raise multiplier for victim actors.\n(FYI: Victim state is defined by scene's context, not tags.)
-$SSL_fEnjMultAggressor	EnjRaise Mult: Aggressor
-$SSL_fEnjMultAggressorHighlight	Additional enjoyment raise multiplier for aggressor actors.\n(FYI: Aggressor state is defined by scene's context, not tags.)
-$SSL_fEnjMultSub	EnjRaise Mult: Submissive
-$SSL_fEnjMultSubHighlight	Additional enjoyment raise multiplier for submissive actors.\n(FYI: Submissive role is defined by SLSB's submissive flags, not tags.)
-$SSL_fEnjMultDom	EnjRaise Mult: Dominant
-$SSL_fEnjMultDomHighlight	Additional enjoyment raise multiplier for dominant/non-sub actors.\n(FYI: Dominant role is defined by SLSB's submissive flags, not tags.)
-$SSL_fPainHugePPMult	Pain Mult: Huge PP
-$SSL_fPainHugePPMultHighlight	Additional factor enhancing pain for actors having penetration interactions in receiving position with actors having large schlongs. Used during penetration by certain creatures only, for now.
+$SSL_fEnjMultVictim	愉悦提升倍率：受害方
+$SSL_fEnjMultVictimHighlight	受害者角色的额外愉悦提升倍率。\n（供参考：受害者状态由场景上下文定义，而非标签。）
+$SSL_fEnjMultAggressor	愉悦提升倍率：支配方
+$SSL_fEnjMultAggressorHighlight	侵犯者角色的额外愉悦提升倍率。\n（供参考：侵犯者状态由场景上下文定义，而非标签。）
+$SSL_fEnjMultSub	愉悦提升倍率：顺从
+$SSL_fEnjMultSubHighlight	顺从角色的额外愉悦提升倍率。\n（供参考：顺从角色由 SLSB 的顺从标志定义，而非标签。）
+$SSL_fEnjMultDom	愉悦提升倍率：支配
+$SSL_fEnjMultDomHighlight	支配/非顺从角色的额外愉悦提升倍率。\n（供参考：支配角色由 SLSB 的顺从标志定义，而非标签。）
+$SSL_fPainHugePPMult	疼痛倍率：巨根
+$SSL_fPainHugePPMultHighlight	为处于接受位置并与拥有大屌的角色进行插入互动的角色增强疼痛的额外因素。目前仅在某些生物插入期间使用。
 
 # ------ Game Configs
-$SSL_iEnjGameStaminaCost	Game Stamina Cost
-$SSL_iEnjGameStaminaCostHighlight	The amount of STAMINA to be depleted upon a relevant minigame action.
-$SSL_iEnjGameMagickaCost	Game Magicka Cost
-$SSL_iEnjGameMagickaCostHighlight	The amount of MAGICKA to be depleted upon a relevant minigame action.
-$SSL_iGameEnjAdjAmount	Enjoyment Adjust Amount
-$SSL_iGameEnjAdjAmountHighlight	The amount of enjoyment increased or depleted upon a relevant minigame action.
-$SSL_bGameRequiredOnHighEnj	Require Minigame on High Enj
-$SSL_bGameRequiredOnHighEnjHighlight	Toggles/disables player's enjoyment gain through collision detection when it goes above 80.\nWith this enabled, the player will have to actively rely on the minigame to reach orgasm.
-$SSL_bGameSpamDelayPenalty	Minigame Spam/Delay Penalty
-$SSL_bGameSpamDelayPenaltyHighlight	Toggles enjoyment penalties along with stamina and magicka depletion for the player upon badly timed attempts at raising enjoyment. (IMP: This option only works when combined with the above option.)
+$SSL_iEnjGameStaminaCost	游戏耐力消耗
+$SSL_iEnjGameStaminaCostHighlight	相关小游戏动作消耗的体力值。
+$SSL_iEnjGameMagickaCost	游戏魔力消耗
+$SSL_iEnjGameMagickaCostHighlight	相关小游戏动作消耗的魔力值。
+$SSL_iGameEnjAdjAmount	愉悦调整量
+$SSL_iGameEnjAdjAmountHighlight	相关小游戏操作时增加或减少的愉悦量。
+$SSL_bGameRequiredOnHighEnj	在高难度模式下需要完成小游戏
+$SSL_bGameRequiredOnHighEnjHighlight	当玩家的愉悦度超过80时，禁用通过碰撞检测获得愉悦度。\n启用后，玩家必须主动参与小游戏才能达到高潮。
+$SSL_bGameSpamDelayPenalty	小游戏中的垃圾信息发送/延迟惩罚机制
+$SSL_bGameSpamDelayPenaltyHighlight	玩家在提升愉悦度时若操作时机不当，将受到愉悦度降低以及体力和魔力消耗的惩罚。（重要：此选项仅与上方选项配合时生效。）
 
 # ------ Game Hotkeys
-$SSL_iGameRaiseEnjKey	RaiseEnj Key
-$SSL_iGameRaiseEnjKeyHighlight	Hotkey to manually raise enjoyment at the cost of stamina. To raise self/player enjoyment, combine with utility key.\nOnce enjoyment reaches 90, this hotkey is used to maintain edge state, whereby timed clicks are required to avoid spam penalties.
-$SSL_iGameHoldbackKey	Holdback Key
-$SSL_iGameHoldbackKeyHighlight	Hotkey to manually holdback/reduce enjoyment at the cost of magicka. To reduce self/player enjoyment, combine with utility key.
+$SSL_iGameRaiseEnjKey	提升愉悦度
+$SSL_iGameRaiseEnjKeyHighlight	消耗体力手动提升愉悦度的热键。提升自身/玩家的愉悦度时，请同时按住辅助键。\n愉悦度达到90后，此热键用于维持临界状态，需要按时点击以避免连续乱按的惩罚。
+$SSL_iGameHoldbackKey	降低愉悦度
+$SSL_iGameHoldbackKeyHighlight	以消耗魔力为代价手动抑制/降低愉悦度的热键。若要降低自身/玩家的愉悦度，请与辅助键结合使用。
 
 # ------------------ Expression Editor --------------------------------------------------
-$SSL_ExpressionEditor	Expression Editor
+$SSL_ExpressionEditor	自定义表情
 
-$SSL_DialogueMood_0	Dialogue Anger
-$SSL_DialogueMood_1	Dialogue Fear
-$SSL_DialogueMood_2	Dialogue Happy
-$SSL_DialogueMood_3	Dialogue Sad
-$SSL_DialogueMood_4	Dialogue Surprise
-$SSL_DialogueMood_5	Dialogue Puzzled
-$SSL_DialogueMood_6	Dialogue Disgusted
-$SSL_DialogueMood_7	Mood Neutral
-$SSL_DialogueMood_8	Mood Anger
-$SSL_DialogueMood_9	Mood Fear
-$SSL_DialogueMood_10	Mood Happy
-$SSL_DialogueMood_11	Mood Sad
-$SSL_DialogueMood_12	Mood Surprise
-$SSL_DialogueMood_13	Mood Puzzled
-$SSL_DialogueMood_14	Mood Disgusted
-$SSL_DialogueMood_15	Combat Anger
-$SSL_DialogueMood_16	Combat Shout
+$SSL_DialogueMood_0	对话：愤怒
+$SSL_DialogueMood_1	对话：恐惧
+$SSL_DialogueMood_2	对话：开心
+$SSL_DialogueMood_3	对话：悲伤
+$SSL_DialogueMood_4	对话：惊讶
+$SSL_DialogueMood_5	对话：困惑
+$SSL_DialogueMood_6	对话：厌恶
+$SSL_DialogueMood_7	情绪：平静
+$SSL_DialogueMood_8	情绪：愤怒
+$SSL_DialogueMood_9	情绪：恐惧
+$SSL_DialogueMood_10	情绪：开心
+$SSL_DialogueMood_11	情绪：悲伤
+$SSL_DialogueMood_12	情绪：惊讶
+$SSL_DialogueMood_13	情绪：困惑
+$SSL_DialogueMood_14	情绪：厌恶
+$SSL_DialogueMood_15	战斗：愤怒
+$SSL_DialogueMood_16	战斗：喊叫
 
-$SSL_Phoneme_0	0: Aah
-$SSL_Phoneme_1	1: BigAah
-$SSL_Phoneme_2	2: BMP
-$SSL_Phoneme_3	3: ChjSh
-$SSL_Phoneme_4	4: DST
-$SSL_Phoneme_5	5: Eee
-$SSL_Phoneme_6	6: Eh
-$SSL_Phoneme_7	7: FV
-$SSL_Phoneme_8	8: i
-$SSL_Phoneme_9	9: k
-$SSL_Phoneme_10	10: N
-$SSL_Phoneme_11	11: Oh
-$SSL_Phoneme_12	12: OohQ
-$SSL_Phoneme_13	13: R
-$SSL_Phoneme_14	14: Th
-$SSL_Phoneme_15	15: W
+$SSL_Phoneme_0	0: Aah（啊音）
+$SSL_Phoneme_1	1: BigAah（大开口啊音）
+$SSL_Phoneme_2	2: BMP（双唇音）
+$SSL_Phoneme_3	3: ChjSh（卷舌及嘘音）
+$SSL_Phoneme_4	4: DST（齿龈音）
+$SSL_Phoneme_5	5: Eee（咿音）
+$SSL_Phoneme_6	6: Eh（诶音）
+$SSL_Phoneme_7	7: FV（唇齿音）
+$SSL_Phoneme_8	8: i（短 i 音）
+$SSL_Phoneme_9	9: k（k 音）
+$SSL_Phoneme_10	10: N（鼻音 N）
+$SSL_Phoneme_11	11: Oh（哦音）
+$SSL_Phoneme_12	12: OohQ（圆唇音）
+$SSL_Phoneme_13	13: R（卷舌 R 音）
+$SSL_Phoneme_14	14: Th（咬舌 Th 音）
+$SSL_Phoneme_15	15: W（圆唇 W 音）
 
-$SSL_Modifier_0	0: BlinkL
-$SSL_Modifier_1	1: BlinkR
-$SSL_Modifier_2	2: BrowDownL
-$SSL_Modifier_3	3: BrownDownR
-$SSL_Modifier_4	4: BrowInL
-$SSL_Modifier_5	5: BrowInR
-$SSL_Modifier_6	6: BrowUpL
-$SSL_Modifier_7	7: BrowUpR
-$SSL_Modifier_8	8: LookDown
-$SSL_Modifier_9	9: LookLeft
-$SSL_Modifier_10	10: LookRight
-$SSL_Modifier_11	11: LookUp
-$SSL_Modifier_12	12: SquintL
-$SSL_Modifier_13	13: SquintR
+$SSL_Modifier_0	0: BlinkL（左眼眨眼）
+$SSL_Modifier_1	1: BlinkR（右眼眨眼）
+$SSL_Modifier_2	2: BrowDownL（左眉下压）
+$SSL_Modifier_3	3: BrownDownR（右眉下压）
+$SSL_Modifier_4	4: BrowInL（左眉内收）
+$SSL_Modifier_5	5: BrowInR（右眉内收）
+$SSL_Modifier_6	6: BrowUpL（左眉上扬）
+$SSL_Modifier_7	7: BrowUpR（右眉上扬）
+$SSL_Modifier_8	8: LookDown（向下看）
+$SSL_Modifier_9	9: LookLeft（向左看）
+$SSL_Modifier_10	10: LookRight（向右看）
+$SSL_Modifier_11	11: LookUp（向上看）
+$SSL_Modifier_12	12: SquintL（左眼眯眼）
+$SSL_Modifier_13	13: SquintR（右眼眯眼）
 
-$SSL_ScaleMode_Linear	Linear
-$SSL_ScaleMode_Square	Squared
-$SSL_ScaleMode_Cubic	Cubic
-$SSL_ScaleMode_Exponential	Exponential
+$SSL_ScaleMode_Linear	线性
+$SSL_ScaleMode_Square	平方
+$SSL_ScaleMode_Cubic	立方
+$SSL_ScaleMode_Exponential	指数
 
-$SSL_ModifyingExpression	Modifying Expression
-$SSL_enableexpressionHighlight	Enable or disable the expression being modified currently
-$SSL_ExpressionScaling	Scaling Function
-$SSL_ExpressionsNormal	Available in regular Scenes
-$SSL_ExpressionsVictim	Available as submissive
-$SSL_ExpressionsAggressor	Available as dominant
-$SSL_ExpressionScalingHighlight	Scaling behavior to map expression progress to scene enjoyment.\nLinear: Steady and even increase\nSquared: Fast initial increase, slow mid section, second spike as orgasm approaches\nCubic: Slow start, gradual ramp up as orgasm approaches\nExponential: Very slow start, rapid growth as orgasm approaches
-$SSL_EditFemale	Edit Female Data
-$SSL_TestOnPlayer	Test On Player
+$SSL_ModifyingExpression	修改表情
+$SSL_enableexpressionHighlight	启用或禁用当前正在修改的表达式
+$SSL_ExpressionScaling	缩放功能
+$SSL_ExpressionsNormal	正常角色
+$SSL_ExpressionsVictim	被害者角色
+$SSL_ExpressionsAggressor	施暴者角色
+$SSL_ExpressionScalingHighlight	设置表情进度与场景愉悦度之间的映射曲线。\n线性：平稳、均匀地提升\n平方：初期快速提升，中段放缓，接近高潮时再次加速\n立方：起步缓慢，接近高潮时逐渐加速\n指数：起步极慢，接近高潮时迅速提升
+$SSL_EditFemale	编辑女性数据
+$SSL_TestOnPlayer	用玩家角色测试
 
-$SSL_WarnTestExpression{}	Testing selected expression on {}. Continue?
-$SSL_WarnTestExpressionLowOrHight	Test current expression's low (left) or high (right) profile?
-$SSL_WarnTestExpressionWithOpenMouth	Test current expression with an open mouth?
-$SSL_StartTestExpression{}	Testing Expression {}. Values will be reset after 15 seconds.\nClose the menu to continue..
-$SSL_AppliedTestExpression	Expression applied, reverting expression in 15 seconds...
-$SSL_RestoredTestExpression	Expression restored...
+$SSL_WarnTestExpression{}	将在 {} 身上测试所选表情。是否继续？
+$SSL_WarnTestExpressionLowOrHight	测试当前表情的低（左）或高（右）轮廓？
+$SSL_WarnTestExpressionWithOpenMouth	你想用张嘴测试当前的表情吗？
+$SSL_StartTestExpression{}	测试表情 {}。 15 秒后将重置值。\n关闭菜单以继续..
+$SSL_AppliedTestExpression	表情已应用，15 秒后恢复原表情...
+$SSL_RestoredTestExpression	表情恢复了...
 
-$SSL_EditExpressions_0	Expression Data (Low)
-$SSL_EditExpressions_1	Expression Data (High)
-$SSL_MoodType	Mood Type
-$SSL_MoodStrength	Mood Strength
-$SSL_Phoneme	Phoneme
-$SSL_Modifier	Modifier
+$SSL_EditExpressions_0	表情数据（低）
+$SSL_EditExpressions_1	表情数据（高）
+$SSL_MoodType	情绪类型
+$SSL_MoodStrength	情绪强度
+$SSL_Phoneme	音位
+$SSL_Modifier	修改
 
-$SSL_PrevPhase	<< Previous Phase
-$SSL_NextPhase	Next Phase >>
+$SSL_PrevPhase	<< 上一阶段
+$SSL_NextPhase	下一阶段>>
 
 # ------ Sync lips config
-$SSL_SyncLipsConfig	Lip Sync
+$SSL_SyncLipsConfig	口型同步
 
-$SSL_Sync	Sync
-$SSL_Async	Async
-$SSL_LipsSoundTime	Lip Sync Behavior
-$SSL_LipsSoundTimeHighlight	Sync: Lips begin closing when the moan has finished playing. \nAsync: Lips close after a short delay, independent of sound state.
-$SSL_bLipsFixedValue	Lips Fixed Value
-$SSL_bLipsFixedValueHighlight	If lip sync intensity should increase as enjoyment increases.
+$SSL_Sync	同步
+$SSL_Async	不同步
+$SSL_LipsSoundTime	口型同步行为
+$SSL_LipsSoundTimeHighlight	同步：呻吟播放结束后，嘴唇开始闭合。\n异步：短暂延迟后闭合嘴唇，不受声音播放状态影响。
+$SSL_bLipsFixedValue	固定汇率
+$SSL_bLipsFixedValueHighlight	如果随着愉悦感的增加，对口型表演的强度也应该相应提高。
 
 # ------------------ Strip Item Editor --------------------------------------------------
-$SSL_StripEditor	Strip Item Editor
+$SSL_StripEditor	自定义脱衣
 
-$SSL_Equipment{}	Equipment - {}
-$SSL_FullInventory	Show Full Inventory
-$SSL_FullInventoryHighlight	Allows all items in actor's inventory to show up for strip behavior editing
-$SSL_AlwaysRemove	Always Remove
-$SSL_NeverRemove	Never Remove
-$SSL_StripItemSlots{}	Biped Slots: {}
+$SSL_Equipment{}	装备 - {}
+$SSL_FullInventory	显示完整道具袋
+$SSL_FullInventoryHighlight	允许角色库存中的所有物品在条带行为编辑中显示出来。
+$SSL_AlwaysRemove	总是脱掉
+$SSL_NeverRemove	从不脱掉
+$SSL_StripItemSlots{}	装备槽位: {}
 
 
 # ------------------ Rebuild & Clean --------------------------------------------------
-$SSL_RebuildClean	Debug
-$SSL_Installation	Installation
+$SSL_RebuildClean	调试
+$SSL_Installation	安装
 
-$SSL_bDebugMode	Debug Mode
-$SSL_bDebugModeHighlight	Enable extra logs for thread and scene info.\nThis can slow down the framework but may help troubleshooting issues.
-$SSL_StopCurrentAnimations	Stop Current Animations
-$SSL_StopCurrentAnimationsHighlight	Stops all active SexLab threads, regardless of player involvement
-$SSL_StopRunningAnimations	All currently running animations are now halting
-$SSL_ResetStripOverrides	Reset Strip Overrides
-$SSL_ResetStripOverridesHighlight	Resets all custom strip settings set by the user
-$SSL_CleanSystem	Reinitialize Framework
-$SSL_CleanSystemHighlight	Reinstalls SexLab; not recommended!
-$SSL_WarnCleanSystem	Running this will re-install the framework, resetting most script internal data. Do you want to continue?
-$SSL_Resetting	Resetting...
-$SSL_CurrentlyInstalling	SexLab is being initialized...
-$SSL_ForceRegisterVoices	Legacy: Force Registration
-$SSL_ForceRegisterVoicesHighlight	Send mod events which used to be send by SexLab to notify 3rd party mods that they may now register their own voices/expressions (IMPORTANT: SexLab P+ no longer sends these events, so this option has to be used if you are using mods which require this event to be sent)
+$SSL_bDebugMode	调试模式
+$SSL_bDebugModeHighlight	启用额外的线程和场景信息日志。\n这可能降低框架运行速度，但有助于排查问题。
+$SSL_StopCurrentAnimations	停止当前动画
+$SSL_StopCurrentAnimationsHighlight	会停止所有正在运行的SexLab线程，无论玩家是否参与了当前操作。
+$SSL_StopRunningAnimations	停止所有当前正在运行的动画
+$SSL_ResetStripOverrides	重置脱衣特例设置
+$SSL_ResetStripOverridesHighlight	重置用户设置的所有自定义条形图配置选项
+$SSL_CleanSystem	清除系统
+$SSL_CleanSystemHighlight	重新安装SexLab；不推荐！
+$SSL_WarnCleanSystem	运行该项会尽可能地将SexLab恢复至默认状态，并停止当前运行的所有动画，清除动画和声音注册记录。建议在升级\删除\重装本MOD时使用。确定要继续么？
+$SSL_Resetting	正在重置...
+$SSL_CurrentlyInstalling	安装中: 请关闭所有选单
+$SSL_ForceRegisterVoices	传统：强制注册
+$SSL_ForceRegisterVoicesHighlight	发送过去由 SexLab 发出的 mod 事件，通知第三方 mod 可以注册自己的声音/表情（重要：SexLab P+ 不再发送这些事件；若所用 mod 依赖这些事件，必须使用此选项）。
 
-$RegistryInfo	Registry Status
-$SSL_Animations	Animations
-$SSL_Voices	Voices
-$SSL_Expressions	Expressions
+$RegistryInfo	注册状态
+$SSL_Animations	动画
+$SSL_Voices	声音
+$SSL_Expressions	表情
 
 # ------ Available Strap-ons
-$SSL_AvailableStrapons	Available Strap-ons
-$SSL_RebuildStraponList	Rebuild Strap-on List
-$SSL_RebuildStraponListHighlight	Updates the strap-ons list accessible to the framework
-$SSL_FoundStrapon	Found and saved strap-ons for use
-$SSL_NoStrapons	Found no supported strap-on mods
-$SSL_toggleStraponHighlight	Click to disable the use of this strap-on by SexLab
+$SSL_AvailableStrapons	可用的假阳具
+$SSL_RebuildStraponList	重建假阳具列表
+$SSL_RebuildStraponListHighlight	更新框架可访问的扩展组件列表
+$SSL_FoundStrapon	检索并保存任何可用的假阳具:
+$SSL_NoStrapons	未发现支持的假阳具模组
+$SSL_toggleStraponHighlight	点击以禁用SexLab提供的这款附加配件。
 
 
 # ------------------ Legacy --------------------------------------------------
-$SSL_Neutral	Neutral
-$SSL_Unsullied	Unsullied
-$SSL_CleanCut	Clean Cut
-$SSL_PrimProper	Prim & Proper
-$SSL_Virtuous	Virtuous
-$SSL_EverFaithful	Ever Faithful
-$SSL_Ladylike	Ladylike
-$SSL_Lordly	Lordly
-$SSL_Saintly	Saintly
-$SSL_Experimenting	Experimenting
-$SSL_UnusuallyHorny	Unusually Horny
-$SSL_Promiscuous	Promiscuous
-$SSL_SexualDeviant	Sexual Deviant
-$SSL_Debaucherous	Debaucherous
-$SSL_Nymphomaniac	Nymphomaniac
-$SSL_Depraved	Depraved
-$SSL_Hypersexual	Hypersexual
+$SSL_Neutral	中立
+$SSL_Unsullied	无垢
+$SSL_CleanCut	初通
+$SSL_PrimProper	恪守妇道
+$SSL_Virtuous	贞洁守道
+$SSL_EverFaithful	坚贞不渝
+$SSL_Ladylike	淑女典范
+$SSL_Lordly	高洁仰止
+$SSL_Saintly	圣洁
+$SSL_Experimenting	轻浮
+$SSL_UnusuallyHorny	好色
+$SSL_Promiscuous	淫乱
+$SSL_SexualDeviant	荒淫无耻
+$SSL_Debaucherous	淫贱放荡
+$SSL_Nymphomaniac	性爱成瘾
+$SSL_Depraved	沉沦堕落
+$SSL_Hypersexual	纵欲无度
