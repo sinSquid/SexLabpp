@@ -26,8 +26,11 @@ namespace Thread::Interface
 
     void SceneSelectPanel::OnSceneSelected(SceneHUD& a_hud, const std::string& a_sceneId)
     {
-        Script::DispatchMethodCall(a_hud.GetThreadScript(), "ResetScene",
-            a_hud.GetCallback(), RE::BSFixedString{ a_sceneId.c_str() });
+        // Capture the click's UI instance and origin, not the later VM state.
+        const auto uiRevision = Script::GetProperty<int>(a_hud.GetThreadScript(), "SceneSelectUIRevision");
+        const auto autoClose = Script::GetProperty<bool>(a_hud.GetThreadScript(), "SceneSelectAutoClose");
+        Script::DispatchMethodCall(a_hud.GetThreadScript(), "SelectSceneFromHUD",
+            a_hud.GetCallback(), RE::BSFixedString{ a_sceneId.c_str() }, uiRevision, autoClose);
         RebuildEntries(a_hud);
         RebuildFilter();
         _hoveredIndex = -1;

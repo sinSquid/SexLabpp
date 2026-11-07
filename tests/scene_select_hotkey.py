@@ -94,7 +94,7 @@ class Returned(Exception):
 
 
 def translated_body(source, name):
-    match = re.search(r'(?im)^\s*(?:bool )?(?:Function|Event) ' + name + r'\([^\n]*\)\s*\n(.*?)^\s*End(?:Function|Event)', source, re.S)
+    match = re.search(r'(?im)^\s*(?:(?:bool|string|int) )?(?:Function|Event) ' + name + r'\([^\n]*\)\s*\n(.*?)^\s*End(?:Function|Event)', source, re.S)
     assert match, name
     result, indent = [], 0
     for raw in match[1].splitlines():
@@ -158,7 +158,8 @@ def fixture():
             registered.discard(key)
     e = dict(Returned=Returned, find=lambda items, value: items.index(value) if value in items else -1,
              _SceneHotkeysEnabled=True, _OpeningSceneSelect=False,
-             _SceneSelectRevision=1, _bOpenedSceneHUD=False, _bFocusedSceneHUD=False,
+             _SceneSelectRevision=1, SceneSelectUIRevision=0, SceneSelectAutoClose=False,
+             _bOpenedSceneHUD=False, _bFocusedSceneHUD=False,
              _bOpenedSceneGraph=False, ElementUI_GameHUD=True, STATUS_INSCENE=3,
              HasPlayer=True, Hotkeys=[], GetStatus=lambda: 3, GetAdjustPos=lambda: None,
              RegisterForKey=lambda key: register(thread_keys, key),

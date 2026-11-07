@@ -30,6 +30,8 @@ Function EnableHotkeys(bool forced = false)
 EndFunction
 
 Function DisableHotkeys()
+	SceneSelectAutoClose = false
+	SceneSelectUIRevision += 1
 	_SceneHotkeysEnabled = false
 	_SceneSelectRevision += 1
 	_OpeningSceneSelect = false
@@ -49,6 +51,8 @@ EndFunction
 int[] Hotkeys
 bool _SceneHotkeysEnabled = false
 bool _OpeningSceneSelect = false
+bool Property SceneSelectAutoClose = false Auto Hidden
+int Property SceneSelectUIRevision = 0 Auto Hidden
 int _SceneSelectRevision = 0
 int Property kToggleSceneHUD    = 0  AutoReadOnly
 int Property kFocusSceneHUD     = 1  AutoReadOnly
@@ -259,12 +263,20 @@ Function OpenSceneSelect()
 			SexLabUtil.HideElementsGameHUD(true)
 		EndIf
 		ToggleFocusSceneHUDForRevision(1, revision)
+		If (revision != _SceneSelectRevision)
+			return
+		EndIf
+		SceneSelectUIRevision += 1
+		SceneSelectAutoClose = true
 		bool opened = OpenSceneSelectImpl()
 		If (revision != _SceneSelectRevision)
 			return
 		EndIf
-		If (!opened && !wasFocused)
-			ToggleFocusSceneHUD(-1)
+		If (!opened)
+			SceneSelectAutoClose = false
+			If (!wasFocused)
+				ToggleFocusSceneHUD(-1)
+			EndIf
 		EndIf
 	EndIf
 	_OpeningSceneSelect = false
@@ -275,6 +287,8 @@ bool _bFocusedSceneHUD = false
 bool _bOpenedSceneGraph = false
 
 Function ToggleVisibilitySceneHUD(int aiForceState = 0)
+	SceneSelectAutoClose = false
+	SceneSelectUIRevision += 1
 	;[-1:ForceClose, 0:Toggle, 1:ForceOpen]
 	If (aiForceState == -1 || (aiForceState == 0 && _bOpenedSceneHUD))
 		If (_bFocusedSceneHUD)
@@ -292,8 +306,23 @@ Function ToggleVisibilitySceneHUD(int aiForceState = 0)
 EndFunction
 
 Function ToggleFocusSceneHUD(int aiForceState = 0)
+	SceneSelectAutoClose = false
+	SceneSelectUIRevision += 1
 	; Native Return/Escape and existing callers use this one-argument ABI.
 	ToggleFocusSceneHUDForRevision(aiForceState, -1)
+EndFunction
+
+Function SelectSceneFromHUD(string asSceneId, int aiUIRevision, bool abAutoClose)
+	If (aiUIRevision != SceneSelectUIRevision || !_bFocusedSceneHUD || GetStatus() != STATUS_INSCENE)
+		return
+	EndIf
+	bool closeAfterSelection = abAutoClose && asSceneId != GetActiveScene()
+	int revision = _SceneSelectRevision
+	bool accepted = ResetScene(asSceneId)
+	bool appliedOrQueued = GetActiveScene() == asSceneId || GetQueuedSceneReset() == asSceneId
+	If (accepted && appliedOrQueued && closeAfterSelection && aiUIRevision == SceneSelectUIRevision && revision == _SceneSelectRevision && _bFocusedSceneHUD && GetStatus() == STATUS_INSCENE)
+		ToggleFocusSceneHUD(-1)
+	EndIf
 EndFunction
 
 Function ToggleFocusSceneHUDForRevision(int aiForceState, int aiExpectedRevision)

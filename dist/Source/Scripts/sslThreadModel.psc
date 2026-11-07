@@ -973,6 +973,9 @@ bool _animationSyncPending
 bool _sceneResetSyncPending
 float _nextSceneResetAt
 String _queuedSceneReset
+String Function GetQueuedSceneReset()
+	return _queuedSceneReset
+EndFunction
 
 bool _QuickResetScenes		; reinits thread without actor/center changes (e.g. to get new playing scenes)
 bool _ForceAdvance		; Force fully auto advance (set by timed stages)
