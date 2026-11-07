@@ -118,7 +118,7 @@ e['OpenSceneSelect']()
 assert not e['SceneSelectAutoClose']
 
 panel = (ROOT / 'src/Thread/Interface/Elements/SceneSelectPanel.cpp').read_text(encoding='utf-8')
-assert re.search(r'DispatchMethodCall\([^;]*"SelectSceneFromHUD",\s*a_hud.GetCallback\(\),\s*RE::BSFixedString\{ a_sceneId.c_str\(\) \}, uiRevision, autoClose\)', panel)
+assert re.search(r'DispatchMethodCall\([^;]*"SelectSceneFromHUD",\s*a_hud.GetCallback\(\),\s*RE::BSFixedString\{ a_sceneId.c_str\(\) \}, int\{ uiRevision \}, bool\{ autoClose \}\)', panel)
 assert 'GetProperty<int>(a_hud.GetThreadScript(), "SceneSelectUIRevision")' in panel
 assert 'GetProperty<bool>(a_hud.GetThreadScript(), "SceneSelectAutoClose")' in panel
 signature = re.search(r'^Function SelectSceneFromHUD\(([^)]*)\)', m['controller'], re.M)[1]

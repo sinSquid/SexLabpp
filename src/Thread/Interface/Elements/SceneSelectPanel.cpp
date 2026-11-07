@@ -35,7 +35,7 @@ namespace Thread::Interface
         const auto uiRevision = Script::GetProperty<int>(a_hud.GetThreadScript(), "SceneSelectUIRevision");
         const auto autoClose = Script::GetProperty<bool>(a_hud.GetThreadScript(), "SceneSelectAutoClose");
         Script::DispatchMethodCall(a_hud.GetThreadScript(), "SelectSceneFromHUD",
-            a_hud.GetCallback(), RE::BSFixedString{ a_sceneId.c_str() }, uiRevision, autoClose);
+            a_hud.GetCallback(), RE::BSFixedString{ a_sceneId.c_str() }, int{ uiRevision }, bool{ autoClose });
         RebuildEntries(a_hud);
         RebuildFilter();
         _hoveredIndex = -1;
