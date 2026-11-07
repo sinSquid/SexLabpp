@@ -195,6 +195,94 @@ namespace Thread::Interaction
         return result;
     }
 
+    struct DetectionCapabilities
+    {
+        bool ready{ false };
+        bool head{ false };
+        bool shafts{ false };
+        bool vaginal{ false };
+        bool anal{ false };
+        bool crotch{ false };
+        bool hands{ false };
+        bool hand{ false };
+        bool foot{ false };
+        bool toes{ false };
+        bool animObject{ false };
+
+        DetectionCapabilities() = default;
+        explicit DetectionCapabilities(const ActorState& a_position)
+        {
+            ready = a_position.root && a_position.root.get() == a_position.actor->Get3D();
+            const auto& geometry = a_position.geometry;
+            head = geometry.head != nullptr;
+            shafts = !geometry.shafts.empty() && !a_position.sex.any(Registry::Sex::Female);
+            vaginal = geometry.GetVaginalSegment().has_value();
+            anal = geometry.GetAnalSegment().has_value();
+            crotch = geometry.GetCrotchSegment().has_value();
+            hands = geometry.leftHand && geometry.rightHand && geometry.leftThumb && geometry.rightThumb;
+            hand = geometry.leftHand || geometry.rightHand;
+            foot = geometry.leftFoot || geometry.rightFoot;
+            toes = geometry.leftToe && geometry.rightToe;
+            animObject = geometry.animObjectA || geometry.animObjectB || geometry.animObjectLeft || geometry.animObjectRight;
+        }
+    };
+
+    static bool CanDetectInteraction(const DetectionCapabilities& a_actor, const DetectionCapabilities& a_partner, CType a_type)
+    {
+        switch (a_type) {
+        case CType::Vaginal:
+            return a_actor.vaginal && a_partner.shafts;
+        case CType::Anal:
+            return (a_actor.anal || (!a_actor.vaginal && a_actor.crotch)) && a_partner.shafts;
+        case CType::Grinding:
+            return (a_actor.vaginal && a_actor.anal && a_partner.shafts) || (a_actor.vaginal && a_partner.vaginal);
+        case CType::Oral:
+            return a_actor.head && (a_partner.shafts || a_partner.vaginal);
+        case CType::Deepthroat:
+        case CType::Skullfuck:
+        case CType::LickingShaft:
+        case CType::Facial:
+            return a_actor.head && a_partner.shafts;
+        case CType::HandJob:
+            return (a_actor.hands && a_partner.shafts) || (a_actor.hand && a_partner.vaginal);
+        case CType::FootJob:
+            return a_actor.foot && (a_partner.shafts || a_partner.vaginal);
+        case CType::Kissing:
+            return a_actor.head && a_partner.head;
+        case CType::SuckingToes:
+            return a_actor.head && a_partner.toes;
+        case CType::AnimObjFace:
+            return a_actor.head && a_partner.animObject;
+        default:
+            return false;
+        }
+    }
+
+    static void AddUndetectableTaggedInteractions(Thread::Instance* instance, Scene* a_ni, RE::Actor* a_actor, RE::Actor* a_partner, std::vector<bool>& a_flags)
+    {
+        const auto tags = GetInteractionPosTags(instance, a_actor, a_partner);
+        DetectionCapabilities actor, partner;
+        // Copy capabilities under the scene lock; never retain references to its mutable geometry.
+        a_ni->VisitPositions([&](const auto& position) {
+            if (position.actor.get() == a_actor)
+                actor = DetectionCapabilities(position);
+            if (position.actor.get() == a_partner)
+                partner = DetectionCapabilities(position);
+            return false;
+        });
+        // Unloaded or replaced 3D is transient, not evidence of an unsupported skeleton.
+        if (!actor.ready || !partner.ready)
+            return;
+        for (int32_t i = 0; i < kInterTypeCount; ++i) {
+            if (!tags[i] || a_flags[i])
+                continue;
+            const auto& entry = kInterTypeTable[i];
+            const bool detectable = entry.swapped ? CanDetectInteraction(partner, actor, entry.ctype) : CanDetectInteraction(actor, partner, entry.ctype);
+            if (!detectable)
+                a_flags[i] = true;
+        }
+    }
+
     // ============ Public API ============ //
 
     bool IsCollisionRegistered(Thread::Instance* instance)
@@ -219,6 +307,16 @@ namespace Thread::Interaction
         std::vector<bool> interFlags(kInterTypeCount, false);
         if (auto ni = instance->GetInstanceNiSurface()) {
             interFlags = toFlags(GetCollisionActionsNiSurface(ni.get(), a_actor, a_partner));
+            if (a_actor && CanUseTagsFallback(instance)) {
+                if (a_partner) {
+                    AddUndetectableTaggedInteractions(instance, ni.get(), a_actor, a_partner, interFlags);
+                } else {
+                    for (auto* other : instance->GetActors()) {
+                        if (other && other != a_actor)
+                            AddUndetectableTaggedInteractions(instance, ni.get(), a_actor, other, interFlags);
+                    }
+                }
+            }
         } else if (CanUseTagsFallback(instance)) {
             interFlags = GetInteractionPosTags(instance, a_actor, a_partner);
         }
@@ -249,7 +347,9 @@ namespace Thread::Interaction
             return false;
         }
         if (auto ni = instance->GetInstanceNiSurface()) {
-            return HasCollisionActionNiSurface(ni.get(), a_actor, a_partner, interType);
+            if (HasCollisionActionNiSurface(ni.get(), a_actor, a_partner, interType))
+                return true;
+            return CanUseTagsFallback(instance) && GetInteractionFlagsImpl(instance, a_actor, a_partner)[interType];
         } else if (CanUseTagsFallback(instance)) {
             return GetInteractionPosTags(instance, a_actor, a_partner)[interType];
         }
@@ -293,7 +393,14 @@ namespace Thread::Interaction
         if (!ValidateInterType(interType, __func__))
             return {};
         if (auto ni = instance->GetInstanceNiSurface()) {
-            return GetPartnersByActionNiSurface(ni.get(), a_actor, interType);
+            auto result = GetPartnersByActionNiSurface(ni.get(), a_actor, interType);
+            if (CanUseTagsFallback(instance)) {
+                for (auto* other : GetPartnersByInteractionPosTags(instance, a_actor, interType)) {
+                    if (std::ranges::find(result, other) == result.end() && GetInteractionFlagsImpl(instance, a_actor, other)[interType])
+                        result.push_back(other);
+                }
+            }
+            return result;
         } else if (CanUseTagsFallback(instance)) {
             return GetPartnersByInteractionPosTags(instance, a_actor, interType);
         }

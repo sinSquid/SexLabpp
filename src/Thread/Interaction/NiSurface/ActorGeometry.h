@@ -43,7 +43,7 @@ namespace Thread::Interaction::NiSurface::Geometry
         std::optional<OpeningShape> GetVaginalOpening();
         std::optional<OpeningShape> GetAnalOpening();
         void UpdateShafts();
-        GeometryMath::Segment GetCrotchSegment() const;
+        std::optional<GeometryMath::Segment> GetCrotchSegment() const;
         std::optional<ShaftSize> GetShaftSize() const;
 
       private:

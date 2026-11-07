@@ -59,6 +59,7 @@ EndFunction
 ; Enjoyment always stays between -100 and 100. Negative enjoyment is treated as pain.
 Function SetEnjoyment(int aiSet)
 	_FullEnjoyment = PapyrusUtil.ClampInt(aiSet, -100, 100)
+	_EnjoymentRemainder = 0.0
 	_PainLevel = 0.0
 	_PainApplied = 0.0
 EndFunction
@@ -925,6 +926,7 @@ State Animating
 		; Enjoyment
 		If (_bEnjEnabled)
 			_FullEnjoyment = 0
+			_EnjoymentRemainder = 0.0
 			_PainLevel = 0.0
 			_PainApplied = 0.0
 			_arousalBase = 0
@@ -1218,6 +1220,7 @@ float _PainInterCur
 float _PainLevel
 float _PainApplied
 int _FullEnjoyment
+float _EnjoymentRemainder
 
 Function ResetEnjoymentVariables()
 	; Defaults
@@ -1240,6 +1243,7 @@ Function ResetEnjoymentVariables()
 	_PainLevel = 0.0
 	_PainApplied = 0.0
 	_FullEnjoyment = 0
+	_EnjoymentRemainder = 0.0
 EndFunction
 
 Function UpdateBaseEnjoymentCalculations()
@@ -1276,7 +1280,10 @@ Function UpdateEffectiveEnjoymentCalculations()
 		return
 	EndIf
 	_InterFactor = _Thread.CalcInteractionFactor(_ActorRef, _CurrentInteractions)
-	_FullEnjoyment = PapyrusUtil.ClampInt(CalcEnjoymentAndPainDelta() as int, -100, 100)
+	; Retain sub-point changes instead of truncating them on every update.
+	float nextEnjoyment = PapyrusUtil.ClampFloat(CalcEnjoymentAndPainDelta() + _EnjoymentRemainder, -100, 100)
+	_FullEnjoyment = nextEnjoyment as int
+	_EnjoymentRemainder = nextEnjoyment - _FullEnjoyment
 	UpdateArousalStat()
 	If (_Config.DebugMode)
 		DebugEffectiveCalcVariables()

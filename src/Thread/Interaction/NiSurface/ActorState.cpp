@@ -204,7 +204,8 @@ namespace Thread::Interaction::NiSurface
 
         const auto [angleToHead, angleToMouth, angleToBase] = [&]() {
             const auto vBaseToHead = headWorld.translate - shaftSegment.start;
-            const auto vPartnerDir = partnerGeometry.GetCrotchSegment().Vector();
+            const auto partnerCrotch = partnerGeometry.GetCrotchSegment();
+            const auto vPartnerDir = partnerCrotch ? partnerCrotch->Vector() : shaftSegment.Vector();
             const auto proj1 = GeometryMath::ProjectedComponent(vPartnerDir, vHead);
             const auto proj2 = GeometryMath::ProjectedComponent(vBaseToHead, vHead);
             return std::make_tuple(
@@ -239,10 +240,9 @@ namespace Thread::Interaction::NiSurface
             if (!baseNode || RotateNode(baseNode, shaftSegment, *throat, Settings::fAdjustSchlongLimit)) {
                 RotateNode(state.geometry.head, { *mouth, *throat }, shaftSegment.start, Settings::fAdjustHeadLimit);
                 interactions.emplace_back(a_partner.state.actor, Interaction::Action::Oral, mouthDistance, shaftTip - *mouth);
-                assert(partnerGeometry.pelvis);
                 const auto throatDistance = shaftShape ? shaftShape->tip.GetDistance(*throat) : GeometryMath::ClosestSegmentBetweenSegments(GeometryMath::Segment{ *throat }, shaftSegment).Length();
                 const auto tipAtThroat = throatDistance < headBounds.boundMax.y * Settings::fThroatToleranceRadius;
-                const auto pelvisAtHead = headBounds.IsPointInside(partnerGeometry.pelvis->world.translate);
+                const auto pelvisAtHead = partnerGeometry.pelvis && headBounds.IsPointInside(partnerGeometry.pelvis->world.translate);
                 if (tipAtThroat || pelvisAtHead) {
                     interactions.emplace_back(a_partner.state.actor, Interaction::Action::Deepthroat, throatDistance, shaftTip - *throat);
                 }
@@ -266,7 +266,7 @@ namespace Thread::Interaction::NiSurface
         const auto shaftTip = shaftSegment.end;
         const auto shaftNode = a_shaft.GetBaseReferenceNode();
         const auto* shaftShape = a_shaft.GetCollisionShape();
-        if (vaginalOpening && analOpening) {
+        if (vaginalOpening || analOpening) {
             const auto [type, segment, distance] = [&]() {
                 enum
                 {
@@ -286,8 +286,8 @@ namespace Thread::Interaction::NiSurface
                         return tAnal;
                     }
                 }();
-                const auto dVaginal = shaftShape ? DistanceToOpening(*shaftShape, *vaginalOpening) : DistanceToOpening(shaftSegment, *vaginalOpening);
-                const auto dAnal = shaftShape ? DistanceToOpening(*shaftShape, *analOpening) : DistanceToOpening(shaftSegment, *analOpening);
+                const auto dVaginal = vaginalOpening ? (shaftShape ? DistanceToOpening(*shaftShape, *vaginalOpening) : DistanceToOpening(shaftSegment, *vaginalOpening)) : std::numeric_limits<float>::max();
+                const auto dAnal = analOpening ? (shaftShape ? DistanceToOpening(*shaftShape, *analOpening) : DistanceToOpening(shaftSegment, *analOpening)) : std::numeric_limits<float>::max();
                 const auto dif = dVaginal - dAnal;
                 bool branchVaginal = true;
                 switch (tLast) {
@@ -323,6 +323,9 @@ namespace Thread::Interaction::NiSurface
                     interactions.emplace_back(a_partner.state.actor, type, distance, shaftTip - segment.center);
                     return true;
                 }
+                if (!vaginalOpening || !analOpening) {
+                    return false;
+                }
                 const auto crotchSegment = GeometryMath::Segment{ analOpening->center, vaginalOpening->center };
                 const auto crotchAngle = GeometryMath::GetAngleDegree(crotchSegment.Vector(), shaftSegment.Vector());
                 if (std::abs(crotchAngle - 180.0f) <= Settings::fAngleGrinding) {
@@ -332,15 +335,18 @@ namespace Thread::Interaction::NiSurface
             }
         } else {
             const auto crotchSegment = state.geometry.GetCrotchSegment();
-            const auto crotchDistance = GeometryMath::ClosestSegmentBetweenSegments(crotchSegment, shaftSegment).Length();
+            if (!crotchSegment) {
+                return false;
+            }
+            const auto crotchDistance = GeometryMath::ClosestSegmentBetweenSegments(*crotchSegment, shaftSegment).Length();
             if (crotchDistance <= Settings::fDistanceCrotch) {
-                const auto vBaseToSpine = crotchSegment.start - shaftSegment.start;
+                const auto vBaseToSpine = crotchSegment->start - shaftSegment.start;
                 const auto crotchAngle = GeometryMath::GetAngleDegree(vBaseToSpine, shaftSegment.Vector());
-                if (crotchAngle <= Settings::fAnglePenetration && (!shaftNode || RotateNode(shaftNode, shaftSegment, crotchSegment.start, Settings::fAdjustSchlongVaginalLimit))) {
-                    interactions.emplace_back(a_partner.state.actor, Interaction::Action::Anal, crotchDistance, shaftTip - crotchSegment.start);
+                if (crotchAngle <= Settings::fAnglePenetration && (!shaftNode || RotateNode(shaftNode, shaftSegment, crotchSegment->start, Settings::fAdjustSchlongVaginalLimit))) {
+                    interactions.emplace_back(a_partner.state.actor, Interaction::Action::Anal, crotchDistance, shaftTip - crotchSegment->start);
                     return true;
                 } else if (std::abs(crotchAngle - 90.0f) <= Settings::fAngleGrinding) {
-                    interactions.emplace_back(a_partner.state.actor, Interaction::Action::Anal, crotchDistance, shaftTip - crotchSegment.start);
+                    interactions.emplace_back(a_partner.state.actor, Interaction::Action::Anal, crotchDistance, shaftTip - crotchSegment->start);
                     return true;
                 }
             }

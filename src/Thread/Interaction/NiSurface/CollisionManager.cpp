@@ -57,7 +57,7 @@ namespace Thread::Interaction::NiSurface
                 position.ResetGeometry(root);
                 geometryChanged = true;
             }
-            geometryReady &= root && position.geometry.pelvis && position.geometry.lowerSpine;
+            geometryReady &= root != nullptr;
         }
         if (geometryChanged || !geometryReady) {
             for (auto& position : positions) {
@@ -65,7 +65,7 @@ namespace Thread::Interaction::NiSurface
                 position.motionStates.clear();
             }
         }
-        // Papyrus unload events can arrive later; never sample an unloaded or failed replacement skeleton.
+        // Papyrus unload events can arrive later; never sample an unloaded skeleton.
         if (!geometryReady) {
             return;
         }

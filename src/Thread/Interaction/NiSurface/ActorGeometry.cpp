@@ -111,10 +111,9 @@ namespace Thread::Interaction::NiSurface::Geometry
             a_target = RE::NiPointer{ node };
             return true;
         };
-        // This is likely a mistake: requiring these human nodes will always reject non-human actors.
-        if (!getNode(PELVIS, pelvis, true) || !getNode(LOWER_SPINE, lowerSpine, true)) {
-            throw std::exception("Missing mandatory 3d object (body)");
-        }
+        // Each detector checks its own nodes; creatures can contribute shafts without human body nodes.
+        getNode(PELVIS, pelvis, true);
+        getNode(LOWER_SPINE, lowerSpine, true);
         getNode(HEAD, head, true);
         getNode(LEFT_HAND, leftHand, true);
         getNode(RIGHT_HAND, rightHand, false);
@@ -356,10 +355,12 @@ namespace Thread::Interaction::NiSurface::Geometry
         return best;
     }
 
-    GeometryMath::Segment ActorGeometry::GetCrotchSegment() const
+    std::optional<GeometryMath::Segment> ActorGeometry::GetCrotchSegment() const
     {
-        assert(pelvis && lowerSpine);
-        return { lowerSpine->world.translate, pelvis->world.translate };
+        if (!pelvis || !lowerSpine) {
+            return std::nullopt;
+        }
+        return GeometryMath::Segment{ lowerSpine->world.translate, pelvis->world.translate };
     }
 
 }
