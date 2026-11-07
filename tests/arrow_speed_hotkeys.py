@@ -115,6 +115,7 @@ struct SceneHUD {
  RE::TESQuest* _linkedThread=&quest;void* _threadScript=nullptr;
  RE::TESQuest* _speedThread=nullptr;
  uint64_t _controlGeneration=0;bool _focused=false,_inputRegistered=false;
+ bool _externalSceneSelect=false,_externalCloseRequested=false;uint32_t _externalSelectionSerial=0;
  PanelId _activePanel=PanelId::kNone;
  static SceneHUD& GetSingleton(){static SceneHUD singleton;return singleton;}
  bool IsActive()const{return _linkedThread!=nullptr;}

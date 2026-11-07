@@ -3,6 +3,11 @@ ScriptName SexLabThread extends Quest
   API Script to directly interact with individual SexLab Threads
 }
 
+; Open the P+ Scenes chooser for this playing thread. Returns false if unavailable
+; or another thread owns the UI. Does not acquire player control of an NPC thread.
+bool Function OpenSceneSelection()
+EndFunction
+
 ; The thread ID of the current thread
 ; These are unique and can be used to reference this specific thread throughout other parts of the framework
 int Function GetThreadID()

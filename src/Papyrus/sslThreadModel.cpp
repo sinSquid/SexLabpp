@@ -707,6 +707,21 @@ namespace Papyrus::ThreadModel
         return Thread::Interface::SceneHUD::GetSingleton().OpenSceneSelect(a_qst);
     }
 
+    bool OpenExternalSceneSelectImpl(QUESTARGS)
+    {
+        return Thread::Interface::SceneHUD::GetSingleton().OpenExternalSceneSelect(a_qst);
+    }
+
+    bool IsExternalSceneSelectCurrentImpl(QUESTARGS, int a_ticket)
+    {
+        return Thread::Interface::SceneHUD::GetSingleton().IsExternalSceneSelectCurrent(a_qst, a_ticket);
+    }
+
+    bool CloseExternalSceneSelectImpl(QUESTARGS, int a_ticket)
+    {
+        return a_ticket >= 0 && Thread::Interface::SceneHUD::GetSingleton().CloseExternalSceneSelect(a_qst, a_ticket);
+    }
+
     void UpdateMenuTimerDisplay(QUESTARGS, float a_duration, float a_time)
     {
         GET_INSTANCE();

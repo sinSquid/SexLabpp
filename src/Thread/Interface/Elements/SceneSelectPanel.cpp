@@ -26,6 +26,11 @@ namespace Thread::Interface
 
     void SceneSelectPanel::OnSceneSelected(SceneHUD& a_hud, const std::string& a_sceneId)
     {
+        if (a_hud.IsExternalSceneSelect()) {
+            Script::DispatchMethodCall(a_hud.GetThreadScript(), "SelectExternalSceneFromHUD",
+                a_hud.GetCallback(), RE::BSFixedString{ a_sceneId.c_str() }, a_hud.GetExternalSceneSelectTicket());
+            return;
+        }
         // Capture the click's UI instance and origin, not the later VM state.
         const auto uiRevision = Script::GetProperty<int>(a_hud.GetThreadScript(), "SceneSelectUIRevision");
         const auto autoClose = Script::GetProperty<bool>(a_hud.GetThreadScript(), "SceneSelectAutoClose");

@@ -36,6 +36,7 @@ namespace Thread
 
     void Instance::DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors)
     {
+        Interface::SceneHUD::GetSingleton().CloseExternalSceneSelect(a_linkedQst);
         Interface::SceneHUD::GetSingleton().SetSpeedControl(a_linkedQst, false);
         {
             std::unique_lock lock{ _mInstances };
@@ -479,7 +480,7 @@ namespace Thread
     void Instance::InitSceneHUDImpl()
     {
         auto& sceneHUD = Interface::SceneHUD::GetSingleton();
-        if (!sceneHUD.IsActive() || sceneHUD.GetForThread(linkedQst))
+        if (sceneHUD.IsExternalSceneSelect() || !sceneHUD.IsActive() || sceneHUD.GetForThread(linkedQst))
             sceneHUD.Init(linkedQst);
     }
 

@@ -99,6 +99,9 @@ namespace Papyrus::ThreadModel
     void SetFocusSceneHUDImpl(QUESTARGS, bool a_focused);
     bool PrepareSceneSelectImpl(QUESTARGS);
     bool OpenSceneSelectImpl(QUESTARGS);
+    bool OpenExternalSceneSelectImpl(QUESTARGS);
+    bool IsExternalSceneSelectCurrentImpl(QUESTARGS, int a_ticket);
+    bool CloseExternalSceneSelectImpl(QUESTARGS, int a_ticket);
 
     void UpdateMenuTimerDisplay(QUESTARGS, float a_duration, float a_time);
     void OnStageChangedUpdateHUD(QUESTARGS);
@@ -161,6 +164,9 @@ namespace Papyrus::ThreadModel
         REGISTERFUNC(SetFocusSceneHUDImpl, "sslThreadModel", true);
         REGISTERFUNC(PrepareSceneSelectImpl, "sslThreadModel", false);
         REGISTERFUNC(OpenSceneSelectImpl, "sslThreadModel", false);
+        REGISTERFUNC(OpenExternalSceneSelectImpl, "sslThreadModel", false);
+        REGISTERFUNC(IsExternalSceneSelectCurrentImpl, "sslThreadModel", false);
+        REGISTERFUNC(CloseExternalSceneSelectImpl, "sslThreadModel", false);
 
         REGISTERFUNC(UpdateMenuTimerDisplay, "sslThreadModel", true);
         REGISTERFUNC(OnStageChangedUpdateHUD, "sslThreadModel", true);

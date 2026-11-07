@@ -48,7 +48,7 @@ namespace Thread::Interface
         return true;
     }
 
-    void SceneHUD::Init(RE::TESQuest* a_quest)
+    void SceneHUD::Init(RE::TESQuest* a_quest, bool a_bindSpeedControl)
     {
         if (!a_quest)
             return;
@@ -59,6 +59,9 @@ namespace Thread::Interface
         if (IsActive())
             Destroy();
 
+        _externalSceneSelect = !a_bindSpeedControl;
+        _externalCloseRequested = false;
+        ++_externalSelectionSerial;
         _linkedThread = a_quest;
         _threadScript = Script::GetScriptObject(_linkedThread, "sslThreadController");
         auto* instance = GetThreadInstance();
@@ -69,15 +72,16 @@ namespace Thread::Interface
             return;
         }
 
-        SetSpeedControl(a_quest, true);
-        float scaleMultiplier = instance->GetThreadProperty<float>("VarUI_MenuScaleMult");
+        if (a_bindSpeedControl)
+            SetSpeedControl(a_quest, true);
+        float scaleMultiplier = a_bindSpeedControl ? instance->GetThreadProperty<float>("VarUI_MenuScaleMult") : Settings::fMenuScaleMult;
         if (scaleMultiplier <= 0.0f) {
             scaleMultiplier = 1.0f;
             instance->SetThreadProperty<float>("VarUI_MenuScaleMult", scaleMultiplier);
         }
         _scale.SetMultiplier(scaleMultiplier);
 
-        float textScaleMultiplier = instance->GetThreadProperty<float>("VarUI_TextScaleMult");
+        float textScaleMultiplier = a_bindSpeedControl ? instance->GetThreadProperty<float>("VarUI_TextScaleMult") : Settings::fMenuTextScaleMult;
         if (textScaleMultiplier <= 0.0f) {
             textScaleMultiplier = 1.0f;
             instance->SetThreadProperty<float>("VarUI_TextScaleMult", textScaleMultiplier);
@@ -87,7 +91,8 @@ namespace Thread::Interface
         _activePanel = PanelId::kNone;
         _focused = false;
         _elements = std::make_unique<Elements>();
-        _elements->enjoymentBarsOverlay.Init(*instance);
+        if (a_bindSpeedControl)
+            _elements->enjoymentBarsOverlay.Init(*instance);
         _window.SetBlocksInput(false);
         _window.Open();
         logger::info("SceneHUD::Init >> scene UI active");
@@ -95,7 +100,7 @@ namespace Thread::Interface
 
     void SceneHUD::Destroy()
     {
-        if (!IsActive() && !_elements)
+        if (!IsActive() && !_elements && !_externalSceneSelect)
             return;
 
         _window.SetBlocksInput(false);
@@ -103,6 +108,9 @@ namespace Thread::Interface
         _elements.reset();
         _activePanel = PanelId::kNone;
         _focused = false;
+        _externalSceneSelect = false;
+        _externalCloseRequested = false;
+        ++_externalSelectionSerial;
         _linkedThread = nullptr;
         _threadScript = nullptr;
         logger::info("SceneHUD::Destroy >> scene UI deactivated");
@@ -219,22 +227,26 @@ namespace Thread::Interface
 
     void SceneHUD::Render()
     {
+        if (_externalSceneSelect && !IsExternalSceneSelectCurrent(_linkedThread, GetExternalSceneSelectTicket())) {
+            Destroy();
+            return;
+        }
         if (!_elements || !ShouldRender())
             return;
         auto* instance = GetThreadInstance();
         if (!instance)
             return;
 
-        if (instance->GetThreadProperty<bool>("ElementUI_AnimSpeed"))
+        if (!_externalSceneSelect && instance->GetThreadProperty<bool>("ElementUI_AnimSpeed"))
             _elements->animSpeedOverlay.Render(*this);
 
-        if (instance->GetThreadProperty<bool>("ElementUI_EnjBars") &&
+        if (!_externalSceneSelect && instance->GetThreadProperty<bool>("ElementUI_EnjBars") &&
             instance->GetThreadProperty<bool>("VarUI_SeparateOrgasm") &&
             instance->GetThreadProperty<bool>("VarUI_HasPlayer")) {
             _elements->enjoymentBarsOverlay.Render(*this);
         }
 
-        if (instance->GetThreadProperty<bool>("ElementUI_DebugNodeDraw"))
+        if (!_externalSceneSelect && instance->GetThreadProperty<bool>("ElementUI_DebugNodeDraw"))
             _elements->debugNodeDraw.Render(*this);
 
         if (!_focused)
@@ -248,6 +260,12 @@ namespace Thread::Interface
         ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonHovered, UI::Theme::Color.buttonHovered);
         ImGuiMCP::PushStyleColor(ImGuiMCP::ImGuiCol_ButtonActive, UI::Theme::Color.buttonPressed);
         _elements->pseudoPanelStack.Render(*this);
+        if (_externalCloseRequested) {
+            ImGuiMCP::PopStyleColor(5);
+            ImGuiMCP::PopStyleVar(2);
+            Destroy();
+            return;
+        }
         switch (_activePanel) {
         case PanelId::kThreadConfig:
             _elements->threadConfigPanel.Render(*this);
@@ -355,6 +373,51 @@ namespace Thread::Interface
         if (!IsPanelOpen(PanelId::kSceneSelect))
             OpenPanel(PanelId::kSceneSelect);
         return IsPanelOpen(PanelId::kSceneSelect);
+    }
+
+    bool SceneHUD::OpenExternalSceneSelect(RE::TESQuest* a_quest)
+    {
+        if (!a_quest || !_registered || !_renderEnabled || RE::UI::GetSingleton()->GameIsPaused())
+            return false;
+        auto script = Script::GetScriptObject(a_quest, "sslThreadController");
+        auto* instance = Instance::GetInstance(a_quest);
+        if (!script || script->currentState != "Animating" || !instance || !instance->GetActiveScene() || !instance->GetActiveStage())
+            return false;
+        if (_externalSceneSelect && GetForThread(a_quest)) {
+            if (_externalCloseRequested)
+                return false;
+            if (!IsPanelOpen(PanelId::kSceneSelect))
+                OpenPanel(PanelId::kSceneSelect);
+            return IsPanelOpen(PanelId::kSceneSelect) &&
+                IsExternalSceneSelectCurrent(a_quest, GetExternalSceneSelectTicket());
+        }
+        // Never replace another HUD/control owner, including a hidden player HUD.
+        if (IsActive() || _speedThread)
+            return false;
+        Init(a_quest, false);
+        if (!GetForThread(a_quest) || !_elements || !_threadScript) {
+            Destroy();
+            return false;
+        }
+        SetFocus(true);
+        OpenPanel(PanelId::kSceneSelect);
+        return IsExternalSceneSelectCurrent(a_quest, GetExternalSceneSelectTicket());
+    }
+
+    bool SceneHUD::IsExternalSceneSelectCurrent(RE::TESQuest* a_quest, int a_ticket) const
+    {
+        return a_ticket >= 0 && _externalSceneSelect && a_quest && a_quest == _linkedThread &&
+            a_ticket == GetExternalSceneSelectTicket() && _focused && _elements && _threadScript &&
+            _threadScript->currentState == "Animating" && Instance::GetInstance(a_quest);
+    }
+
+    bool SceneHUD::CloseExternalSceneSelect(RE::TESQuest* a_quest, int a_ticket)
+    {
+        if (!_externalSceneSelect || !a_quest || _linkedThread != a_quest ||
+            (a_ticket >= 0 && a_ticket != GetExternalSceneSelectTicket()))
+            return false;
+        Destroy();
+        return true;
     }
 
     void SceneHUD::UpdateStageTimer(float a_duration, float a_timer)

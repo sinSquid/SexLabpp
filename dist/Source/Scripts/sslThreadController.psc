@@ -282,6 +282,27 @@ Function OpenSceneSelect()
 	_OpeningSceneSelect = false
 EndFunction
 
+bool Function OpenSceneSelection()
+	If (GetStatus() != STATUS_INSCENE || Utility.IsInMenuMode())
+		return false
+	EndIf
+	If (_SceneHotkeysEnabled)
+		OpenSceneSelect()
+		return _bFocusedSceneHUD && SceneSelectAutoClose
+	EndIf
+	return OpenExternalSceneSelectImpl()
+EndFunction
+
+Function SelectExternalSceneFromHUD(string asSceneId, int aiTicket)
+	If (GetStatus() != STATUS_INSCENE || !IsExternalSceneSelectCurrentImpl(aiTicket) || asSceneId == GetActiveScene())
+		return
+	EndIf
+	bool accepted = ResetScene(asSceneId)
+	If (accepted && GetStatus() == STATUS_INSCENE && (GetActiveScene() == asSceneId || GetQueuedSceneReset() == asSceneId))
+		CloseExternalSceneSelectImpl(aiTicket)
+	EndIf
+EndFunction
+
 bool _bOpenedSceneHUD = false
 bool _bFocusedSceneHUD = false
 bool _bOpenedSceneGraph = false

@@ -27,7 +27,7 @@ namespace Thread::Interface
         static SceneHUD& GetSingleton();
 
         bool Register();
-        void Init(RE::TESQuest* a_quest);
+        void Init(RE::TESQuest* a_quest, bool a_bindSpeedControl = true);
         void Destroy();
         void SetSpeedControl(RE::TESQuest* a_quest, bool a_enabled);
 
@@ -35,6 +35,12 @@ namespace Thread::Interface
         void OpenPanel(PanelId a_panel);
         bool PrepareSceneSelect(RE::TESQuest* a_quest);
         bool OpenSceneSelect(RE::TESQuest* a_quest);
+        bool OpenExternalSceneSelect(RE::TESQuest* a_quest);
+        bool IsExternalSceneSelectCurrent(RE::TESQuest* a_quest, int a_ticket) const;
+        bool CloseExternalSceneSelect(RE::TESQuest* a_quest, int a_ticket = -1);
+        bool IsExternalSceneSelect() const { return _externalSceneSelect; }
+        void RequestExternalSceneSelectClose() { if (_externalSceneSelect) _externalCloseRequested = true; }
+        int GetExternalSceneSelectTicket() const { return static_cast<int>(_externalSelectionSerial & 0x7FFFFFFFu); }
         void CloseAllPanels();
         void SetRenderEnabled(bool a_enabled) { _renderEnabled = a_enabled; }
 
@@ -88,6 +94,9 @@ namespace Thread::Interface
         RE::TESQuest* _speedThread{};
         std::uint64_t _controlGeneration{ 0 };
         bool _focused{ false };
+        bool _externalSceneSelect{ false };
+        bool _externalCloseRequested{ false };
+        std::uint32_t _externalSelectionSerial{ 0 };
         bool _renderEnabled{ true };
     };
 }

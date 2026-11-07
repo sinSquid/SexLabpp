@@ -43,6 +43,11 @@ namespace Thread::Interface
         std::array<std::size_t, count> visible{};
         std::size_t visibleCount = 0;
         for (std::size_t i = 0; i < count; ++i) {
+            if (a_hud.IsExternalSceneSelect()) {
+                if (kTabs[i].panel == PanelId::kSceneSelect || kTabs[i].panel == PanelId::kNone)
+                    visible[visibleCount++] = i;
+                continue;
+            }
             const bool enabled = !kTabs[i].enableProperty || !inst || inst->GetThreadProperty<bool>(kTabs[i].enableProperty);
             if (enabled)
                 visible[visibleCount++] = i;
@@ -146,8 +151,12 @@ namespace Thread::Interface
         if (a_hud.IsFocused() && ImGuiMCP::IsKeyReleased(ImGuiMCP::ImGuiKey_Escape))
             closeFocus = true;
         // (Hotkey bug workaround) Use the controller path so Papyrus hotkey gating and timer state stay synchronized with C++ focus
-        if (closeFocus)
-            Script::DispatchMethodCall(a_hud.GetThreadScript(), "ToggleFocusSceneHUD", a_hud.GetCallback(), -1);
+        if (closeFocus) {
+            if (a_hud.IsExternalSceneSelect())
+                a_hud.RequestExternalSceneSelectClose();
+            else
+                Script::DispatchMethodCall(a_hud.GetThreadScript(), "ToggleFocusSceneHUD", a_hud.GetCallback(), -1);
+        }
     }
 
 }  // namespace Thread::Interface

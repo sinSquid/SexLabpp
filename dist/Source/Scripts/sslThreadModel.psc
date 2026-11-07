@@ -2004,6 +2004,9 @@ Function SetSpeedHotkeysEnabled(bool abEnabled) native
 Function SetFocusSceneHUDImpl(bool abFocused) native
 bool Function PrepareSceneSelectImpl() native
 bool Function OpenSceneSelectImpl() native
+bool Function OpenExternalSceneSelectImpl() native
+bool Function IsExternalSceneSelectCurrentImpl(int aiTicket) native
+bool Function CloseExternalSceneSelectImpl(int aiTicket) native
 
 Function UpdateMenuTimerDisplay(float afDuration, float afTime) native
 Function OnStageChangedUpdateHUD() native
