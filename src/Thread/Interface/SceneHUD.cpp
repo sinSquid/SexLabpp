@@ -183,7 +183,8 @@ namespace Thread::Interface
             return false;
         if (modifierKey < SKSE::InputMap::kMacro_MouseButtonOffset) {
             const auto* device = input->GetKeyboard();
-            return device && device->IsPressed(modifierKey);
+            // Match BSWin32KeyboardDevice::IsPressed without linking its constructor/vtable object file.
+            return device && (device->GetRuntimeData().curState[modifierKey] & 0x80) != 0;
         }
         if (modifierKey < SKSE::InputMap::kMacro_GamepadOffset) {
             const auto* device = input->GetMouse();

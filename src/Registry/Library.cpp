@@ -83,12 +83,8 @@ namespace Registry
     const AnimPackage* Library::GetPackageFromScene(const Scene* a_scene) const
     {
         std::shared_lock lock{ _mScenes };
-        for (auto&& package : packages) {
-            if (std::ranges::contains(package->scenes, a_scene, [](const auto& scenePtr) { return scenePtr.get(); })) {
-                return package.get();
-            }
-        }
-        return nullptr;
+        const auto where = scenePackages.find(a_scene);
+        return where == scenePackages.end() ? nullptr : where->second;
     }
 
     const Scene* Library::GetSceneById(const RE::BSFixedString& a_id) const
@@ -177,9 +173,9 @@ namespace Registry
 
     const Voice* Library::GetVoice(RE::Actor* a_actor, const TagDetails& a_tags)
     {
-        std::shared_lock lock{ _mVoice };
-        if (auto saved = GetSavedVoice(a_actor->GetFormID())) {
-            return saved;
+        std::unique_lock lock{ _mVoice };
+        if (const auto saved = savedVoices.find(a_actor->GetFormID()); saved != savedVoices.end()) {
+            return saved->second;
         }
         const RaceKey actRace{ a_actor };
         if (!actRace.IsValid()) {
@@ -288,18 +284,21 @@ namespace Registry
     void Library::SaveVoice(RE::FormID a_key, RE::BSFixedString a_voice)
     {
         auto v = GetVoiceById(a_voice);
-        std::unique_lock lock{ _mVoice };
-        if (v) {
-            savedVoices.insert_or_assign(a_key, v);
-        } else {
-            savedVoices.erase(a_key);
+        if (!v) {
+            ClearVoice(a_key);
+            return;
         }
+        std::unique_lock lock{ _mVoice };
+        savedVoices.insert_or_assign(a_key, v);
     }
 
     void Library::ClearVoice(RE::FormID a_key)
     {
         std::unique_lock lock{ _mVoice };
         savedVoices.erase(a_key);
+        if (const auto actor = RE::TESForm::LookupByID<RE::Actor>(a_key)) {
+            removedVoiceCacheKeys.insert(Util::FormToString(actor));
+        }
     }
 
     RE::TESSound* Library::PickSound(RE::BSFixedString a_voice, LegacyVoice a_legacysetting) const

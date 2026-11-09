@@ -4,7 +4,7 @@ namespace Util
 {
 #pragma warning(push)
 #pragma warning(disable : 4244)
-#define STR_TRANSFORM(f) std::transform(str.cbegin(), str.cend(), str.begin(), [](int c) { return f(c); });
+#define STR_TRANSFORM(f) std::transform(str.cbegin(), str.cend(), str.begin(), [](unsigned char c) { return f(c); });
 
     template <class T>
     constexpr void ToLower(T& str)
@@ -34,10 +34,10 @@ namespace Util
     {
         namespace views = std::ranges::views;
         return a_view | views::split(a_delim) | views::transform([](auto&& subrange) {
-            auto word = std::string_view(&*subrange.begin(), std::ranges::distance(subrange));
-            while (!word.empty() && std::isspace(word.front()))
+            auto word = std::string_view(std::ranges::data(subrange), std::ranges::size(subrange));
+            while (!word.empty() && std::isspace(static_cast<unsigned char>(word.front())))
                 word.remove_prefix(1);
-            while (!word.empty() && std::isspace(word.back()))
+            while (!word.empty() && std::isspace(static_cast<unsigned char>(word.back())))
                 word.remove_suffix(1);
             return word;
         }) | views::filter([](auto&& word) { return !word.empty(); }) |

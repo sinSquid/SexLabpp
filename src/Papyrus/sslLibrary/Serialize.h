@@ -6,12 +6,14 @@ namespace Papyrus
       public Singleton<Tracking>
     {
       public:
+        mutable std::shared_mutex _mutex;
         std::map<RE::FormID, std::vector<RE::BSFixedString>> _factions;
         std::map<RE::FormID, std::vector<RE::BSFixedString>> _actors;
 
       public:
         void Add(std::map<RE::FormID, std::vector<RE::BSFixedString>>& a_list, RE::FormID a_keyvalue, const RE::BSFixedString& a_callback)
         {
+            const std::unique_lock lock{ _mutex };
             auto it = a_list.find(a_keyvalue);
             if (it == a_list.end()) {
                 a_list.insert({ a_keyvalue, { a_callback } });
@@ -22,6 +24,7 @@ namespace Papyrus
 
         void Remove(std::map<RE::FormID, std::vector<RE::BSFixedString>>& a_list, RE::FormID a_keyvalue, const RE::BSFixedString& a_callback)
         {
+            const std::unique_lock lock{ _mutex };
             auto it = a_list.find(a_keyvalue);
             if (it == a_list.end())
                 return;
@@ -37,6 +40,7 @@ namespace Papyrus
       public:
         void Save(SKSE::SerializationInterface* a_intfc)
         {
+            const std::shared_lock lock{ _mutex };
             const auto save = [&]<class T>(const T& tosave) {
                 const size_t numRegs = tosave.size();
                 if (!a_intfc->WriteRecordData(numRegs)) {
@@ -66,6 +70,7 @@ namespace Papyrus
 
         void Load(SKSE::SerializationInterface* a_intfc)
         {
+            const std::unique_lock lock{ _mutex };
             _factions.clear();
             _actors.clear();
 
@@ -107,6 +112,7 @@ namespace Papyrus
 
         void Revert(SKSE::SerializationInterface*)
         {
+            const std::unique_lock lock{ _mutex };
             _factions.clear();
             _actors.clear();
         }

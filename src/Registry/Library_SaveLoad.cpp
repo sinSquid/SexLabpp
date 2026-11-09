@@ -110,7 +110,9 @@ namespace Registry
                             }
                             return Combinatorics::CResult::Next;
                         });
+                        const std::unique_lock lock{ _mScenes };
                         sceneMap[scene->id] = scene.get();
+                        scenePackages[scene.get()] = package.get();
                     }
                     logger::info("InitializeScenes: Finished parsing file {}", filename);
                     const std::unique_lock lock{ _mScenes };
@@ -522,6 +524,7 @@ namespace Registry
 
     void Library::SaveVoices() const noexcept
     {
+        const std::shared_lock lock{ _mVoice };
         const auto getSavefile = [](auto path) -> YAML::Node {
             try {
                 if (fs::exists(path))
@@ -540,6 +543,9 @@ namespace Registry
         fout_settings << settings;
 
         auto cache = getSavefile(VOICE_SETTINGS_CACHES_PATH);
+        for (const auto& key : removedVoiceCacheKeys) {
+            cache.remove(key);
+        }
         for (auto&& [id, voice] : savedVoices) {
             auto form = RE::TESForm::LookupByID<RE::Actor>(id);
             if (!form)

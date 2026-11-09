@@ -52,7 +52,11 @@ namespace RE {
  struct TESQuest {};
  struct UI {bool paused=false; static UI* GetSingleton(){static UI u;return &u;} bool GameIsPaused(){return paused;}};
  struct BSInputDeviceManager {
-  struct Device {int held=-1;bool IsPressed(uint32_t key)const{return held>=0&&key==uint32_t(held);}};
+  struct Device {
+   int held=-1;bool IsPressed(uint32_t key)const{return held>=0&&key==uint32_t(held);}
+   struct State {uint8_t curState[256]{};};
+   State GetRuntimeData()const{State s;if(held>=0&&held<256)s.curState[held]=0x80;return s;}
+  };
   Device keyboard,mouse,gamepad;
   Device* GetKeyboard(){return &keyboard;}Device* GetMouse(){return &mouse;}Device* GetGamepad(){return &gamepad;}
   int registrations=0;

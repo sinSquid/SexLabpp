@@ -20,28 +20,39 @@ namespace Thread::Interface
         return true;
     }
 
-    void FurnSelectMenu::Open(RE::TESQuest* a_quest, const std::vector<Item>& a_items)
+    void FurnSelectMenu::Open(RE::TESQuest* a_quest, uint64_t a_ticket, const std::vector<Item>& a_items)
     {
         if (!a_quest)
             return;
+        const std::lock_guard lock{ _mutex };
         _linkedThread = a_quest;
+        _ticket = a_ticket;
         _items = a_items;
         Show();
     }
 
-    void FurnSelectMenu::HandleSelection(std::size_t a_index)
+    void FurnSelectMenu::Close(RE::TESQuest* a_quest)
     {
+        const std::lock_guard lock{ _mutex };
+        if (_linkedThread != a_quest)
+            return;
         Hide();
-        auto* quest = std::exchange(_linkedThread, nullptr);
+        _linkedThread = nullptr;
         _items.clear();
-        if (!quest)
-            return;
-        auto* inst = Instance::GetPendingInstance(quest);
-        if (!inst) {
-            logger::error("FurnSelectMenu::HandleSelection >> instance not found");
-            return;
+    }
+
+    void FurnSelectMenu::HandleSelection(std::size_t a_index, uint64_t a_ticket)
+    {
+        RE::TESQuest* quest;
+        {
+            const std::lock_guard lock{ _mutex };
+            if (!_linkedThread || _ticket != a_ticket)
+                return;
+            Hide();
+            quest = std::exchange(_linkedThread, nullptr);
+            _items.clear();
         }
-        inst->SetCenterRefSelected(a_index);
+        Instance::SelectCenterReference(quest, a_ticket, a_index);
     }
 
     void __stdcall FurnSelectMenu::RenderCallback()
@@ -51,6 +62,7 @@ namespace Thread::Interface
 
     void FurnSelectMenu::Render()
     {
+        std::unique_lock lock{ _mutex };
         if (!IsVisible())
             return;
         auto& scale = SceneHUD::GetSingleton().GetScale();
@@ -145,7 +157,9 @@ namespace Thread::Interface
         ImGuiMCP::End();
         ImGuiMCP::PopStyleColor(2);
         SetVisible(isOpen);
+        const auto ticket = _ticket;
+        lock.unlock();
         if (selectedIndex)
-            HandleSelection(*selectedIndex);
+            HandleSelection(*selectedIndex, ticket);
     }
 }

@@ -36,8 +36,6 @@ namespace Thread::Interface
         const auto autoClose = Script::GetProperty<bool>(a_hud.GetThreadScript(), "SceneSelectAutoClose");
         Script::DispatchMethodCall(a_hud.GetThreadScript(), "SelectSceneFromHUD",
             a_hud.GetCallback(), RE::BSFixedString{ a_sceneId.c_str() }, int{ uiRevision }, bool{ autoClose });
-        RebuildEntries(a_hud);
-        RebuildFilter();
         _hoveredIndex = -1;
     }
 
@@ -195,7 +193,7 @@ namespace Thread::Interface
 
         int hoveredRowIndex = -1;
         std::optional<std::string> selectedScene;
-        for (int i : _filteredIndices) {
+        const auto drawRow = [&](int i) {
             auto& e = _entries[i];
             ImGuiMCP::PushID(i);
 
@@ -214,6 +212,19 @@ namespace Thread::Interface
             if (clicked && !e.isActive)
                 selectedScene = e.id;
             ImGuiMCP::PopID();
+        };
+        std::unique_ptr<ImGuiMCP::ImGuiListClipper, decltype(&ImGuiMCP::ImGuiListClipperManager::Destroy)> clipper{
+            ImGuiMCP::ImGuiListClipperManager::Create(), ImGuiMCP::ImGuiListClipperManager::Destroy
+        };
+        if (clipper) {
+            ImGuiMCP::ImGuiListClipperManager::Begin(clipper.get(), static_cast<int>(_filteredIndices.size()), -1.0f);
+            while (ImGuiMCP::ImGuiListClipperManager::Step(clipper.get())) {
+                for (int row = clipper->DisplayStart; row < clipper->DisplayEnd; ++row)
+                    drawRow(_filteredIndices[row]);
+            }
+        } else {
+            for (int i : _filteredIndices)
+                drawRow(i);
         }
 
         ImGuiMCP::EndChild();

@@ -4,53 +4,115 @@
 #include "Registry/Util/RayCast/Offsets.h"
 #include "Thread/Hooks.h"
 #include "Thread/Interface/SceneHUD.h"
+#include "Thread/Interface/FurnSelectMenu.h"
 #include "Thread/Interface/StageSelectMenu.h"
 #include "Util/Script.h"
 
 namespace Thread
 {
-    void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference)
+    uint64_t Instance::ReserveSetupTicket(RE::TESQuest* a_linkedQst, int a_revision)
     {
-        if (GetInstance(a_linkedQst)) {
-            logger::warn("Thread instance already exists for quest {:X}.", a_linkedQst->formID);
-            DispatchContinueSetup(a_linkedQst, false);
-            return;
-        }
+        const std::lock_guard setupLock{ _mSetup };
+        const auto script = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
+        if (!script || Script::GetProperty<int>(script, "SetupRevision") != a_revision)
+            return 0;
+        return setupRequests[a_linkedQst] = ++nextSetupTicket;
+    }
+
+    bool Instance::IsCurrentSetup(RE::TESQuest* a_linkedQst, uint64_t a_ticket, int a_revision)
+    {
+        const std::lock_guard setupLock{ _mSetup };
+        const auto request = setupRequests.find(a_linkedQst);
+        if (request == setupRequests.end() || request->second != a_ticket)
+            return false;
+        const auto script = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
+        return script && Script::GetProperty<int>(script, "SetupRevision") == a_revision;
+    }
+
+    void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, uint64_t a_ticket, int a_revision)
+    {
+        std::unique_ptr<Instance> instance;
         try {
-            auto instance = std::make_unique<Instance>(a_linkedQst, a_submissives, a_scenes, a_furniturePreference);
-            std::unique_lock lock{ _mInstances };
-            if (instance->pendingQst != nullptr) {
-                pendingInstances.emplace_back(std::move(instance));
-                // DispatchContinueSetup() called by Instance::FinalizeCenterRefSelection()
-            } else {
-                instances.emplace_back(std::move(instance));
-                DispatchContinueSetup(a_linkedQst, true);
+            {
+                const std::lock_guard setupLock{ _mSetup };
+                if (!IsCurrentSetup(a_linkedQst, a_ticket, a_revision))
+                    return;
+                if (GetInstance(a_linkedQst) || GetPendingInstance(a_linkedQst)) {
+                    logger::warn("Thread instance already exists for quest {:X}.", a_linkedQst->formID);
+                    DispatchContinueSetup(a_linkedQst, false, a_revision);
+                    return;
+                }
+                instance = std::make_unique<Instance>(a_linkedQst, a_submissives, a_ticket, a_revision);
             }
-            return;
+            instance->InitializeScenes(a_scenes, a_furniturePreference);
+            // InitializeCenter waits for an engine task; never retain _mSetup here.
+            instance->InitializeCenter(instance->pendingCenterAct, a_furniturePreference);
+            const std::lock_guard setupLock{ _mSetup };
+            if (!IsCurrentSetup(a_linkedQst, a_ticket, a_revision))
+                return;
+            const bool pending = instance->pendingQst != nullptr;
+            auto* created = instance.get();
+            try {
+                if (!pending)
+                    instance->FinalizeInstanceMake();
+                {
+                    std::unique_lock lock{ _mInstances };
+                    if (pending) {
+                        pendingInstances.emplace_back(std::move(instance));
+                    } else {
+                        instances.emplace_back(std::move(instance));
+                    }
+                    created->wasPublished = true;
+                }
+            } catch (...) {
+                // A partially finalized surface must retire before another setup can use the quest.
+                instance.reset();
+                throw;
+            }
+            if (pending)
+                created->OpenCenterRefMenu();
+            else
+                DispatchContinueSetup(a_linkedQst, true, a_revision);
         } catch (const std::exception& e) {
-            logger::error("Failed to create thread instance: {}", e.what());
-            DispatchContinueSetup(a_linkedQst, false);
-            return;
+            const std::lock_guard setupLock{ _mSetup };
+            if (IsCurrentSetup(a_linkedQst, a_ticket, a_revision)) {
+                Interface::FurnSelectMenu::GetSingleton().Close(a_linkedQst);
+                logger::error("Failed to create thread instance: {}", e.what());
+                DispatchContinueSetup(a_linkedQst, false, a_revision);
+            }
         }
     }
 
     void Instance::DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors)
     {
+        const std::lock_guard setupLock{ _mSetup };
+        setupRequests.erase(a_linkedQst);
+        Interface::FurnSelectMenu::GetSingleton().Close(a_linkedQst);
         Interface::SceneHUD::GetSingleton().CloseExternalSceneSelect(a_linkedQst);
         Interface::SceneHUD::GetSingleton().SetSpeedControl(a_linkedQst, false);
+        std::vector<std::unique_ptr<Instance>> retired;
         {
             std::unique_lock lock{ _mInstances };
-            std::erase_if(instances, [&](const auto& instance) {
-                if (instance->linkedQst != a_linkedQst) {
-                    return false;
+            const auto remove = [&](auto& list) {
+                for (auto it = list.begin(); it != list.end();) {
+                    if ((*it)->linkedQst == a_linkedQst) {
+                        retired.push_back(std::move(*it));
+                        it = list.erase(it);
+                    } else {
+                        ++it;
+                    }
                 }
-                if (!a_preservePreparedActors && instance->GetPosition(RE::PlayerCharacter::GetSingleton())) {
-                    Hooks::SetWeaponDrawBlocked(false);
-                }
-                instance->ReleaseAnimations();
-                return true;
-            });
+            };
+            remove(instances);
+            remove(pendingInstances);
         }
+        for (const auto& instance : retired) {
+            if (!a_preservePreparedActors && instance->GetPosition(RE::PlayerCharacter::GetSingleton()))
+                Hooks::SetWeaponDrawBlocked(false);
+            instance->ReleaseAnimations();
+        }
+        // Destructors unregister collision surfaces; never do that under _mInstances.
+        retired.clear();
         if (!a_preservePreparedActors) {
             RestorePreparedActors(a_linkedQst);
         }
@@ -78,11 +140,11 @@ namespace Thread
         return nullptr;
     }
 
-    void Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result)
+    void Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int a_revision)
     {
         const auto handle = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
         Script::CallbackPtr callbackPtr{};
-        Script::DispatchMethodCall(handle, "ContinueSetup", callbackPtr, std::move(a_result));
+        Script::DispatchMethodCall(handle, "ContinueSetupForRevision", callbackPtr, std::move(a_result), std::move(a_revision));
     }
 
     void Instance::Center::SetReference(RE::TESObjectREFR* a_ref, Registry::FurnitureOffset a_offset)
@@ -243,7 +305,7 @@ namespace Thread
             return false;
         }
         const auto centerStr = center.offset.type.ToString();
-        const auto& details = center.details = Registry::Library::GetSingleton()->GetFurnitureDetails(center.GetRef());
+        const auto* details = Registry::Library::GetSingleton()->GetFurnitureDetails(a_ref);
         if (!details) {
             if (!center.offset.type.IsNone()) {
                 constexpr auto nonStr = Registry::FurnitureType::ToString<Registry::FurnitureType::None>();

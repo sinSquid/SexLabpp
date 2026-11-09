@@ -57,16 +57,24 @@ namespace Thread
         };
 
       public:
-        Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
-        ~Instance() { UnregisterInstanceNiSurface(); }
+        Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, uint64_t a_ticket, int a_revision);
+        ~Instance()
+        {
+            if (wasPublished) {
+                UnregisterInstanceNiSurface();
+            }
+        }
 
-        static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference);
+        static uint64_t ReserveSetupTicket(RE::TESQuest* a_linkedQst, int a_revision);
+        static bool IsCurrentSetup(RE::TESQuest* a_linkedQst, uint64_t a_ticket, int a_revision);
+        static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, uint64_t a_ticket, int a_revision);
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
         static Instance* GetInstance(RE::TESQuest* a_linkedQst);
         static Instance* GetPendingInstance(RE::TESQuest* a_linkedQst);
-        static void FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst);
-        static void DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result);
+        static void SelectCenterReference(RE::TESQuest* a_linkedQst, uint64_t a_ticket, size_t a_index);
+        static void FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, uint64_t a_ticket);
+        static void DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int a_revision);
         static void UpdateAnimations(float a_delta);
 
       public:
@@ -186,6 +194,10 @@ namespace Thread
         };
 
         RE::TESQuest* linkedQst;
+        uint64_t setupTicket{ 0 };
+        int setupRevision{ 0 };
+        // Set under _mInstances before publication; unpublished temporaries own no manager entry.
+        bool wasPublished{ false };
 
         Center center;
         std::vector<Position> positions;
@@ -226,7 +238,7 @@ namespace Thread
         std::vector<const Registry::Scene*>& InitializeCenter(RE::Actor* centerAct, FurniturePreference furniturePreference);
         bool InitializeFixedCenter(RE::Actor* centerAct, std::vector<const Registry::Scene*>& prioScenes, REX::EnumSet<Registry::FurnitureType::Value> sceneTypes);
         CenterSelection GetSelectionMethod(FurniturePreference furniturePreference);
-        void InitializeCenterRefMenu(const FurnitureMapping& a_furnitures, RE::Actor* a_tmpCenter);
+        void OpenCenterRefMenu();
         FurnitureMapping GetUniqueFurnituesOfTypeInBound(RE::Actor* a_centerAct, REX::EnumSet<Registry::FurnitureType::Value> a_furnitureTypes);
         bool GetActiveClips(RE::Actor* a_actor, std::vector<ActiveClip>& a_clips) const;
         bool QueueActorRecoveries(bool a_preparationBarrier);
@@ -242,6 +254,10 @@ namespace Thread
         static void RestorePreparedActors(RE::TESQuest* a_linkedQst);
 
       private:
+        // Serialize setup/cancellation without retaining the registry lock across engine calls.
+        static inline std::recursive_mutex _mSetup{};
+        static inline uint64_t nextSetupTicket{ 0 };
+        static inline std::unordered_map<RE::TESQuest*, uint64_t> setupRequests{};
         static inline std::shared_mutex _mInstances{};
         static inline std::vector<std::unique_ptr<Instance>> instances{};
         static inline std::vector<std::unique_ptr<Instance>> pendingInstances{};

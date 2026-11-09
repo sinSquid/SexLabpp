@@ -155,4 +155,8 @@ assert 'MCM_SETTING(iSceneSelectModifier, -1)' in (ROOT / 'src/UserData/mcm.def'
 native = (ROOT / 'src/Thread/Interface/SceneHUD.cpp').read_text()
 assert native.index('if (IsSceneSelectKey(key, *a_event))') < native.index('const bool increase = key == kRightArrow')
 assert native.index('pressed = button->IsPressed()') < native.index('input->GetKeyboard()')
+keyboard = native.split('const auto* device = input->GetKeyboard();', 1)[1].split('\n        }', 1)[0]
+assert 'device->IsPressed(' not in keyboard
+assert '(device->GetRuntimeData().curState[modifierKey] & 0x80) != 0' in keyboard
+assert 'modifierKey < SKSE::InputMap::kMacro_MouseButtonOffset' in native
 print('PASS: single/chord input, live modifier changes, shared-key registration, pair conflicts and global-key isolation; native source contract only, no compilation')

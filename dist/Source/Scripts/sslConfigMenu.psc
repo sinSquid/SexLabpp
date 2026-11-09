@@ -1417,18 +1417,18 @@ Event OnKeyMapChangeST(int newKeyCode, string conflictControl, string conflictNa
     ShowMessage("$SSL_SceneSelectKeyConflict", false, "$Ok")
     return
   EndIf
+  int oldKeyCode = sslSystemConfig.GetSettingInt(s[i])
+  sslSystemConfig.SetSettingInt(s[i], newKeyCode)
+  sslThreadController controlled = Config.GetThreadControlled()
   If (needsRegister)
-    int oldKeyCode = sslSystemConfig.GetSettingInt(s[i])
-    If (oldKeyCode != -1)
+    If (oldKeyCode != -1 && !Config.IsGlobalHotkey(oldKeyCode) && (!controlled || !Config.IsSceneSelectMainKey(oldKeyCode)))
       Config.UnregisterForKey(oldKeyCode)
     EndIf
     If (newKeyCode != -1)
       Config.RegisterForKey(newKeyCode)
     EndIf
   EndIf
-	sslSystemConfig.SetSettingInt(s[i], newKeyCode)
   If (s[i] == "iOpenSceneSelect")
-    sslThreadController controlled = Config.GetThreadControlled()
     If (controlled)
       controlled.RefreshSceneSelectHotkey()
     EndIf

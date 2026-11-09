@@ -335,21 +335,22 @@ namespace Registry::Statistics
         return ret;
     }
 
-    ActorStats& StatisticsData::GetStatistics(RE::Actor* a_key)
+    StatisticsData::StatisticsAccess StatisticsData::GetStatistics(RE::Actor* a_key)
     {
-        const std::shared_lock lock{ _m };
+        std::unique_lock lock{ _m };
         auto where = _data.find(a_key->GetFormID());
         if (where == _data.end()) {
             _data.insert(std::make_pair(a_key->GetFormID(), ActorStats{ a_key }));
-            return _data.at(a_key->GetFormID());
+            return { std::move(lock), _data.at(a_key->GetFormID()) };
         }
-        return where->second;
+        return { std::move(lock), where->second };
     }
 
-    ActorEncounter* StatisticsData::GetEncounter(RE::Actor* fst, RE::Actor* snd)
+    std::optional<ActorEncounter> StatisticsData::GetEncounter(RE::Actor* fst, RE::Actor* snd)
     {
+        const std::shared_lock lock{ _m };
         const auto where = GetEncounterIter(fst, snd);
-        return where == _encounters.end() ? nullptr : &(*where);
+        return where == _encounters.end() ? std::nullopt : std::optional<ActorEncounter>{ *where };
     }
 
     std::vector<ActorEncounter>::iterator StatisticsData::GetEncounterIter(RE::Actor* fst, RE::Actor* snd)

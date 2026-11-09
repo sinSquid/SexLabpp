@@ -291,6 +291,7 @@ namespace Papyrus::ThreadLibrary
             return true;
         }
         const auto data = Tracking::GetSingleton();
+        const std::shared_lock lock{ data->_mutex };
         if (data->_actors.contains(a_actor->formID)) {
             return true;
         }
@@ -345,6 +346,7 @@ namespace Papyrus::ThreadLibrary
         }
         const auto suffix = a_hook.empty() ? "" : std::format("_{}", a_hook.data());
         auto data = Tracking::GetSingleton();
+        const std::shared_lock lock{ data->_mutex };
         std::vector<std::string> ret{};
         if (a_actor->IsPlayerRef()) {
             ret.push_back(std::format("PlayerTrack{}", suffix));

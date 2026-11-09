@@ -1,6 +1,7 @@
 #pragma once
 
 #include <shared_mutex>
+#include <mutex>
 
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Define/Sex.h"
@@ -134,10 +135,22 @@ namespace Registry::Statistics
         using EventResult = RE::BSEventNotifyControl;
 
       public:
+        class StatisticsAccess
+        {
+          public:
+            StatisticsAccess(std::unique_lock<std::shared_mutex> a_lock, ActorStats& a_stats) :
+              lock(std::move(a_lock)), stats(a_stats) {}
+            ActorStats& Get() const { return stats; }
+            ActorStats* operator->() const { return &stats; }
+
+          private:
+            std::unique_lock<std::shared_mutex> lock;
+            ActorStats& stats;
+        };
+
         std::vector<RE::Actor*> GetTrackedActors() const;
-        ActorStats& GetStatistics(RE::Actor* a_key);
-        ActorEncounter* GetEncounter(RE::Actor* fst, RE::Actor* snd);
-        std::vector<ActorEncounter>::iterator GetEncounterIter(RE::Actor* fst, RE::Actor* snd);
+        StatisticsAccess GetStatistics(RE::Actor* a_key);
+        std::optional<ActorEncounter> GetEncounter(RE::Actor* fst, RE::Actor* snd);
         void DeleteStatistics(RE::FormID a_key);
 
         bool ForEachStatistic(std::function<bool(ActorStats&)> a_func);
@@ -161,6 +174,7 @@ namespace Registry::Statistics
 
       private:
         mutable std::shared_mutex _m{};
+        std::vector<ActorEncounter>::iterator GetEncounterIter(RE::Actor* fst, RE::Actor* snd);
         std::vector<ActorEncounter> _encounters;
         std::map<RE::FormID, ActorStats> _data;
     };

@@ -602,6 +602,7 @@ EndFunction
 /;
 
 int _instanceCreationWaitLock
+int Property SetupRevision = 0 Auto Hidden
 int _prepareAsyncCount
 String[] _CustomScenes
 String[] _PrimaryScenes
@@ -726,6 +727,9 @@ State Making
 	EndFunction
 
 	sslThreadController Function StartThread()
+		SetupRevision += 1
+		int startRevision = SetupRevision
+		_instanceCreationWaitLock = -1
 		UnregisterForUpdate()
 		_Positions = PapyrusUtil.RemoveActor(_Positions, none)
 		If(_Positions.Length <= 0 || _Positions.Length > POSITION_COUNT_MAX)
@@ -739,11 +743,16 @@ State Making
 			ClearLeadInScenes()
 		EndIf
 		Actor[] submissives = GetSubmissives()
-		_instanceCreationWaitLock = -1
-		CreateInstance(submissives, _PrimaryScenes, _LeadInScenes, _CustomScenes, _furniStatus)
-		While (_instanceCreationWaitLock < 0)
+		If (startRevision != SetupRevision || GetState() != STATE_SETUP)
+			return none
+		EndIf
+		CreateInstanceForRevision(submissives, _PrimaryScenes, _LeadInScenes, _CustomScenes, _furniStatus, startRevision)
+		While (_instanceCreationWaitLock < 0 && startRevision == SetupRevision)
 			Utility.Wait(0.05)
 		EndWhile
+		If (startRevision != SetupRevision)
+			return none
+		EndIf
 		If (_instanceCreationWaitLock == 0)
 			Fatal("Failed to start Thread: Unable to create thread instance. See 'Documents/My Games/Skyrim Special Edition/SKSE/SexLabUtil.log' for details", "StartThread()")
 			Initialize()
@@ -758,6 +767,11 @@ State Making
 	Function ContinueSetup(bool abContinue)
 		Log("ContinueSetup called with " + abContinue)
 		_instanceCreationWaitLock = abContinue as int
+	EndFunction
+	Function ContinueSetupForRevision(bool abContinue, int aiRevision)
+		If (aiRevision == SetupRevision)
+			_instanceCreationWaitLock = abContinue as int
+		EndIf
 	EndFunction
 	
 	Function EndAnimation(bool Quickly = false)
@@ -945,11 +959,15 @@ EndFunction
 Function ContinueSetup(bool abContinue)
 	Log("ContinueSetup() can only be called during setup", "ContinueSetup()")
 EndFunction
+
+Function ContinueSetupForRevision(bool abContinue, int aiRevision)
+EndFunction
 Function UndressAndStripActors()
 	Log("Actors can be undressed only during setup", "UndressAndStripActors()")
 EndFunction
 
 Function CreateInstance(Actor[] akSubmissives, String[] asPrimaryScenes, String[] asLeadInScenes, String[] asCustomScenes, int aiFurnitureStatus) native
+Function CreateInstanceForRevision(Actor[] akSubmissives, String[] asPrimaryScenes, String[] asLeadInScenes, String[] asCustomScenes, int aiFurnitureStatus, int aiRevision) native
 bool Function BeginActorRecovery() native
 bool Function BeginPlayerDialogueWait() native
 bool Function BeginPlayerSheatheWait() native
@@ -2129,6 +2147,7 @@ EndFunction
 
 ; Reset this thread to base status
 Function Initialize()
+	SetupRevision += 1
 	UnregisterForUpdate()
 	UnregisterForUpdateGameTime()
 	Config.DisableThreadControl(self as sslThreadController)
@@ -2509,7 +2528,7 @@ int Property ActorCount Hidden
 EndProperty
 Actor[] property Victims Hidden
 	Actor[] Function Get()
-		GetAllVictims()
+		return GetAllVictims()
 	EndFunction
 EndProperty
 
@@ -2646,6 +2665,7 @@ int[] Property BedStatus Hidden
 		int[] ret = new int[2]
 		ret[0] = _furniStatus - 1
 		ret[1] = BedTypeID
+		return ret
 	EndFunction
 	Function Set(int[] aSet)
 	EndFunction

@@ -22,16 +22,10 @@ namespace Thread
         }
     }
 
-    Instance::Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturepref) :
-      linkedQst(a_linkedQst), center(nullptr), scenes({})
+    Instance::Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, uint64_t a_ticket, int a_revision) :
+      linkedQst(a_linkedQst), setupTicket(a_ticket), setupRevision(a_revision), center(nullptr), scenes({})
     {
-        const auto centerAct = InitializeReferences(a_submissives);
-        const auto fragments = InitializeScenes(a_scenes, a_furniturepref);
-        InitializeCenter(centerAct, a_furniturepref);
-        if (Instance::pendingQst != nullptr) {
-            return;  // pending impl handled by FinalizeCenterRefSelection()
-        }
-        FinalizeInstanceMake();
+        pendingCenterAct = InitializeReferences(a_submissives);
     }
 
     void Instance::FinalizeInstanceMake()
@@ -137,10 +131,13 @@ namespace Thread
         auto future = promise.get_future();
         const auto selectionMethod = GetSelectionMethod(furniturePreference);
         SKSE::GetTaskInterface()->AddTask([&]() mutable {
+            const std::lock_guard setupLock{ _mSetup };
             if (((bool (*)(void))Offsets::NotOnGameThread.address())()) {
                 logger::error("Task is not on valid thread, this should never happen and can cause random CTD/freezes");
             }
             try {
+                if (!IsCurrentSetup(linkedQst, setupTicket, setupRevision))
+                    throw std::runtime_error("Thread setup was cancelled");
                 if (center.GetRef() && InitializeFixedCenter(centerAct, prioScenes, sceneTypes)) {
                     logger::info("Using fixed center {:X} with offset {}.", center.GetRef()->GetFormID(), center.offset.type.ToString());
                 } else if (sceneTypes == Registry::FurnitureType::None) {
@@ -154,19 +151,25 @@ namespace Thread
                     promise.set_value(false);
                     return;
                 }
-            } catch (const std::exception& e) {
-                logger::error("Thread initialization failed: {}", e.what());
+            } catch (...) {
+                promise.set_exception(std::current_exception());
+                return;
             }
             promise.set_value(true);
         });
-        future.wait();
-        if (future.get()) {
+        const bool selected = future.get();
+        const std::lock_guard setupLock{ _mSetup };
+        if (!IsCurrentSetup(linkedQst, setupTicket, setupRevision))
+            throw std::runtime_error("Thread setup was cancelled");
+        if (selected) {
             return prioScenes;
         } else if (furnitureMap.empty()) {
             logger::info("No furniture found in range. Using actor {:X} as center.", centerAct->GetFormID());
             center.SetReference(centerAct, {});
         } else if (selectionMethod == CenterSelection::SelectionMenu) {
-            InitializeCenterRefMenu(furnitureMap, centerAct);
+            pendingFurnitureMap = std::move(furnitureMap);
+            pendingCenterAct = centerAct;
+            pendingQst = linkedQst;
         } else {
             const auto [ref, type] = furnitureMap.front();
             center.SetReference(ref, type);
@@ -323,22 +326,19 @@ namespace Thread
         return retVal;
     }
 
-    void Instance::InitializeCenterRefMenu(const FurnitureMapping& a_furnitures, RE::Actor* a_tmpCenter)
+    void Instance::OpenCenterRefMenu()
     {
         std::vector<Interface::FurnSelectMenu::Item> items;
-        const auto actName = std::format("{}", a_tmpCenter->GetDisplayFullName());
-        const auto actID = std::format("0x{:X}", a_tmpCenter->GetFormID());
+        const auto actName = std::format("{}", pendingCenterAct->GetDisplayFullName());
+        const auto actID = std::format("0x{:X}", pendingCenterAct->GetFormID());
         items.emplace_back(actName, "", actID);
-        for (const auto& [ref, offset] : a_furnitures) {
+        for (const auto& [ref, offset] : pendingFurnitureMap) {
             const auto itemName = std::format("{}", ref->GetDisplayFullName());
             const auto itemType = std::format("{}", offset.type.ToString());
             const auto itemID = std::format("0x{:X}", ref->GetFormID());
             items.emplace_back(itemName, itemType, itemID);
         }
-        Instance::pendingFurnitureMap = a_furnitures;
-        Instance::pendingCenterAct = a_tmpCenter;
-        Instance::pendingQst = linkedQst;
-        Interface::FurnSelectMenu::GetSingleton().Open(linkedQst, items);
+        Interface::FurnSelectMenu::GetSingleton().Open(linkedQst, setupTicket, items);
     }
 
     void Instance::SetCenterRefSelected(size_t a_index)
@@ -360,32 +360,46 @@ namespace Thread
         Instance::pendingCenterAct = nullptr;
         const auto qst = Instance::pendingQst;
         Instance::pendingQst = nullptr;
-        FinalizeCenterRefSelection(qst);
+        FinalizeCenterRefSelection(qst, setupTicket);
     }
 
-    void Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst)
+    void Instance::SelectCenterReference(RE::TESQuest* a_linkedQst, uint64_t a_ticket, size_t a_index)
     {
-        std::thread([a_linkedQst]() {
+        const std::lock_guard setupLock{ _mSetup };
+        auto* instance = GetPendingInstance(a_linkedQst);
+        if (!instance || instance->setupTicket != a_ticket || !instance->pendingQst || !IsCurrentSetup(a_linkedQst, a_ticket, instance->setupRevision))
+            return;
+        instance->SetCenterRefSelected(a_index);
+    }
+
+    void Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, uint64_t a_ticket)
+    {
+        std::thread([a_linkedQst, a_ticket]() {
+            const std::lock_guard setupLock{ _mSetup };
             std::unique_ptr<Instance> instance{};
             {
                 std::unique_lock lock{ _mInstances };
-                const auto it = std::ranges::find_if(pendingInstances, [a_linkedQst](const auto& i) { return i->linkedQst == a_linkedQst; });
+                const auto it = std::ranges::find_if(pendingInstances, [a_linkedQst, a_ticket](const auto& i) { return i->linkedQst == a_linkedQst && i->setupTicket == a_ticket; });
                 if (it == pendingInstances.end()) {
-                    logger::error("FinalizeCenterRefSelection: no pending instance found for TESQuest {:X}.", a_linkedQst->formID);
-                    DispatchContinueSetup(a_linkedQst, false);
+                    // A cancelled setup must not notify a reused Papyrus thread.
                     return;
                 }
                 instance = std::move(*it);
                 pendingInstances.erase(it);
             }
+            const int revision = instance->setupRevision;
             try {
+                if (!IsCurrentSetup(a_linkedQst, a_ticket, revision))
+                    return;
                 instance->FinalizeInstanceMake();
-                std::unique_lock lock{ _mInstances };
-                instances.emplace_back(std::move(instance));
-                DispatchContinueSetup(a_linkedQst, true);
+                {
+                    std::unique_lock lock{ _mInstances };
+                    instances.emplace_back(std::move(instance));
+                }
+                DispatchContinueSetup(a_linkedQst, true, revision);
             } catch (const std::exception& e) {
                 logger::error("FinalizeCenterRefSelection: Failed to complete thread instance: {}", e.what());
-                DispatchContinueSetup(a_linkedQst, false);
+                DispatchContinueSetup(a_linkedQst, false, revision);
             }
         }).detach();
     }

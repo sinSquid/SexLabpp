@@ -135,12 +135,14 @@ namespace Registry
         mutable std::shared_mutex _mScenes{};
         std::vector<std::unique_ptr<AnimPackage>> packages;
         std::map<RE::BSFixedString, Scene*, FixedStringCompare> sceneMap;             // SceneId -> Scene
+        std::unordered_map<const Scene*, const AnimPackage*> scenePackages;
         std::unordered_map<ActorFragment::FragmentHash, std::vector<Scene*>> scenes;  // Hashes -> Scenes
 
         mutable std::shared_mutex _mVoice{};
         std::map<RE::BSFixedString, Voice, FixedStringCompare> voices{};
         std::map<RE::FormID, VoicePitch> savedPitches{};   // VoiceType -> Pitch (or fixed Voice)
         std::map<RE::FormID, const Voice*> savedVoices{};  // NPC -> Voice
+        std::set<std::string> removedVoiceCacheKeys{};
 
         mutable std::shared_mutex _mExpressions{};
         std::map<RE::BSFixedString, Expression, FixedStringCompare> expressions{};

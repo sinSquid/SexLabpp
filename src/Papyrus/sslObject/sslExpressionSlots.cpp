@@ -217,7 +217,7 @@ namespace Papyrus::ExpressionSlots
             tag = "Aggressor";
             break;
         default:
-            tag = "";
+            tag = "Normal";
             break;
         }
         Registry::Library::GetSingleton()->ForEachExpression([&](const Registry::Expression& profile) {

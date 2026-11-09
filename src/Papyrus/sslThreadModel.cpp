@@ -239,8 +239,9 @@ namespace Papyrus::ThreadModel
     std::vector<RE::BSFixedString> GetPlayingScenes(QUESTARGS)
     {
         GET_INSTANCE({});
-        return std::ranges::fold_left(instance->GetThreadScenes(), std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(it->id), acc);
+        return std::ranges::fold_left(instance->GetThreadScenes(), std::vector<RE::BSFixedString>{}, [](auto acc, const auto& it) {
+            acc.push_back(it->id);
+            return acc;
         });
     }
 
@@ -271,16 +272,35 @@ namespace Papyrus::ThreadModel
         std::vector<RE::BSFixedString> a_scenesCustom,
         int a_furniturepref)
     {
+        const auto script = Script::GetScriptObject(a_qst, "sslThreadModel");
+        if (!script)
+            return;
+        const int revision = Script::GetProperty<int>(script, "SetupRevision");
+        CreateInstanceForRevision(a_vm, a_stackID, a_qst, std::move(a_submissives), std::move(a_scenesPrimary), std::move(a_scenesLeadIn), std::move(a_scenesCustom), a_furniturepref, revision);
+    }
+
+    void CreateInstanceForRevision(QUESTARGS,
+        std::vector<RE::Actor*> a_submissives,
+        std::vector<RE::BSFixedString> a_scenesPrimary,
+        std::vector<RE::BSFixedString> a_scenesLeadIn,
+        std::vector<RE::BSFixedString> a_scenesCustom,
+        int a_furniturepref,
+        int a_revision)
+    {
+        const auto ticket = Thread::Instance::ReserveSetupTicket(a_qst, a_revision);
+        if (!ticket)
+            return;
         const auto library = Registry::Library::GetSingleton();
         const auto toVector = [&](const auto& a_list) {
-            return std::ranges::fold_left(a_list, std::vector<const Registry::Scene*>{}, [&](auto&& acc, const auto& it) {
+            return std::ranges::fold_left(a_list, std::vector<const Registry::Scene*>{}, [&](auto acc, const auto& it) {
                 const auto scene = library->GetSceneById(it);
                 if (!scene) {
                     const auto err = std::format("Invalid scene id {}", it);
                     a_vm->TraceStack(err.c_str(), a_stackID);
                     return acc;
                 }
-                return (acc.push_back(scene), acc);
+                acc.push_back(scene);
+                return acc;
             });
         };
         Thread::Instance::FurniturePreference preference{ a_furniturepref };
@@ -290,7 +310,7 @@ namespace Papyrus::ThreadModel
             toVector(a_scenesCustom)
         };
         std::thread([=]() {
-            Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference);
+            Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference, ticket, a_revision);
         }).detach();
     }
 
@@ -326,8 +346,9 @@ namespace Papyrus::ThreadModel
     {
         GET_INSTANCE({});
         const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::LeadIn);
-        return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(it->id), acc);
+        return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto acc, const auto& it) {
+            acc.push_back(it->id);
+            return acc;
         });
     }
 
@@ -335,8 +356,9 @@ namespace Papyrus::ThreadModel
     {
         GET_INSTANCE({});
         const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Primary);
-        return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(it->id), acc);
+        return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto acc, const auto& it) {
+            acc.push_back(it->id);
+            return acc;
         });
     }
 
@@ -344,8 +366,9 @@ namespace Papyrus::ThreadModel
     {
         GET_INSTANCE({});
         const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Custom);
-        return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto&& acc, const auto& it) {
-            return (acc.push_back(it->id), acc);
+        return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto acc, const auto& it) {
+            acc.push_back(it->id);
+            return acc;
         });
     }
 
@@ -496,7 +519,9 @@ namespace Papyrus::ThreadModel
             if (!p)
                 continue;
 
-            auto& stats = statdata->GetStatistics(p);
+            auto statsAccess = statdata->GetStatistics(p);
+
+            auto& stats = statsAccess.Get();
             stats.AddStatistic(stats.XP_Vaginal, vaginal * 1.25f);
             stats.AddStatistic(stats.XP_Anal, anal * 1.25f);
             stats.AddStatistic(stats.XP_Oral, oral * 1.25f);
@@ -517,7 +542,8 @@ namespace Papyrus::ThreadModel
             a_vm->TraceStack("Position cound does not match scene position count", a_stackID);
             return;
         }
-        auto& stats = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+        auto statsAccess = Registry::Statistics::StatisticsData::GetSingleton()->GetStatistics(a_actor);
+        auto& stats = statsAccess.Get();
         stats.SetStatistic(stats.LastUpdate_GameTime, RE::Calendar::GetSingleton()->GetCurrentGameTime());
         stats.AddStatistic(stats.SecondsInScene, a_time);
         stats.AddStatistic(stats.TimesTotal, 1);
