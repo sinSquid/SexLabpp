@@ -22,8 +22,7 @@ namespace Thread::Interface
     class SceneHUD final : public RE::BSTEventSink<RE::InputEvent*>
     {
       public:
-        // This integration enters UI lifecycle, update, and render callbacks on the game thread.
-        // Component state is therefore intentionally ordinary, non-atomic state.
+        // Tasklet updates and render/input callbacks serialize through Instance::LockState().
         static SceneHUD& GetSingleton();
 
         bool Register();
@@ -38,11 +37,11 @@ namespace Thread::Interface
         bool OpenExternalSceneSelect(RE::TESQuest* a_quest);
         bool IsExternalSceneSelectCurrent(RE::TESQuest* a_quest, int a_ticket) const;
         bool CloseExternalSceneSelect(RE::TESQuest* a_quest, int a_ticket = -1);
-        bool IsExternalSceneSelect() const { return _externalSceneSelect; }
-        void RequestExternalSceneSelectClose() { if (_externalSceneSelect) _externalCloseRequested = true; }
-        int GetExternalSceneSelectTicket() const { return static_cast<int>(_externalSelectionSerial & 0x7FFFFFFFu); }
+        bool IsExternalSceneSelect() const { const auto stateLock = Instance::LockState(); return _externalSceneSelect; }
+        void RequestExternalSceneSelectClose() { const auto stateLock = Instance::LockState(); if (_externalSceneSelect) _externalCloseRequested = true; }
+        int GetExternalSceneSelectTicket() const { const auto stateLock = Instance::LockState(); return static_cast<int>(_externalSelectionSerial & 0x7FFFFFFFu); }
         void CloseAllPanels();
-        void SetRenderEnabled(bool a_enabled) { _renderEnabled = a_enabled; }
+        void SetRenderEnabled(bool a_enabled) { const auto stateLock = Instance::LockState(); _renderEnabled = a_enabled; }
 
         void UpdateStageTimer(float a_duration, float a_timer);
         void UpdateHighlightedPartner(RE::Actor* a_partner);
@@ -58,15 +57,15 @@ namespace Thread::Interface
         void DebugNodeDrawAddRing(const RE::NiPoint3& a_center, const RE::NiPoint3& a_right, const RE::NiPoint3& a_up, float a_radius);
         void DebugNodeDrawAddTaperedCapsule(const RE::NiPoint3& a_start, const RE::NiPoint3& a_end, float a_startRadius, float a_endRadius);
 
-        [[nodiscard]] bool IsActive() const { return _linkedThread != nullptr; }
-        [[nodiscard]] bool ShouldRender() const { return IsActive() && !RE::UI::GetSingleton()->GameIsPaused() && _renderEnabled; }
-        [[nodiscard]] bool IsFocused() const { return _focused; }
-        [[nodiscard]] bool IsPanelOpen(PanelId a_panel) const { return _activePanel == a_panel; }
-        [[nodiscard]] RE::TESQuest* GetLinkedThread() const { return _linkedThread; }
-        [[nodiscard]] SceneHUD* GetForThread(RE::TESQuest* a_quest) { return a_quest && _linkedThread == a_quest ? this : nullptr; }
-        [[nodiscard]] Instance* GetThreadInstance() const { return _linkedThread ? Instance::GetInstance(_linkedThread) : nullptr; }
-        [[nodiscard]] const Script::ObjectPtr& GetThreadScript() const { return _threadScript; }
-        [[nodiscard]] const Script::CallbackPtr& GetCallback() const { return _callback; }
+        [[nodiscard]] bool IsActive() const { const auto stateLock = Instance::LockState(); return _linkedThread != nullptr; }
+        [[nodiscard]] bool ShouldRender() const { const auto stateLock = Instance::LockState(); return IsActive() && !RE::UI::GetSingleton()->GameIsPaused() && _renderEnabled; }
+        [[nodiscard]] bool IsFocused() const { const auto stateLock = Instance::LockState(); return _focused; }
+        [[nodiscard]] bool IsPanelOpen(PanelId a_panel) const { const auto stateLock = Instance::LockState(); return _activePanel == a_panel; }
+        [[nodiscard]] RE::TESQuest* GetLinkedThread() const { const auto stateLock = Instance::LockState(); return _linkedThread; }
+        [[nodiscard]] SceneHUD* GetForThread(RE::TESQuest* a_quest) { const auto stateLock = Instance::LockState(); return a_quest && _linkedThread == a_quest ? this : nullptr; }
+        [[nodiscard]] Instance::Access GetThreadInstance() const { const auto stateLock = Instance::LockState(); return Instance::GetInstance(_linkedThread); }
+        [[nodiscard]] Script::ObjectPtr GetThreadScript() const { const auto stateLock = Instance::LockState(); return _threadScript; }
+        [[nodiscard]] Script::CallbackPtr GetCallback() const { const auto stateLock = Instance::LockState(); return _callback; }
         [[nodiscard]] UI::Scale& GetScale() { return _scale; }
 
       private:

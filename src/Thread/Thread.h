@@ -57,6 +57,24 @@ namespace Thread
         };
 
       public:
+        // A scoped lookup serializes instance/UI operations with teardown. The
+        // pointer cannot escape implicitly after its state lock is released.
+        class Access
+        {
+          public:
+            Access(std::unique_lock<std::recursive_mutex> a_lock, Instance* a_instance) :
+              lock(std::move(a_lock)), instance(a_instance) {}
+            explicit operator bool() const { return instance != nullptr; }
+            Instance* operator->() const { return instance; }
+            Instance& operator*() const { return *instance; }
+            Instance* get() const { return instance; }
+
+          private:
+            std::unique_lock<std::recursive_mutex> lock;
+            Instance* instance;
+        };
+
+        [[nodiscard]] static std::unique_lock<std::recursive_mutex> LockState() { return std::unique_lock{ _mSetup }; }
         Instance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*>& a_submissives, uint64_t a_ticket, int a_revision);
         ~Instance()
         {
@@ -70,8 +88,8 @@ namespace Thread
         static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, uint64_t a_ticket, int a_revision);
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
-        static Instance* GetInstance(RE::TESQuest* a_linkedQst);
-        static Instance* GetPendingInstance(RE::TESQuest* a_linkedQst);
+        static Access GetInstance(RE::TESQuest* a_linkedQst);
+        static Access GetPendingInstance(RE::TESQuest* a_linkedQst);
         static void SelectCenterReference(RE::TESQuest* a_linkedQst, uint64_t a_ticket, size_t a_index);
         static void FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, uint64_t a_ticket);
         static void DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int a_revision);
@@ -93,6 +111,7 @@ namespace Thread
         bool SetActiveScene(const Registry::Scene* a_scene);
         const Registry::Scene* GetActiveScene() { return activeScene; }
         const Registry::Stage* GetActiveStage() { return activeStage; }
+        uint64_t GetSetupTicket() const { return setupTicket; }
         std::vector<const Registry::Scene*> GetThreadScenes(SceneType a_type);
         std::vector<const Registry::Scene*> GetThreadScenes();
 

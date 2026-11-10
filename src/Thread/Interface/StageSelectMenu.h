@@ -25,9 +25,10 @@ namespace Thread::Interface
         void SetVisibilitySceneGraph(RE::TESQuest* a_quest, bool a_open);  // called by hotkey iToggleSceneGraph
         void RefreshSceneGraphView(RE::TESQuest* a_quest);                 // syncs the graph's current-node highlight
         void Close();
+        void CloseForThread(RE::TESQuest* a_quest);
 
-        [[nodiscard]] bool IsGraphViewOpen() const { return _graphOpen; }
-        [[nodiscard]] bool IsChoicePending() const { return _choicePending; }
+        [[nodiscard]] bool IsGraphViewOpen() const;
+        [[nodiscard]] bool IsChoicePending() const;
 
       private:
         struct ChoiceOption
@@ -60,6 +61,7 @@ namespace Thread::Interface
 
         void RenderStageChoiceCard();
         void OnNextBranchSelected(int a_index);
+        bool IsChoiceCurrent() const;
 
         void BuildSceneGraph(Instance& a_inst);
         void RenderSceneGraphView();
@@ -74,6 +76,9 @@ namespace Thread::Interface
         bool _choicePending{ false };
         std::vector<ChoiceOption> _choices;
         const Registry::Stage* _choiceOrigin{ nullptr };
+        const Registry::Scene* _choiceScene{ nullptr };
+        uint64_t _choiceSetupTicket{ 0 };
+        int _choiceRevision{ -1 };
         int _selectedChoiceIndex = 0;
         std::vector<float> _choiceScrollOffsets;
         double _choiceStartTime = 0.0;

@@ -32,6 +32,7 @@ namespace Thread::Interface
 
     bool SceneHUD::Register()
     {
+        const auto stateLock = Instance::LockState();
         if (_registered)
             return true;
         if (!SKSEMenuFramework::IsInstalled()) {
@@ -50,6 +51,7 @@ namespace Thread::Interface
 
     void SceneHUD::Init(RE::TESQuest* a_quest, bool a_bindSpeedControl)
     {
+        const auto stateLock = Instance::LockState();
         if (!a_quest)
             return;
         if (!_registered) {
@@ -64,7 +66,7 @@ namespace Thread::Interface
         ++_externalSelectionSerial;
         _linkedThread = a_quest;
         _threadScript = Script::GetScriptObject(_linkedThread, "sslThreadController");
-        auto* instance = GetThreadInstance();
+        auto instance = GetThreadInstance();
         if (!instance) {
             logger::warn("SceneHUD::Init >> thread instance is null");
             _linkedThread = nullptr;
@@ -100,6 +102,7 @@ namespace Thread::Interface
 
     void SceneHUD::Destroy()
     {
+        const auto stateLock = Instance::LockState();
         if (!IsActive() && !_elements && !_externalSceneSelect)
             return;
 
@@ -123,6 +126,7 @@ namespace Thread::Interface
 
     void SceneHUD::SetSpeedControl(RE::TESQuest* a_quest, bool a_enabled)
     {
+        const auto stateLock = Instance::LockState();
         if (!a_quest)
             return;
         if (!a_enabled) {
@@ -148,6 +152,7 @@ namespace Thread::Interface
 
     bool SceneHUD::CanAdjustSpeed() const
     {
+        const auto stateLock = Instance::LockState();
         return _speedThread && Instance::GetInstance(_speedThread) &&
             !RE::UI::GetSingleton()->GameIsPaused() &&
             (!IsActive() || !_focused || _activePanel == PanelId::kNone);
@@ -155,6 +160,7 @@ namespace Thread::Interface
 
     bool SceneHUD::IsSceneSelectKey(std::uint32_t a_key, RE::InputEvent* a_events) const
     {
+        const auto stateLock = Instance::LockState();
         const auto mainKey = Settings::iOpenSceneSelect;
         const auto modifier = Settings::iSceneSelectModifier;
         if (mainKey < 0 || modifier < 0 || mainKey == modifier)
@@ -197,6 +203,7 @@ namespace Thread::Interface
     RE::BSEventNotifyControl SceneHUD::ProcessEvent(RE::InputEvent* const* a_event,
         RE::BSTEventSource<RE::InputEvent*>*)
     {
+        const auto stateLock = Instance::LockState();
         if (!a_event || !CanAdjustSpeed())
             return RE::BSEventNotifyControl::kContinue;
         constexpr std::uint32_t kLeftArrow = 203;
@@ -216,6 +223,7 @@ namespace Thread::Interface
             auto* linkedThread = _speedThread;
             const auto controlGeneration = _controlGeneration;
             SKSE::GetTaskInterface()->AddTask([increase, linkedThread, controlGeneration]() {
+                const auto stateLock = Instance::LockState();
                 auto& hud = SceneHUD::GetSingleton();
                 if (hud._controlGeneration == controlGeneration && hud._speedThread == linkedThread &&
                     hud.CanAdjustSpeed()) {
@@ -228,13 +236,14 @@ namespace Thread::Interface
 
     void SceneHUD::Render()
     {
+        const auto stateLock = Instance::LockState();
         if (_externalSceneSelect && !IsExternalSceneSelectCurrent(_linkedThread, GetExternalSceneSelectTicket())) {
             Destroy();
             return;
         }
         if (!_elements || !ShouldRender())
             return;
-        auto* instance = GetThreadInstance();
+        auto instance = GetThreadInstance();
         if (!instance)
             return;
 
@@ -290,6 +299,7 @@ namespace Thread::Interface
 
     void SceneHUD::SetFocus(bool a_focused)
     {
+        const auto stateLock = Instance::LockState();
         if (a_focused && (!_elements || !IsActive()))
             return;
         if (_focused == a_focused)
@@ -303,6 +313,7 @@ namespace Thread::Interface
 
     void SceneHUD::CloseAllPanels()
     {
+        const auto stateLock = Instance::LockState();
         if (_elements) {
             switch (_activePanel) {
             case PanelId::kThreadConfig:
@@ -326,6 +337,7 @@ namespace Thread::Interface
 
     void SceneHUD::OpenPanel(PanelId a_panel)
     {
+        const auto stateLock = Instance::LockState();
         if (!_elements || !_focused)
             return;
         if (_activePanel == a_panel) {
@@ -355,6 +367,7 @@ namespace Thread::Interface
 
     bool SceneHUD::PrepareSceneSelect(RE::TESQuest* a_quest)
     {
+        const auto stateLock = Instance::LockState();
         if (!a_quest || _speedThread != a_quest || !Instance::GetInstance(a_quest) ||
             !_registered || !_renderEnabled || RE::UI::GetSingleton()->GameIsPaused())
             return false;
@@ -367,6 +380,7 @@ namespace Thread::Interface
 
     bool SceneHUD::OpenSceneSelect(RE::TESQuest* a_quest)
     {
+        const auto stateLock = Instance::LockState();
         if (!a_quest || _speedThread != a_quest || !GetForThread(a_quest) ||
             !Instance::GetInstance(a_quest) || !_elements || !_focused || !ShouldRender())
             return false;
@@ -378,10 +392,11 @@ namespace Thread::Interface
 
     bool SceneHUD::OpenExternalSceneSelect(RE::TESQuest* a_quest)
     {
+        const auto stateLock = Instance::LockState();
         if (!a_quest || !_registered || !_renderEnabled || RE::UI::GetSingleton()->GameIsPaused())
             return false;
         auto script = Script::GetScriptObject(a_quest, "sslThreadController");
-        auto* instance = Instance::GetInstance(a_quest);
+        auto instance = Instance::GetInstance(a_quest);
         if (!script || script->currentState != "Animating" || !instance || !instance->GetActiveScene() || !instance->GetActiveStage())
             return false;
         if (_externalSceneSelect && GetForThread(a_quest)) {
@@ -407,6 +422,7 @@ namespace Thread::Interface
 
     bool SceneHUD::IsExternalSceneSelectCurrent(RE::TESQuest* a_quest, int a_ticket) const
     {
+        const auto stateLock = Instance::LockState();
         return a_ticket >= 0 && _externalSceneSelect && a_quest && a_quest == _linkedThread &&
             a_ticket == GetExternalSceneSelectTicket() && _focused && _elements && _threadScript &&
             _threadScript->currentState == "Animating" && Instance::GetInstance(a_quest);
@@ -414,6 +430,7 @@ namespace Thread::Interface
 
     bool SceneHUD::CloseExternalSceneSelect(RE::TESQuest* a_quest, int a_ticket)
     {
+        const auto stateLock = Instance::LockState();
         if (!_externalSceneSelect || !a_quest || _linkedThread != a_quest ||
             (a_ticket >= 0 && a_ticket != GetExternalSceneSelectTicket()))
             return false;
@@ -423,27 +440,31 @@ namespace Thread::Interface
 
     void SceneHUD::UpdateStageTimer(float a_duration, float a_timer)
     {
+        const auto stateLock = Instance::LockState();
         if (_elements)
             _elements->animSpeedOverlay.UpdateStageTimer(a_duration, a_timer);
     }
 
     void SceneHUD::UpdateHighlightedPartner(RE::Actor* a_partner)
     {
+        const auto stateLock = Instance::LockState();
         if (_elements)
             _elements->enjoymentBarsOverlay.UpdateHighlightedPartner(a_partner);
     }
 
     void SceneHUD::UpdateEnjoyment(RE::Actor* a_actor, float a_enjoyment, RE::BSFixedString a_interactions)
     {
+        const auto stateLock = Instance::LockState();
         if (_elements)
             _elements->enjoymentBarsOverlay.UpdateSlider(a_actor, a_enjoyment, a_interactions);
     }
 
     void SceneHUD::RegisterRaiseEnjoymentAttempt(RE::Actor* a_actor, float a_nextTimeCycle)
     {
+        const auto stateLock = Instance::LockState();
         if (!_elements)
             return;
-        auto* instance = GetThreadInstance();
+        auto instance = GetThreadInstance();
         if (instance && instance->GetThreadProperty<bool>("ElementUI_EnjBars") &&
             instance->GetThreadProperty<bool>("VarUI_SeparateOrgasm")) {
             _elements->enjoymentBarsOverlay.RegisterRaiseEnjAttempt(*this, a_actor, a_nextTimeCycle);
@@ -452,12 +473,14 @@ namespace Thread::Interface
 
     void SceneHUD::RefreshStageOffsets()
     {
+        const auto stateLock = Instance::LockState();
         if (_elements && _activePanel == PanelId::kOffsetAdjust)
             _elements->offsetAdjustPanel.RefreshStageOffsets(*this);
     }
 
     void SceneHUD::RebuildSceneList()
     {
+        const auto stateLock = Instance::LockState();
         if (!_elements)
             return;
         _elements->sceneSelectPanel.RebuildEntries(*this);
@@ -466,32 +489,37 @@ namespace Thread::Interface
 
     bool SceneHUD::IsDebugNodeDrawEnabled() const
     {
+        const auto stateLock = Instance::LockState();
         if (!_elements)
             return false;
-        auto* instance = GetThreadInstance();
+        auto instance = GetThreadInstance();
         return instance && instance->GetThreadProperty<bool>("ElementUI_DebugNodeDraw");
     }
 
     void SceneHUD::DebugNodeDrawBeginFrame()
     {
+        const auto stateLock = Instance::LockState();
         if (_elements)
             _elements->debugNodeDraw.BeginFrame();
     }
 
     void SceneHUD::DebugNodeDrawPublish()
     {
+        const auto stateLock = Instance::LockState();
         if (_elements)
             _elements->debugNodeDraw.Publish();
     }
 
     void SceneHUD::DebugNodeDrawAddRing(const RE::NiPoint3& a_center, const RE::NiPoint3& a_right, const RE::NiPoint3& a_up, float a_radius)
     {
+        const auto stateLock = Instance::LockState();
         if (_elements)
             _elements->debugNodeDraw.AddRing(a_center, a_right, a_up, a_radius);
     }
 
     void SceneHUD::DebugNodeDrawAddTaperedCapsule(const RE::NiPoint3& a_start, const RE::NiPoint3& a_end, float a_startRadius, float a_endRadius)
     {
+        const auto stateLock = Instance::LockState();
         if (_elements)
             _elements->debugNodeDraw.AddTaperedCapsule(a_start, a_end, a_startRadius, a_endRadius);
     }

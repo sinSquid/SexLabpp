@@ -39,7 +39,7 @@ namespace Thread::Interface
 
         // Skip any tab whose overlay has been disabled from the Elements panel;
         // Re-center the remaining ones as a group so there's no gap left behind.
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         std::array<std::size_t, count> visible{};
         std::size_t visibleCount = 0;
         for (std::size_t i = 0; i < count; ++i) {

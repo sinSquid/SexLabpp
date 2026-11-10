@@ -223,30 +223,50 @@ namespace Papyrus::ThreadLibrary
             a_includes.size() > 3 ? a_includes[3] : nullptr,
             "");
 
-        for (auto&& position : scene->positions) {
-            RE::Actor* fill = nullptr;
-            for (auto& include : a_includes) {
-                if (include && !std::ranges::contains(ret, include) && position.CanFillPosition(include)) {
-                    fill = include;
-                    include = nullptr;
-                    break;
+        std::vector<RE::Actor*> candidates;
+        candidates.reserve(a_includes.size() + valids.size());
+        const auto appendUnique = [&](const auto& actors) {
+            for (auto* actor : actors) {
+                if (actor && !std::ranges::contains(candidates, actor))
+                    candidates.push_back(actor);
+            }
+        };
+        appendUnique(a_includes);
+        appendUnique(valids);
+        if (candidates.size() < scene->positions.size())
+            return {};
+
+        ret.resize(scene->positions.size());
+        std::vector<int> candidateOwner(candidates.size(), -1);
+        std::vector<std::vector<bool>> compatible(scene->positions.size(), std::vector<bool>(candidates.size()));
+        for (size_t slot = 0; slot < scene->positions.size(); ++slot) {
+            for (size_t candidate = 0; candidate < candidates.size(); ++candidate)
+                compatible[slot][candidate] = scene->positions[slot].CanFillPosition(candidates[candidate]);
+        }
+        const auto assignPosition = [&](auto&& self, size_t slot, std::vector<bool>& visited) -> bool {
+            // Keep the old first-compatible ordering when a free candidate works;
+            // only rematch earlier slots when the greedy assignment would fail.
+            for (int pass = 0; pass < 2; ++pass) {
+                for (size_t candidate = 0; candidate < candidates.size(); ++candidate) {
+                    if (visited[candidate] || !compatible[slot][candidate])
+                        continue;
+                    const int owner = candidateOwner[candidate];
+                    if ((pass == 0) != (owner < 0))
+                        continue;
+                    visited[candidate] = true;
+                    if (owner < 0 || self(self, static_cast<size_t>(owner), visited)) {
+                        candidateOwner[candidate] = static_cast<int>(slot);
+                        ret[slot] = candidates[candidate];
+                        return true;
+                    }
                 }
             }
-            if (fill) {
-                ret.push_back(fill);
-                continue;
-            }
-            for (auto& valid : valids) {
-                if (valid && !std::ranges::contains(ret, valid) && position.CanFillPosition(valid)) {
-                    fill = valid;
-                    valid = nullptr;
-                    break;
-                }
-            }
-            if (!fill) {
+            return false;
+        };
+        for (size_t slot = 0; slot < scene->positions.size(); ++slot) {
+            std::vector<bool> visited(candidates.size(), false);
+            if (!assignPosition(assignPosition, slot, visited))
                 return {};
-            }
-            ret.push_back(fill);
         }
         return ret;
     }

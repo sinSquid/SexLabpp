@@ -403,6 +403,12 @@ namespace Registry::Statistics
                 case ActorEncounter::EncounterType::Victim:
                     a_type = ActorEncounter::EncounterType::Aggressor;
                     break;
+                case ActorEncounter::EncounterType::Submissive:
+                    a_type = ActorEncounter::EncounterType::Dominant;
+                    break;
+                case ActorEncounter::EncounterType::Dominant:
+                    a_type = ActorEncounter::EncounterType::Submissive;
+                    break;
                 default:
                     a_type = ActorEncounter::EncounterType::Any;
                     break;

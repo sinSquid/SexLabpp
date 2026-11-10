@@ -23,6 +23,7 @@ namespace Thread::Interaction::NiSurface
 
     bool Scene::VisitPositions(const std::function<bool(const ActorState&)>& a_visitor) const
     {
+        const auto stateLock = Instance::LockState();
         std::scoped_lock lock{ _mutex };
         for (const auto& position : positions) {
             if (a_visitor(position)) {
@@ -34,6 +35,7 @@ namespace Thread::Interaction::NiSurface
 
     std::optional<ShaftSize> Scene::GetShaftSize(RE::FormID a_actorId) const
     {
+        const auto stateLock = Instance::LockState();
         std::scoped_lock lock{ _mutex };
         for (const auto& position : positions) {
             if (position.actor->GetFormID() == a_actorId) {
@@ -45,6 +47,7 @@ namespace Thread::Interaction::NiSurface
 
     void Scene::UpdateInteractions(float a_delta, bool a_drawCollision)
     {
+        const auto stateLock = Instance::LockState();
         std::unique_lock lock{ _mutex, std::defer_lock };
         if (!lock.try_lock()) {
             return;
@@ -157,6 +160,7 @@ namespace Thread::Interaction::NiSurface
 
     void Scene::DetectShaftInteractions(std::vector<ActorState::Frame>& a_frames, const ActorState::Frame& a_source)
     {
+        const auto stateLock = Instance::LockState();
         if (a_source.state.sex.any(Registry::Sex::Female)) {
             return;
         }
@@ -181,6 +185,7 @@ namespace Thread::Interaction::NiSurface
 
     void Scene::DetectVaginalInteractions(std::vector<ActorState::Frame>& a_frames, const ActorState::Frame& a_source)
     {
+        const auto stateLock = Instance::LockState();
         if (a_source.state.sex.any(Registry::Sex::Male)) {
             return;
         }
@@ -195,6 +200,7 @@ namespace Thread::Interaction::NiSurface
 
     void Scene::DetectGeneralInteractions(std::vector<ActorState::Frame>& a_frames, const ActorState::Frame& a_source)
     {
+        const auto stateLock = Instance::LockState();
         for (auto& target : a_frames) {
             if (a_source != target) {
                 target.DetectKissing(a_source);
@@ -206,6 +212,7 @@ namespace Thread::Interaction::NiSurface
 
     void Manager::OnFrameUpdate(float a_delta)
     {
+        const auto stateLock = Instance::LockState();
         std::scoped_lock lock{ _mutex };
         static std::uint32_t frame = 0;
         //const bool logTiming = frame++ % TIMING_LOG_INTERVAL == 1;
@@ -226,6 +233,7 @@ namespace Thread::Interaction::NiSurface
 
     std::shared_ptr<Scene> Manager::Get(RE::FormID a_id)
     {
+        const auto stateLock = Instance::LockState();
         std::scoped_lock lock{ _mutex };
         const auto where = std::ranges::find(scenes, a_id, [](const auto& a_entry) { return a_entry.first; });
         return where != scenes.end() ? where->second : nullptr;
@@ -233,6 +241,7 @@ namespace Thread::Interaction::NiSurface
 
     std::shared_ptr<Scene> Manager::Register(RE::FormID a_id, std::vector<RE::Actor*> a_positions, const Registry::Scene* a_scene) noexcept
     {
+        const auto stateLock = Instance::LockState();
         try {
             std::scoped_lock lock{ _mutex };
             const auto where = std::ranges::find(scenes, a_id, [](const auto& a_entry) { return a_entry.first; });
@@ -257,6 +266,7 @@ namespace Thread::Interaction::NiSurface
 
     void Manager::Unregister(RE::FormID a_id) noexcept
     {
+        const auto stateLock = Instance::LockState();
         std::scoped_lock lock{ _mutex };
         const auto where = std::ranges::find(scenes, a_id, [](const auto& a_entry) { return a_entry.first; });
         if (where == scenes.end()) {

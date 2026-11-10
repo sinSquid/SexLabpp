@@ -79,7 +79,7 @@ namespace Thread::Interface
     void SceneSelectPanel::RebuildEntries(SceneHUD& a_hud)
     {
         _entries.clear();
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         const auto* active = inst->GetActiveScene();

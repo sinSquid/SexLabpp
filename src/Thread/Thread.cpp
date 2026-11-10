@@ -88,6 +88,7 @@ namespace Thread
         const std::lock_guard setupLock{ _mSetup };
         setupRequests.erase(a_linkedQst);
         Interface::FurnSelectMenu::GetSingleton().Close(a_linkedQst);
+        Interface::StageSelectMenu::GetSingleton().CloseForThread(a_linkedQst);
         Interface::SceneHUD::GetSingleton().CloseExternalSceneSelect(a_linkedQst);
         Interface::SceneHUD::GetSingleton().SetSpeedControl(a_linkedQst, false);
         std::vector<std::unique_ptr<Instance>> retired;
@@ -118,26 +119,28 @@ namespace Thread
         }
     }
 
-    Instance* Instance::GetInstance(RE::TESQuest* a_linkedQst)
+    Instance::Access Instance::GetInstance(RE::TESQuest* a_linkedQst)
     {
+        auto stateLock = LockState();
         std::shared_lock lock{ _mInstances };
         for (auto&& instance : instances) {
             if (instance->linkedQst == a_linkedQst) {
-                return instance.get();
+                return { std::move(stateLock), instance.get() };
             }
         }
-        return nullptr;
+        return { std::move(stateLock), nullptr };
     }
 
-    Instance* Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)
+    Instance::Access Instance::GetPendingInstance(RE::TESQuest* a_linkedQst)
     {
+        auto stateLock = LockState();
         std::shared_lock lock{ _mInstances };
         for (auto&& instance : pendingInstances) {
             if (instance->linkedQst == a_linkedQst) {
-                return instance.get();
+                return { std::move(stateLock), instance.get() };
             }
         }
-        return nullptr;
+        return { std::move(stateLock), nullptr };
     }
 
     void Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int a_revision)

@@ -49,6 +49,9 @@ namespace Registry
         // --- Position Infos
         uint64_t info_count;
         Decode::Read(a_stream, info_count);
+        if (info_count == 0 || info_count > ActorFragment::MAX_ACTOR_COUNT) {
+            throw std::runtime_error(std::format("Invalid position count {} in scene {}", info_count, id));
+        }
         positions.reserve(info_count);
         for (size_t i = 0; i < info_count; i++) {
             positions.emplace_back(a_stream, a_version);
@@ -104,7 +107,7 @@ namespace Registry
         stages.reserve(stage_count);
         for (size_t i = 0; i < stage_count; i++) {
             const auto& stage = stages.emplace_back(
-                std::make_unique<Stage>(a_stream, a_version));
+                std::make_unique<Stage>(a_stream, a_version, positions.size()));
 
             tags.AddTag(stage->tags);
             if (stage->id == startstage) {
@@ -188,13 +191,16 @@ namespace Registry
         }
     }
 
-    Stage::Stage(std::ifstream& a_stream, uint8_t a_version)
+    Stage::Stage(std::ifstream& a_stream, uint8_t a_version, size_t a_expectedPositions)
     {
         id.resize(Decode::ID_SIZE);
         a_stream.read(id.data(), Decode::ID_SIZE);
 
         uint64_t position_count;
         Decode::Read(a_stream, position_count);
+        if (position_count != a_expectedPositions) {
+            throw std::runtime_error(std::format("Stage {} has {} positions, expected {}", id, position_count, a_expectedPositions));
+        }
         positions.reserve(position_count);
         for (size_t i = 0; i < position_count; i++) {
             positions.emplace_back(a_stream, a_version);
@@ -269,6 +275,20 @@ namespace Registry
     void Scene::Save(YAML::Node& a_node) const
     {
         a_node["enabled"] = this->enabled;
+        auto sceneOffset = a_node["scene_offset"];
+        furnitureOffset.Save(sceneOffset);
+        auto sceneAnnotations = a_node["scene_annotations"];
+        sceneAnnotations = YAML::Node(YAML::NodeType::Sequence);
+        for (const auto& annotation : tags.GetAnnotations())
+            sceneAnnotations.push_back(annotation.data());
+        auto positionAnnotations = a_node["position_annotations"];
+        positionAnnotations = YAML::Node(YAML::NodeType::Sequence);
+        for (const auto& position : positions) {
+            YAML::Node annotations(YAML::NodeType::Sequence);
+            for (const auto& annotation : position.annotations)
+                annotations.push_back(annotation.data());
+            positionAnnotations.push_back(annotations);
+        }
         for (auto&& stage : stages) {
             auto node = a_node[stage->id];
             stage->Save(node);
@@ -279,6 +299,25 @@ namespace Registry
     {
         if (const auto enable = a_node["enabled"]; enable.IsDefined())
             this->enabled = enable.as<bool>();
+
+        if (const auto sceneOffset = a_node["scene_offset"]; sceneOffset.IsDefined())
+            furnitureOffset.Load(sceneOffset);
+        if (const auto annotations = a_node["scene_annotations"]; annotations.IsSequence()) {
+            std::vector<RE::BSFixedString> values;
+            for (const auto& annotation : annotations)
+                values.emplace_back(annotation.as<std::string>());
+            tags.SetAnnotations(values);
+        }
+        if (const auto annotations = a_node["position_annotations"]; annotations.IsSequence()) {
+            for (size_t i = 0; i < positions.size() && i < annotations.size(); ++i) {
+                if (!annotations[i].IsSequence())
+                    continue;
+                std::vector<RE::BSFixedString> values;
+                for (const auto& annotation : annotations[i])
+                    values.emplace_back(annotation.as<std::string>());
+                positions[i].annotations = std::move(values);
+            }
+        }
 
         for (auto&& stage : stages) {
             if (auto node = a_node[stage->id]; node.IsDefined()) {

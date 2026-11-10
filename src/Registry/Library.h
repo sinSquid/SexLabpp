@@ -71,6 +71,7 @@ namespace Registry
         const Voice* GetVoice(const TagDetails& a_tags) const;
         const Voice* GetVoice(RaceKey a_race) const;
         const Voice* GetVoiceById(RE::BSFixedString a_voice) const;
+        std::optional<Voice> GetVoiceSnapshot(RE::BSFixedString a_voice) const;
         bool CreateVoice(RE::BSFixedString a_voice);
         void WriteVoiceToFile(RE::BSFixedString a_voice) const;
 
@@ -91,6 +92,7 @@ namespace Registry
 
       public:
         _NODISCARD const Expression* GetExpressionById(const RE::BSFixedString& a_id) const;
+        std::optional<Expression> GetExpressionSnapshot(const RE::BSFixedString& a_id) const;
         _NODISCARD const Expression* GetExpression(const TagDetails& a_details) const;
         bool ForEachExpression(std::function<bool(const Expression&)> a_visitor) const;
         bool CreateExpression(const RE::BSFixedString& a_id);
@@ -99,6 +101,7 @@ namespace Registry
         void UpdateExpressionTags(RE::BSFixedString a_id, const TagData& a_newtags);
         void SetExpressionScaling(RE::BSFixedString a_id, Expression::Scaling a_scaling);
         void SetExpressionEnabled(RE::BSFixedString a_id, bool a_enabled);
+        bool MarkExpressionEdited(RE::BSFixedString a_id);
 
       public:
         RE::BSFixedString PickRandomFxSet(RE::Actor* a_actor, FxType a_type) const;

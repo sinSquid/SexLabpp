@@ -40,6 +40,7 @@ code = r'''
 #include <cstdint>
 #include <cstdio>
 #include <map>
+#include <mutex>
 #include <random>
 #include <sstream>
 #include <string>
@@ -92,6 +93,8 @@ struct SceneSelectPanel {
 code += function('src/Thread/Interface/Elements/SceneSelectPanel.cpp', 'void SceneSelectPanel::OnAnnotationSave(')
 code += r'''
 struct Instance {
+ static inline std::recursive_mutex stateMutex;
+ static auto LockState(){return std::unique_lock{stateMutex};}
  Registry::Scene* scene=nullptr;
  Registry::Stage* stage=nullptr;
  RE::TESQuest* linkedQst=nullptr;
@@ -109,6 +112,9 @@ struct StageSelectMenu {
  std::vector<int> _choices;
  std::vector<float> _choiceScrollOffsets;
  const Registry::Stage* _choiceOrigin=nullptr;
+ const Registry::Scene* _choiceScene=nullptr;
+ uint64_t _choiceSetupTicket=0;
+ int _choiceRevision=-1;
  const Registry::Scene* _graphScene=nullptr;
  std::vector<GraphNode> _graphNodes;
  int _graphCurrentIndex=-1,builds=0,cancels=0,renders=0;
@@ -138,7 +144,7 @@ code += function('src/Thread/Thread.cpp', 'void Instance::OnStageChangedUpdateHU
 render = function('src/Thread/Interface/StageSelectMenu.cpp', 'void StageSelectMenu::RenderSceneGraphView()')
 # Execute the lifetime gate before entering ImGui; drawing remains engine-owned.
 code += render[:render.index('auto& scale')] + '++renders;\n}\n'
-assert render.index('if (!inst)') < render.index('ImGuiMCP::Begin(')
+assert render.index('if (!inst || !inst->GetActiveScene() || !inst->GetActiveStage())') < render.index('ImGuiMCP::Begin(')
 assert render.count('Instance::GetInstance(_linkedThread)') == 1
 
 code += r'''

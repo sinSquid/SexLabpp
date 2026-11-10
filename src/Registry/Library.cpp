@@ -242,6 +242,13 @@ namespace Registry
         return v == voices.end() ? nullptr : &v->second;
     }
 
+    std::optional<Voice> Library::GetVoiceSnapshot(RE::BSFixedString a_voice) const
+    {
+        const std::shared_lock lock{ _mVoice };
+        const auto where = voices.find(a_voice);
+        return where == voices.end() ? std::nullopt : std::optional<Voice>{ where->second };
+    }
+
     bool Library::CreateVoice(RE::BSFixedString a_voice)
     {
         std::unique_lock lock{ _mVoice };
@@ -255,7 +262,7 @@ namespace Registry
 
     void Library::WriteVoiceToFile(RE::BSFixedString a_voice) const
     {
-        auto voice = GetVoiceById(a_voice);
+        auto voice = GetVoiceSnapshot(a_voice);
         if (!voice) {
             logger::error("Voice {} not found", a_voice);
             return;
@@ -431,6 +438,23 @@ namespace Registry
         std::shared_lock lock{ _mExpressions };
         auto where = expressions.find(a_id);
         return where == expressions.end() ? nullptr : &where->second;
+    }
+
+    std::optional<Expression> Library::GetExpressionSnapshot(const RE::BSFixedString& a_id) const
+    {
+        const std::shared_lock lock{ _mExpressions };
+        const auto where = expressions.find(a_id);
+        return where == expressions.end() ? std::nullopt : std::optional<Expression>{ where->second };
+    }
+
+    bool Library::MarkExpressionEdited(RE::BSFixedString a_id)
+    {
+        const std::unique_lock lock{ _mExpressions };
+        const auto where = expressions.find(a_id);
+        if (where == expressions.end())
+            return false;
+        where->second.has_edits = true;
+        return true;
     }
 
     const Expression* Library::GetExpression(const TagDetails& a_details) const

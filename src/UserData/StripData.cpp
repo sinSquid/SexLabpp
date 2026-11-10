@@ -1,9 +1,18 @@
 #include "StripData.h"
 
+#include <mutex>
+
 namespace UserData
 {
+    void StripData::AddArmor(RE::TESForm* a_form, Strip a_type)
+    {
+        const std::unique_lock lock{ _mutex };
+        strips[a_form->formID] = a_type;
+    }
+
     void StripData::RemoveArmor(RE::TESForm* a_form)
     {
+        const std::unique_lock lock{ _mutex };
         strips.erase(a_form->formID);
         const auto file = a_form->GetFile(0);
         if (!file || !_root.IsMap())
@@ -26,6 +35,7 @@ namespace UserData
 
     void StripData::RemoveArmorAll()
     {
+        const std::unique_lock lock{ _mutex };
         strips.clear();
         // Preserve overrides for temporarily missing plugins.
         if (!_root.IsMap())
@@ -43,6 +53,7 @@ namespace UserData
 
     void StripData::Load()
     {
+        const std::unique_lock lock{ _mutex };
         try {
             const auto handler = RE::TESDataHandler::GetSingleton();
             _root = YAML::LoadFile(STRIP_PATH);
@@ -66,6 +77,7 @@ namespace UserData
 
     void StripData::Save()
     {
+        const std::unique_lock lock{ _mutex };
         try {
             for (auto&& [formid, strip] : strips) {
                 const auto entry = [&]() -> std::pair<std::string, uint32_t> {
@@ -93,6 +105,7 @@ namespace UserData
 
     Strip StripData::CheckStrip(RE::TESForm* a_form)
     {
+        const std::shared_lock lock{ _mutex };
         const auto it = strips.find(a_form->formID);
         if (it == strips.end() || it->second == Strip::None) {
             return CheckKeywords(a_form);

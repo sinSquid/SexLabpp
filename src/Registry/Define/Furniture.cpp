@@ -2,7 +2,6 @@
 
 #include "Registry/Util/RayCast.h"
 #include "Registry/Util/RayCast/ObjectBound.h"
-#include "Util/StringUtil.h"
 
 namespace Registry
 {
@@ -71,8 +70,6 @@ namespace Registry
         if (a_reference->HasKeyword(GameForms::FurnitureBedRoll)) {
             return FurnitureType::BedRoll;
         }
-        if (std::string name{ a_reference->GetName() }; name.empty() || Util::CastLower(name).find("bed") == std::string::npos)
-            return FurnitureType::None;
         const auto root = a_reference->Get3D();
         const auto extra = root ? root->GetExtraData("FRN") : nullptr;
         const auto node = extra ? netimmerse_cast<RE::BSFurnitureMarkerNode*>(extra) : nullptr;
@@ -204,7 +201,7 @@ namespace Registry
             }
             constexpr auto& radius = Settings::fFurnitureSquare;
             constexpr auto& step = Settings::fFurnitureSquareStepSize;
-            const auto offsetLocation = referenceCoordinates.ApplyReturn(offset);
+            const auto offsetLocation = offset.ApplyReturn(referenceCoordinates);
             auto raycastTarget = offsetLocation.AsVec4(0.0f), raycastStart = offsetLocation.AsVec4(0.0f);
             raycastTarget.z += Settings::fFurnitureSquareHeight;
             raycastStart.z += Settings::fFurnitureSquareFloorSkip;
@@ -228,6 +225,7 @@ Next_Iteration:;
     std::vector<FurnitureOffset> FurnitureDetails::GetClosestCoordinatesInBound(RE::TESObjectREFR* a_ref, REX::EnumSet<FurnitureType::Value> a_filter, RE::TESObjectREFR* a_center) const
     {
         const auto center = Coordinate(a_center);
+        const Coordinate reference{ a_ref };
         const auto valids = GetCoordinatesInBound(a_ref, a_filter);
         std::map<FurnitureType, std::vector<Coordinate>> valid_map{};
         for (auto&& [type, coordinates] : valids) {
@@ -236,7 +234,7 @@ Next_Iteration:;
         std::vector<FurnitureOffset> ret{};
         for (auto&& [type, coordinates] : valid_map) {
             const auto min = std::ranges::min_element(coordinates, [&](const Coordinate& a, const Coordinate& b) {
-                return a.GetDistance(center) < b.GetDistance(center);
+                return a.ApplyReturn(reference).GetDistance(center) < b.ApplyReturn(reference).GetDistance(center);
             });
             if (min != coordinates.end()) {
                 ret.emplace_back(type, *min);

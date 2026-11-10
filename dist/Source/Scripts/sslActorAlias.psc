@@ -445,13 +445,36 @@ State Ready
 	EndFunction
 
 	Event OnDoPrepare(string asEventName, string asStringArg, float afNumArg, form akPathTo)
+		; Internal events carry their sending session through the VM queue.
+		int prepareRevision
+		If (asStringArg == "skip")
+			; Legacy explicit preparation bypasses completion notification.
+			prepareRevision = _Thread.SetupRevision
+		Else
+			prepareRevision = asStringArg as int
+		EndIf
+		Actor prepareActor = _ActorRef
+		If (!IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
+			return
+		EndIf
 		UnregisterForModEvent("SSL_PREPARE_Thread" + _Thread.tid)
-		WaitForPathToCenter(akPathTo)
+		WaitForPathToCenterForRevision(akPathTo, prepareRevision, prepareActor)
+		If (!IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
+			return
+		EndIf
 		If (_sex <= 2)
-			_AnimVarIsNPC = _ActorRef.GetAnimationVariableInt("IsNPC")
-			_AnimVarbHumanoidFootIKDisable = _ActorRef.GetAnimationVariableBool("bHumanoidFootIKDisable")
+			int animVarIsNPC = prepareActor.GetAnimationVariableInt("IsNPC")
+			bool animVarFootIKDisable = prepareActor.GetAnimationVariableBool("bHumanoidFootIKDisable")
+			If (!IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
+				return
+			EndIf
+			_AnimVarIsNPC = animVarIsNPC
+			_AnimVarbHumanoidFootIKDisable = animVarFootIKDisable
 		EndIf		
 		GoToState(STATE_PAUSED)
+		If (!IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_PAUSED))
+			return
+		EndIf
 		; Delayed Initialization
 		If (_sex <= 2)
 			If (_sex == 0)
@@ -474,12 +497,21 @@ State Ready
 		If (_Config.DebugMode)
 			Log("Strapon[" + _Strapon + "] Voice[" + GetActorVoice() + "] Expression[" + GetActorExpression() + "]")
 		EndIf
-		If (asStringArg != "skip")
-			_Thread.PrepareDone()
+		If (asStringArg != "skip" && IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_PAUSED))
+			_Thread.PrepareDoneForRevision(prepareRevision)
 		EndIf
 	EndEvent
 
 	Function WaitForPathToCenter(form akPathTo)	
+		WaitForPathToCenterForRevision(akPathTo, _Thread.SetupRevision, _ActorRef)
+	EndFunction
+
+	Function WaitForPathToCenterForRevision(form akPathTo, int aiRevision, Actor akPrepareActor)
+		int prepareRevision = aiRevision
+		Actor prepareActor = akPrepareActor
+		If (!IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
+			return
+		EndIf
 		If(_ActorRef == _PlayerRef)
 			bool bVRTPP = _Config.HasVRIK && (_Config.POVModeVR == 2)
 			Game.DisablePlayerControls(abMovement=!bVRTPP, abFighting=false, abCamSwitch=false, abLooking=false, abSneaking=false, abMenu=false, abActivate=false, abJournalTabs=false)
@@ -498,10 +530,16 @@ State Ready
 			float fallback_timer = 15.0
 			float prev_dist = distance + 1.0
 			Utility.Wait(2.0)
+			If (!IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
+				return
+			EndIf
 			float interval = 0.05
 			While (distance > target_distance && Math.abs(prev_dist - distance) > 0.5 && fallback_timer > 0)
 				fallback_timer -= interval
 				Utility.Wait(interval)
+				If (!IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
+					return
+				EndIf
 				prev_dist = distance
 				distance = _ActorRef.GetDistance(target)
 			EndWhile
@@ -519,11 +557,17 @@ State Ready
 
 EndState
 
+bool Function IsCurrentAliasPreparation(int aiRevision, Actor akActor, string asState)
+	return akActor && akActor == _ActorRef && GetState() == asState && _Thread.IsCurrentPreparation(aiRevision)
+EndFunction
+
 Event OnDoPrepare(string asEventName, string asStringArg, float afNumArg, form akPathTo)
 	Error("Preparation request outside a valid state", "OnDoPrepare()")
 EndEvent
 Function WaitForPathToCenter(form akPathTo)
 	Error("Pathing request outside a valid state", "WaitForPathToCenter()")
+EndFunction
+Function WaitForPathToCenterForRevision(form akPathTo, int aiRevision, Actor akPrepareActor)
 EndFunction
 
 ; --- Legacy
@@ -904,7 +948,7 @@ State Animating
 			If (sslLovense.IsLovenseInstalled())
 				_LoopLovenseDelay = sslSystemConfig.GetSettingFlt("fLovenseDurationOrgasm")
 				int strength = sslSystemConfig.GetSettingInt("iLovenseStrengthOrgasm")
-				float duration = sslSystemConfig.GetSettingInt("fLovenseDurationOrgasm")
+				float duration = sslSystemConfig.GetSettingFlt("fLovenseDurationOrgasm")
 				sslLovense.StartOrgasmAction(strength, duration)
 			EndIf
 		EndIf

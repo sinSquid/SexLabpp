@@ -4,6 +4,8 @@ namespace Util
 {
     static inline RE::FormID FormFromString(const std::string_view& a_string, int base)
     {
+        if (base < 2 || base > 36)
+            return 0;
         const auto split = a_string.find('|');
         const auto formIdStr = a_string.substr(0, split);
         RE::FormID formid;
@@ -12,7 +14,7 @@ namespace Util
             formIdStr.data() + offset,
             formIdStr.data() + formIdStr.size(),
             formid, base);
-        if (res != std::errc()) {
+        if (res != std::errc() || ptr != formIdStr.data() + formIdStr.size()) {
             // logger::error("Invalid form ID: {} for base: {}", formIdStr, base);
             return 0;
         } else if (split == std::string_view::npos) {

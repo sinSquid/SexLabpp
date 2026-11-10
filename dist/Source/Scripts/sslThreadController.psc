@@ -475,36 +475,66 @@ Function MoveScene()
 	EndIf
 	int n = 0
 	While(n < Positions.Length)
+		If (!IsCurrentPlayback(moveRevision))
+			return
+		EndIf
 		ActorAlias[n].GoToState(ActorAlias[n].STATE_PAUSED)
 		If (ActorAlias[n] == ActorAlias(PlayerRef))
 			ActorAlias[n].TryPauseAndUnlock()
 		EndIf
 		n += 1
 	EndWhile
+	If (!IsCurrentPlayback(moveRevision))
+		return
+	EndIf
 	SexLabUtil.SetActorMovement(PlayerRef, 1) ;MOVEMENT_UNLOCK
 	Utility.Wait(1)
+	If (!IsCurrentPlayback(moveRevision))
+		return
+	EndIf
 	int t = 0
 	While(t < 60 && !Input.IsKeyPressed(Config.MoveScene))
 		Utility.Wait(0.5)
+		If (!IsCurrentPlayback(moveRevision))
+			return
+		EndIf
 		t += 1
 	EndWhile
+	If (!IsCurrentPlayback(moveRevision))
+		return
+	EndIf
 	SexLabUtil.SetActorMovement(PlayerRef, 2)	; MOVEMENT_LOCK... make sure player isnt moving before resync
 	float x = PlayerRef.X
 	float y = PlayerRef.Y
 	float z = PlayerRef.Z
 	Utility.Wait(0.5)							; wait for momentum to stop
+	If (!IsCurrentPlayback(moveRevision))
+		return
+	EndIf
 	While(x != PlayerRef.X || y != PlayerRef.Y || z != PlayerRef.Z)
 		x = PlayerRef.X
 		y = PlayerRef.Y
 		z = PlayerRef.Z
 		Utility.Wait(0.5)
+		If (!IsCurrentPlayback(moveRevision))
+			return
+		EndIf
 	EndWhile
 	int j = 0
 	While(j < Positions.Length)
+		If (!IsCurrentPlayback(moveRevision))
+			return
+		EndIf
 		ActorAlias[j].TryLockAndUnpause()
 		j += 1
 	EndWhile
+	If (!IsCurrentPlayback(moveRevision))
+		return
+	EndIf
 	CenterOnObject(PlayerRef)
+	If (!IsCurrentPlayback(moveRevision))
+		return
+	EndIf
 	_bFocusedSceneHUD = false ; allows hotkeys/gestures
 	If (!HasPlayer)
 		MoveActorsAwayFromPlayer(true)
@@ -512,6 +542,34 @@ Function MoveScene()
 	ElseIf (abClosedSceneHUD)
 		ToggleVisibilitySceneHUD(1)
 	EndIf
+EndFunction
+
+; Native branch cards carry their source session and stage through the VM queue.
+Function BranchToForRevision(int aiChoice, int aiRevision, string asSceneId, string asStageId)
+	If (!IsCurrentPlayback(aiRevision) || GetActiveScene() != asSceneId || GetActiveStage() != asStageId)
+		return
+	EndIf
+	If (!IsCurrentPlayback(aiRevision))
+		return
+	EndIf
+	BranchTo(aiChoice)
+EndFunction
+
+Function CloseGraphForRevision(int aiRevision)
+	If (IsCurrentPlayback(aiRevision))
+		ToggleVisibilitySceneGraph(-1)
+	EndIf
+EndFunction
+
+Function SkipToFromGraphForRevision(string asTarget, int aiRevision, string asSceneId, string asStageId)
+	If (!IsCurrentPlayback(aiRevision) || GetActiveScene() != asSceneId || GetActiveStage() != asStageId)
+		return
+	EndIf
+	CloseGraphForRevision(aiRevision)
+	If (!IsCurrentPlayback(aiRevision) || GetActiveScene() != asSceneId || GetActiveStage() != asStageId)
+		return
+	EndIf
+	SkipTo(asTarget)
 EndFunction
 
 Function AdvanceStage(bool abBackwards = false)

@@ -42,6 +42,7 @@ code = f'constexpr float kInitialSpeed = {initial}f;\n' + r'''
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <vector>
 struct Settings { static inline int iOpenSceneSelect=-1,iSceneSelectModifier=-1; };
@@ -88,6 +89,8 @@ namespace SKSE {
  Tasks* GetTaskInterface(){return &tasks;}
 }
 struct Instance {
+ static inline std::recursive_mutex stateMutex;
+ static auto LockState(){return std::unique_lock{stateMutex};}
  float animationPlaybackSpeed=kInitialSpeed;
  static Instance* GetInstance(RE::TESQuest*);
  void SetAnimationPlaybackSpeed(float value){animationPlaybackSpeed=value;}

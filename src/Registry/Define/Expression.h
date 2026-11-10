@@ -6,6 +6,7 @@ namespace Registry
 {
     struct Expression
     {
+        static constexpr int MAX_LEVEL_COUNT = 128;
         enum class DefaultExpression
         {
             Afraid,

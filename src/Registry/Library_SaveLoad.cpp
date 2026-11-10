@@ -515,7 +515,7 @@ namespace Registry
 
     void Library::SaveExpressions() const noexcept
     {
-        std::shared_lock lock{ _mExpressions };
+        std::unique_lock lock{ _mExpressions };
         for (auto&& [id, expression] : expressions) {
             expression.Save(EXPRESSION_PATH, false);
         }

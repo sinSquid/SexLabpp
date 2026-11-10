@@ -58,7 +58,7 @@ ObjectReference Function FindBed(ObjectReference CenterRef, float Radius = 1000.
   ObjectReference[] beds = FindBeds(CenterRef, Radius)
   int i = 0
   While(i < beds.Length)
-    If(beds[i] != IgnoreRef1 && beds[i] != IgnoreRef2 && (IgnoreUsed || IsBedAvailable(beds[i])))
+    If(beds[i] != IgnoreRef1 && beds[i] != IgnoreRef2 && (!IgnoreUsed || IsBedAvailable(beds[i])))
       return beds[i]
     EndIf
     i += 1

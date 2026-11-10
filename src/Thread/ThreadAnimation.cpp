@@ -139,6 +139,7 @@ namespace Thread
 
     void Instance::CancelPendingAnimations(RE::TESQuest* a_linkedQst)
     {
+        const auto stateLock = LockState();
         {
             std::unique_lock lock{ _mInstances };
             for (auto&& instance : instances) {
@@ -287,7 +288,7 @@ namespace Thread
         if (preparationBarrier) {
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnNativeActorRecoveryComplete", callbackPtr, bool{ !recoveryFailed })) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnNativeActorRecoveryCompleteForRevision", callbackPtr, bool{ !recoveryFailed }, int{ setupRevision })) {
                 logger::error("Failed to notify Papyrus of native actor recovery completion for thread {:X}.", linkedQst->GetFormID());
             }
         } else if (recoveryFailed) {
@@ -398,6 +399,7 @@ namespace Thread
 
     void Instance::UpdateAnimations(float a_delta)
     {
+        const auto stateLock = LockState();
         const auto timeoutDelta = Util::IsGamePausedOrFrozen() ? 0.0f : a_delta;
         std::shared_lock lock{ _mInstances };
         for (auto&& instance : instances) {
@@ -670,7 +672,7 @@ namespace Thread
             logger::info("Player dialogue finished; continuing actor preparation.");
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnPlayerDialogueComplete", callbackPtr)) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnPlayerDialogueCompleteForRevision", callbackPtr, int{ setupRevision })) {
                 logger::error("Failed to notify Papyrus of player dialogue completion for thread {:X}.", linkedQst->GetFormID());
             }
             return;
@@ -719,7 +721,7 @@ namespace Thread
                 }
                 const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
                 Script::CallbackPtr callbackPtr{};
-                if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnPlayerSheatheComplete", callbackPtr, bool{ sheathed })) {
+                if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnPlayerSheatheCompleteForRevision", callbackPtr, bool{ sheathed }, int{ setupRevision })) {
                     logger::error("Failed to notify Papyrus of player weapon sheath completion for thread {:X}.", linkedQst->GetFormID());
                 }
             }

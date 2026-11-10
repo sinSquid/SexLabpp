@@ -366,7 +366,7 @@ namespace Thread
     void Instance::SelectCenterReference(RE::TESQuest* a_linkedQst, uint64_t a_ticket, size_t a_index)
     {
         const std::lock_guard setupLock{ _mSetup };
-        auto* instance = GetPendingInstance(a_linkedQst);
+        auto instance = GetPendingInstance(a_linkedQst);
         if (!instance || instance->setupTicket != a_ticket || !instance->pendingQst || !IsCurrentSetup(a_linkedQst, a_ticket, instance->setupRevision))
             return;
         instance->SetCenterRefSelected(a_index);

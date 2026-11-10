@@ -65,9 +65,10 @@ namespace Thread::Interface
 
     bool StageSelectMenu::OpenStageSelectMenu(RE::TESQuest* a_quest)
     {
+        const auto stateLock = Instance::LockState();
         if (!a_quest)
             return false;
-        auto* inst = Instance::GetInstance(a_quest);
+        auto inst = Instance::GetInstance(a_quest);
         if (!inst)
             return false;
 
@@ -81,6 +82,8 @@ namespace Thread::Interface
             return false;
         }
 
+        if (_linkedThread && _linkedThread != a_quest)
+            Close();
         _choices.clear();
         _choices.reserve(adjacent->size());
         int choiceIdx = 1;
@@ -93,6 +96,9 @@ namespace Thread::Interface
         }
         _choiceScrollOffsets.assign(_choices.size(), 0.0f);
         _choiceOrigin = stage;
+        _choiceScene = scene;
+        _choiceSetupTicket = inst->GetSetupTicket();
+        _choiceRevision = inst->GetThreadProperty<int>("PlaybackRevision");
         _choicePending = true;
         _linkedThread = a_quest;
         _choiceStartTime = ImGuiMCP::GetTime();
@@ -104,13 +110,21 @@ namespace Thread::Interface
 
     void StageSelectMenu::SetVisibilitySceneGraph(RE::TESQuest* a_quest, bool a_open)
     {
-        if (!a_quest || _graphOpen == a_open)
+        const auto stateLock = Instance::LockState();
+        if (!a_quest)
+            return;
+        if (_linkedThread && a_quest != _linkedThread) {
+            if (!a_open || _graphOpen || _choicePending)
+                return;
+            Close();
+        }
+        if (_graphOpen == a_open)
             return;
 
         if (a_open) {
             _graphOpen = true;
             _linkedThread = a_quest;
-            if (auto* inst = Instance::GetInstance(a_quest))
+            if (auto inst = Instance::GetInstance(a_quest))
                 BuildSceneGraph(*inst);
             _graphFitPending = true;
             SetBlocksInput(true);
@@ -122,9 +136,10 @@ namespace Thread::Interface
 
     void StageSelectMenu::RefreshSceneGraphView(RE::TESQuest* a_quest)
     {
+        const auto stateLock = Instance::LockState();
         if (!a_quest || a_quest != _linkedThread)
             return;
-        auto* inst = Instance::GetInstance(a_quest);
+        auto inst = Instance::GetInstance(a_quest);
         if (!inst)
             return;
 
@@ -143,21 +158,46 @@ namespace Thread::Interface
 
     void StageSelectMenu::Close()
     {
+        const auto stateLock = Instance::LockState();
         _choicePending = false;
         _choices.clear();
         _choiceScrollOffsets.clear();
         _choiceOrigin = nullptr;
+        _choiceScene = nullptr;
+        _choiceSetupTicket = 0;
+        _choiceRevision = -1;
         if (_graphOpen) {
             _graphOpen = false;
         }
         SetBlocksInput(false);
         Hide();
+        _linkedThread = nullptr;
+    }
+
+    void StageSelectMenu::CloseForThread(RE::TESQuest* a_quest)
+    {
+        const auto stateLock = Instance::LockState();
+        if (a_quest && a_quest == _linkedThread)
+            Close();
+    }
+
+    bool StageSelectMenu::IsGraphViewOpen() const
+    {
+        const auto stateLock = Instance::LockState();
+        return _graphOpen;
+    }
+
+    bool StageSelectMenu::IsChoicePending() const
+    {
+        const auto stateLock = Instance::LockState();
+        return _choicePending;
     }
 
     // ── Internals
 
     void StageSelectMenu::HideIfIdle()
     {
+        const auto stateLock = Instance::LockState();
         if (_choicePending || _graphOpen)
             return;
         SetBlocksInput(false);
@@ -166,28 +206,49 @@ namespace Thread::Interface
 
     void StageSelectMenu::ClosePendingChoice()
     {
+        const auto stateLock = Instance::LockState();
         _choicePending = false;
         _choices.clear();
         _choiceScrollOffsets.clear();
         _choiceOrigin = nullptr;
+        _choiceScene = nullptr;
+        _choiceSetupTicket = 0;
+        _choiceRevision = -1;
         HideIfIdle();
     }
 
     void StageSelectMenu::CloseGraphView()
     {
+        const auto stateLock = Instance::LockState();
         _graphOpen = false;
         HideIfIdle();
     }
 
     void StageSelectMenu::OnNextBranchSelected(int a_index)
     {
+        const auto stateLock = Instance::LockState();
+        if (!IsChoiceCurrent() || a_index < 0 || static_cast<size_t>(a_index) >= _choices.size()) {
+            ClosePendingChoice();
+            return;
+        }
         const auto script = Script::GetScriptObject(_linkedThread, "sslThreadController");
-        Script::DispatchMethodCall(script, "BranchTo", Script::CallbackPtr{}, static_cast<int>(a_index));
+        Script::DispatchMethodCall(script, "BranchToForRevision", Script::CallbackPtr{},
+            int{ a_index }, int{ _choiceRevision }, RE::BSFixedString{ _choiceScene->id }, RE::BSFixedString{ _choiceOrigin->id });
         ClosePendingChoice();
+    }
+
+    bool StageSelectMenu::IsChoiceCurrent() const
+    {
+        const auto stateLock = Instance::LockState();
+        auto instance = Instance::GetInstance(_linkedThread);
+        return _choicePending && instance && instance->GetSetupTicket() == _choiceSetupTicket &&
+            instance->GetActiveScene() == _choiceScene && instance->GetActiveStage() == _choiceOrigin &&
+            instance->GetThreadProperty<int>("PlaybackRevision") == _choiceRevision;
     }
 
     void StageSelectMenu::BuildSceneGraph(Instance& a_inst)
     {
+        const auto stateLock = Instance::LockState();
         _graphNodes.clear();
         _graphEdges.clear();
         _graphCurrentIndex = -1;
@@ -282,6 +343,9 @@ namespace Thread::Interface
 
     void StageSelectMenu::Render()
     {
+        const auto stateLock = Instance::LockState();
+        if (_choicePending && !IsChoiceCurrent())
+            ClosePendingChoice();
         if (!IsVisible())
             return;
         if (!_choicePending && !_graphOpen)
@@ -297,6 +361,7 @@ namespace Thread::Interface
 
     void StageSelectMenu::RenderStageChoiceCard()
     {
+        const auto stateLock = Instance::LockState();
         auto& scale = SceneHUD::GetSingleton().GetScale();
         auto* io = ImGuiMCP::GetIO();
         const float dh = io->DisplaySize.y;
@@ -484,11 +549,13 @@ namespace Thread::Interface
 
     void StageSelectMenu::RenderSceneGraphView()
     {
-        auto* inst = Instance::GetInstance(_linkedThread);
-        if (!inst) {
+        const auto stateLock = Instance::LockState();
+        auto inst = Instance::GetInstance(_linkedThread);
+        if (!inst || !inst->GetActiveScene() || !inst->GetActiveStage()) {
             Close();
             return;
         }
+        const auto* sourceStage = inst->GetActiveStage();
         auto& scale = SceneHUD::GetSingleton().GetScale();
         auto* io = ImGuiMCP::GetIO();
         const float dw = io->DisplaySize.x;
@@ -712,15 +779,16 @@ namespace Thread::Interface
 
         // Node click
         const auto script = Script::GetScriptObject(_linkedThread, "sslThreadController");
+        const int revision = inst->GetThreadProperty<int>("PlaybackRevision");
         if (graphClickedIndex >= 0 && graphClickedIndex < static_cast<int>(_graphNodes.size())) {
             const auto* clickedStage = _graphNodes[graphClickedIndex].stage;
             if (_graphScene && clickedStage) {
-                Script::DispatchMethodCall(script, "ToggleVisibilitySceneGraph", Script::CallbackPtr{}, -1);
-                Script::DispatchMethodCall(script, "SkipTo", Script::CallbackPtr{}, std::string{ clickedStage->id });
+                Script::DispatchMethodCall(script, "SkipToFromGraphForRevision", Script::CallbackPtr{},
+                    RE::BSFixedString{ clickedStage->id }, int{ revision }, RE::BSFixedString{ _graphScene->id }, RE::BSFixedString{ sourceStage->id });
                 return;
             }
         }
         if (closeClicked || ImGuiMCP::IsKeyReleased(ImGuiMCP::ImGuiKey_Escape))
-            Script::DispatchMethodCall(script, "ToggleVisibilitySceneGraph", Script::CallbackPtr{}, -1);
+            Script::DispatchMethodCall(script, "CloseGraphForRevision", Script::CallbackPtr{}, int{ revision });
     }
 }

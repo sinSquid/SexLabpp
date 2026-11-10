@@ -1,5 +1,7 @@
 #pragma once
 
+#include <shared_mutex>
+
 namespace UserData
 {
     enum class Strip
@@ -21,11 +23,12 @@ namespace UserData
         void Load();
         void Save();
 
-        void AddArmor(RE::TESForm* a_form, Strip a_type) { strips[a_form->formID] = a_type; }
+        void AddArmor(RE::TESForm* a_form, Strip a_type);
         void RemoveArmor(RE::TESForm* a_form);
         void RemoveArmorAll();
 
       private:
+        mutable std::shared_mutex _mutex;
         std::map<RE::FormID, Strip> strips{};
         YAML::Node _root;
     };

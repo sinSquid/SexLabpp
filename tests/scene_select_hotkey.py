@@ -29,12 +29,15 @@ def cpp_function(signature):
 
 cpp = r'''
 #include <cassert>
+#include <mutex>
 namespace RE { struct TESQuest {}; struct UI {
  bool paused = false;
  static UI* GetSingleton() { static UI ui; return &ui; }
  bool GameIsPaused() { return paused; }
 }; }
 struct Instance { static inline bool alive = true;
+ static inline std::recursive_mutex stateMutex;
+ static auto LockState(){return std::unique_lock{stateMutex};}
  static bool GetInstance(RE::TESQuest*) { return alive; }
 };
 enum class PanelId { kNone, kOther, kSceneSelect };

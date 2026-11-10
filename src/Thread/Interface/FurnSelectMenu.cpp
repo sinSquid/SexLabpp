@@ -22,6 +22,7 @@ namespace Thread::Interface
 
     void FurnSelectMenu::Open(RE::TESQuest* a_quest, uint64_t a_ticket, const std::vector<Item>& a_items)
     {
+        const auto stateLock = Instance::LockState();
         if (!a_quest)
             return;
         const std::lock_guard lock{ _mutex };
@@ -33,6 +34,7 @@ namespace Thread::Interface
 
     void FurnSelectMenu::Close(RE::TESQuest* a_quest)
     {
+        const auto stateLock = Instance::LockState();
         const std::lock_guard lock{ _mutex };
         if (_linkedThread != a_quest)
             return;
@@ -43,6 +45,7 @@ namespace Thread::Interface
 
     void FurnSelectMenu::HandleSelection(std::size_t a_index, uint64_t a_ticket)
     {
+        const auto stateLock = Instance::LockState();
         RE::TESQuest* quest;
         {
             const std::lock_guard lock{ _mutex };
@@ -62,6 +65,7 @@ namespace Thread::Interface
 
     void FurnSelectMenu::Render()
     {
+        const auto stateLock = Instance::LockState();
         std::unique_lock lock{ _mutex };
         if (!IsVisible())
             return;

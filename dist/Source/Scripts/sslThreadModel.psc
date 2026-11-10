@@ -608,6 +608,10 @@ String[] _CustomScenes
 String[] _PrimaryScenes
 String[] _LeadInScenes
 
+bool Function IsCurrentPreparation(int aiRevision)
+	return aiRevision == SetupRevision && GetState() == STATE_SETUP_M
+EndFunction
+
 State Making
 	Event OnBeginState()
 		Log("Entering Setup State")
@@ -786,51 +790,111 @@ EndState
 ; An immediate state to disallow setting additional data while aliases process setup
 State Making_M
 	Event OnBeginState()
+		int prepareRevision = SetupRevision
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
 		If (!BeginPlayerDialogueWait())
 			return
 		EndIf
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
 		If (!BeginActorRecovery())
 			return
 		EndIf
-		BeginAliasPreparation()
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
+		BeginAliasPreparationForRevision(prepareRevision)
 	EndEvent
 
 	Function OnPlayerDialogueComplete()
+		OnPlayerDialogueCompleteForRevision(SetupRevision)
+	EndFunction
+	Function OnPlayerDialogueCompleteForRevision(int aiRevision)
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
 		If (!BeginActorRecovery())
 			return
 		EndIf
-		BeginAliasPreparation()
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
+		BeginAliasPreparationForRevision(aiRevision)
 	EndFunction
 
 	Function OnNativeActorRecoveryComplete(bool abSucceeded)
-		If (!abSucceeded)
-			Log("Native actor recovery failed", "OnNativeActorRecoveryComplete()")
-			EndAnimation()
+		OnNativeActorRecoveryCompleteForRevision(abSucceeded, SetupRevision)
+	EndFunction
+	Function OnNativeActorRecoveryCompleteForRevision(bool abSucceeded, int aiRevision)
+		If (!IsCurrentPreparation(aiRevision))
 			return
 		EndIf
-		BeginAliasPreparation()
+		If (!abSucceeded)
+			Log("Native actor recovery failed", "OnNativeActorRecoveryComplete()")
+			If (IsCurrentPreparation(aiRevision))
+				EndAnimation()
+			EndIf
+			return
+		EndIf
+		BeginAliasPreparationForRevision(aiRevision)
 	EndFunction
 
 	Function BeginAliasPreparation()
+		BeginAliasPreparationForRevision(SetupRevision)
+	EndFunction
+	Function BeginAliasPreparationForRevision(int aiRevision)
+		int prepareRevision = aiRevision
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
 		; Event to all active aliases, resync via PrepareDone() to continue startup
 		_prepareAsyncCount = 0
-		CenterRef.SendModEvent("SSL_PREPARE_Thread" + tid)
-		_LeadInScenes = GetLeadInScenes()
-		_PrimaryScenes = GetPrimaryScenes()
-		_CustomScenes = GetCustomScenes()
-		SortAliasesToPositions()
-		PrepareDone()
-		If (_CustomScenes.Length)
-			_ThreadTags = SexLabRegistry.GetCommonTags(_CustomScenes)
-		Else
-			_ThreadTags = SexLabRegistry.GetCommonTags(_PrimaryScenes)
+		CenterRef.SendModEvent("SSL_PREPARE_Thread" + tid, prepareRevision as string)
+		If (!IsCurrentPreparation(prepareRevision))
+			return
 		EndIf
+		String[] leadInScenes = GetLeadInScenes()
+		String[] primaryScenes = GetPrimaryScenes()
+		String[] customScenes = GetCustomScenes()
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
+		_LeadInScenes = leadInScenes
+		_PrimaryScenes = primaryScenes
+		_CustomScenes = customScenes
+		SortAliasesToPositions()
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
+		String[] commonTags
+		If (_CustomScenes.Length)
+			commonTags = SexLabRegistry.GetCommonTags(_CustomScenes)
+		Else
+			commonTags = SexLabRegistry.GetCommonTags(_PrimaryScenes)
+		EndIf
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
+		_ThreadTags = commonTags
+		PrepareDoneForRevision(prepareRevision)
 	EndFunction
 
 	; Invoked n times by Aliases and once by StartThread, then continue to next state
 	Function PrepareDone()
+		PrepareDoneForRevision(SetupRevision)
+	EndFunction
+	Function PrepareDoneForRevision(int aiRevision)
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
 		_prepareAsyncCount += 1
 		Log("PrepareDone() called " + _prepareAsyncCount + "/" + (_Positions.Length + 1) + " times")
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
 		If (_prepareAsyncCount < (_Positions.Length + 1))
 			return
 		EndIf
@@ -838,44 +902,86 @@ State Making_M
 			If (!BeginPlayerSheatheWait())
 				return
 			EndIf
+			If (!IsCurrentPreparation(aiRevision))
+				return
+			EndIf
 			sslActorAlias playerAlias = ActorAlias(PlayerRef)
 			If (playerAlias)
 				playerAlias.NativeActorLockApplied()
 			EndIf
 		EndIf
-		FinishPreparation()
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
+		FinishPreparationForRevision(aiRevision)
 	EndFunction
 
 	Function OnPlayerSheatheComplete(bool abSucceeded)
+		OnPlayerSheatheCompleteForRevision(abSucceeded, SetupRevision)
+	EndFunction
+	Function OnPlayerSheatheCompleteForRevision(bool abSucceeded, int aiRevision)
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
 		If (!abSucceeded)
 			Log("Player weapon sheathing timed out", "OnPlayerSheatheComplete()")
-			EndAnimation()
+			If (IsCurrentPreparation(aiRevision))
+				EndAnimation()
+			EndIf
 			return
 		EndIf
 		sslActorAlias playerAlias = ActorAlias(PlayerRef)
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
 		If (playerAlias)
 			playerAlias.NativeActorLockApplied()
 		EndIf
-		FinishPreparation()
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
+		FinishPreparationForRevision(aiRevision)
 	EndFunction
 
 	Function FinishPreparation()
+		FinishPreparationForRevision(SetupRevision)
+	EndFunction
+	Function FinishPreparationForRevision(int aiRevision)
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
 		String activeScene = GetActiveScene()
 		LeadIn = LeadIn && _LeadInScenes.Find(activeScene) > -1
 		Log("Thread validated, playing animation: " + activeScene + ", " + SexLabRegistry.GetSceneName(activeScene), "StartThread()")
 		SendThreadEvent("AnimationStarting")
-		UndressAndStripActors()
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
+		UndressAndStripActorsForRevision(aiRevision)
 	EndFunction
 
 	Function UndressAndStripActors()
+		UndressAndStripActorsForRevision(SetupRevision)
+	EndFunction
+	Function UndressAndStripActorsForRevision(int aiRevision)
+		int prepareRevision = aiRevision
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
 		bool WaitForUndress = false
 		int i = 0
 		While (i < _Positions.Length)
+			If (!IsCurrentPreparation(prepareRevision))
+				return
+			EndIf
 			WaitForUndress= (ActorAlias[i].InitiateUndressing() || WaitForUndress)
 			i += 1
 		EndWhile
 		If (WaitForUndress)
 			Utility.Wait(2.5)
+		EndIf
+		If (!IsCurrentPreparation(prepareRevision))
+			return
 		EndIf
 		If (HasPlayer)
 			If (sslSystemConfig.GetSettingInt("iUseFade") > 0)
@@ -886,16 +992,25 @@ State Making_M
 				SetObjectiveDisplayed(0, true)
 			EndIf
 		EndIf
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
 		string activeScene = GetActiveScene()
 		int[] strips_ = SexLabRegistry.GetStripDataA(activeScene, "")
 		int[] sex_ = SexLabRegistry.GetPositionSexA(activeScene)
 		int j = 0
 		While (j < _Positions.Length)
+			If (!IsCurrentPreparation(prepareRevision))
+				return
+			EndIf
 			ActorAlias[j].ReadyActor(strips_[j], sex_[j])
 			j += 1
 		EndWhile
 		If (WaitForUndress)
 			Utility.Wait(1.5)
+		EndIf
+		If (!IsCurrentPreparation(prepareRevision))
+			return
 		EndIf
 		GoToState(STATE_PLAYING)
 	EndFunction
@@ -964,6 +1079,10 @@ Function ContinueSetupForRevision(bool abContinue, int aiRevision)
 EndFunction
 Function UndressAndStripActors()
 	Log("Actors can be undressed only during setup", "UndressAndStripActors()")
+EndFunction
+Function FinishPreparationForRevision(int aiRevision)
+EndFunction
+Function UndressAndStripActorsForRevision(int aiRevision)
 EndFunction
 
 Function CreateInstance(Actor[] akSubmissives, String[] asPrimaryScenes, String[] asLeadInScenes, String[] asCustomScenes, int aiFurnitureStatus) native
@@ -1800,17 +1919,27 @@ EndFunction
 Function PrepareDone()
 	Log("PrepareDone(), Function called from invalid state: " + GetState())
 EndFunction
+Function PrepareDoneForRevision(int aiRevision)
+EndFunction
 Function OnNativeActorRecoveryComplete(bool abSucceeded)
 	Log("OnNativeActorRecoveryComplete(), Function called from invalid state: " + GetState())
+EndFunction
+Function OnNativeActorRecoveryCompleteForRevision(bool abSucceeded, int aiRevision)
 EndFunction
 Function OnPlayerDialogueComplete()
 	Log("OnPlayerDialogueComplete(), Function called from invalid state: " + GetState())
 EndFunction
+Function OnPlayerDialogueCompleteForRevision(int aiRevision)
+EndFunction
 Function BeginAliasPreparation()
 	Log("BeginAliasPreparation(), Function called from invalid state: " + GetState())
 EndFunction
+Function BeginAliasPreparationForRevision(int aiRevision)
+EndFunction
 Function OnPlayerSheatheComplete(bool abSucceeded)
 	Log("OnPlayerSheatheComplete(), Function called from invalid state: " + GetState())
+EndFunction
+Function OnPlayerSheatheCompleteForRevision(bool abSucceeded, int aiRevision)
 EndFunction
 Function FinishPreparation()
 	Log("FinishPreparation(), Function called from invalid state: " + GetState())
@@ -2851,13 +2980,15 @@ bool Function CheckTags(String[] CheckTags, bool RequireAll = true, bool Suppres
 	int i = 0
 	While (i < CheckTags.Length)
 		If (HasTag(CheckTags[i]))
-			If (!RequireAll || Suppress)
+			If (!RequireAll)
 				return !Suppress
 			EndIf
+		ElseIf (RequireAll)
+			return Suppress
 		EndIf
 		i += 1
 	EndWhile
-	return !Suppress
+	return RequireAll != Suppress
 EndFunction
 String[] Function AddString(string[] ArrayValues, string ToAdd, bool RemoveDupes = true)
 	if ToAdd != ""

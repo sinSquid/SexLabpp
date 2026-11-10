@@ -14,7 +14,7 @@ namespace Thread::Interface
 
     void AnimSpeedOverlay::OnSpeedChange(RE::TESQuest* a_quest, float a_delta)
     {
-        auto* inst = Instance::GetInstance(a_quest);
+        auto inst = Instance::GetInstance(a_quest);
         if (!inst)
             return;
         const float next = std::clamp(inst->GetAnimationPlaybackSpeed() + a_delta, 0.25f, 3.0f);
@@ -31,7 +31,7 @@ namespace Thread::Interface
 
     void AnimSpeedOverlay::Render(SceneHUD& a_hud)
     {
-        auto* instance = a_hud.GetThreadInstance();
+        auto instance = a_hud.GetThreadInstance();
         if (!instance)
             return;
         auto& scale = a_hud.GetScale();

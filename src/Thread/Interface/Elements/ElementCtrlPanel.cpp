@@ -94,7 +94,7 @@ namespace Thread::Interface
 
     void ElementCtrlPanel::Open(SceneHUD& a_hud)
     {
-        if (auto* inst = a_hud.GetThreadInstance()) {
+        if (auto inst = a_hud.GetThreadInstance()) {
             _scaleAdjustment = std::clamp(inst->GetThreadProperty<float>("VarUI_MenuScaleMult"), 0.5f, 2.5f);
             const float textScale = inst->GetThreadProperty<float>("VarUI_TextScaleMult");
             _textScaleAdjustment = textScale > 0.0f ? std::clamp(textScale, 0.75f, 2.0f) : 1.0f;
@@ -104,7 +104,7 @@ namespace Thread::Interface
 
     void ElementCtrlPanel::OnScaleChange(SceneHUD& a_hud, float a_value)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         const float value = std::clamp(a_value, 0.5f, 2.5f);
@@ -115,7 +115,7 @@ namespace Thread::Interface
 
     void ElementCtrlPanel::OnTextScaleChange(SceneHUD& a_hud, float a_value)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         const float value = std::clamp(a_value, 0.75f, 2.0f);
@@ -126,7 +126,7 @@ namespace Thread::Interface
 
     void ElementCtrlPanel::Render(SceneHUD& a_hud)
     {
-        auto* inst = a_hud.GetThreadInstance();
+        auto inst = a_hud.GetThreadInstance();
         if (!inst)
             return;
         auto& scale = a_hud.GetScale();

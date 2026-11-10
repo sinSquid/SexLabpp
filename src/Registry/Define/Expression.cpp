@@ -278,9 +278,13 @@ namespace Registry
 
     void Expression::UpdateValues(bool a_female, int a_level, std::vector<float> a_values)
     {
+        if (a_level < 0 || a_level >= MAX_LEVEL_COUNT || a_values.size() != Total) {
+            logger::error("Invalid expression level or value count for {}", id);
+            return;
+        }
         has_edits = true;
         auto& dataEntry = data[a_female];
-        while (dataEntry.size() <= a_level) {
+        while (dataEntry.size() <= static_cast<size_t>(a_level)) {
             dataEntry.emplace_back();
         }
         std::copy_n(a_values.begin(), dataEntry[a_level].size(), dataEntry[a_level].begin());

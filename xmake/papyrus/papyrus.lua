@@ -73,6 +73,7 @@ end
 
 ---@param target Target
 function on_config(target)
+    local dependencies = import("papyrus.dependencies")
     local conf = target:extraconf("rules", "papyrus")
 
     local papyrus = {
@@ -110,6 +111,7 @@ function on_config(target)
         end
     end
     target:set("includedirs", includedirs)
+    target:data_set("papyrus.dependencies", dependencies.build_index(includedirs))
 end
 
 ---@param target Target
@@ -126,6 +128,24 @@ function on_build_file(target, sourcefile, opt)
 
     local papyrus = target:data("papyrus") or {}
     local compiler = assert(find_tool("papyrus"), "PapyrusCompiler not found!")
+    local dependencies = import("papyrus.dependencies")
+    local depfiles = dependencies(sourcefile, target:data("papyrus.dependencies"))
+    table.insert(depfiles, compiler.program)
+    table.insert(depfiles, path.join(os.projectdir(), "xmake/papyrus/papyrus.lua"))
+    table.insert(depfiles, path.join(os.projectdir(), "xmake/papyrus/modules/papyrus/dependencies.lua"))
+    -- The flags argument can be a file resolved through the include search path.
+    if os.isfile(papyrus.flags) then
+        table.insert(depfiles, papyrus.flags)
+    else
+        local searchdirs = table.join(target:get("includedirs"), {path.directory(compiler.program)})
+        for _, dir in ipairs(searchdirs) do
+            local flagsfile = path.join(dir, papyrus.flags)
+            if os.isfile(flagsfile) then
+                table.insert(depfiles, flagsfile)
+                break
+            end
+        end
+    end
 
     local objectfile = _objectfile(target, sourcefile, true)
     local outdir = path.directory(objectfile)
@@ -154,10 +174,14 @@ function on_build_file(target, sourcefile, opt)
         end
     end, {
         dependfile = target:dependfile(objectfile),
-        files = sourcefile,
+        files = depfiles,
         values = {
-            papyrus.optimize and "optimize" or nil,
-            papyrus.anonymize and "anonymize" or nil
+            compiler.program,
+            papyrus.flags,
+            table.concat(target:get("includedirs"), ";"),
+            table.concat(depfiles, ";"),
+            "optimize=" .. tostring(not not papyrus.optimize),
+            "anonymize=" .. tostring(not not papyrus.anonymize)
         },
         changed = target:is_rebuilt(),
     })
