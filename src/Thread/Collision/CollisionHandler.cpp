@@ -181,7 +181,7 @@ namespace Thread::Collision
 
         auto& state = physicsStates.try_emplace(a_actor->GetFormID()).first->second;
         if (state.controller.get() != controller) {
-            state.controller = controller;
+            state.controller = RE::NiPointer<RE::bhkCharacterController>{ controller };
             state.flags = controller->flags.underlying();
             state.characterState = controller->context.currentState;
             state.pitchAngle = controller->pitchAngle;
