@@ -68,6 +68,17 @@ namespace Thread::Collision
             a_vec.quad.m128_f32[3] = 0.0f;
         }
 
+        [[nodiscard]] RE::hkpRigidBody* GetControllerRigidBody(RE::bhkCharacterController* a_controller)
+        {
+            // A proxy's phantom must not be interpreted as a rigid body.
+            auto* rigidController = skyrim_cast<RE::bhkCharRigidBodyController*>(a_controller);
+            if (!rigidController)
+                return nullptr;
+            auto* character = static_cast<RE::hkpCharacterRigidBody*>(rigidController->charRigidBody.referencedObject.get());
+            auto* body = character ? character->character : nullptr;
+            return body && body->GetCollidableRW() ? body : nullptr;
+        }
+
         constexpr std::uint32_t kOwnedControllerFlags =
             static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kNoGravityOnGround) |
             static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kNoSim) |
@@ -189,7 +200,7 @@ namespace Thread::Collision
             state.calculatePitchTimer = controller->calculatePitchTimer;
             state.rigidBody.reset();
         }
-        auto* body = controller->GetRigidBody();
+        auto* body = GetControllerRigidBody(controller);
         if (body && state.rigidBody.get() != body) {
             state.rigidBody = RE::hkRefPtr<RE::hkpRigidBody>{ body };
             state.massInverse = body->motion.inertiaAndMassInv.quad.m128_f32[3];
@@ -228,7 +239,7 @@ namespace Thread::Collision
         if (controller->calculatePitchTimer == 55.0f)
             controller->calculatePitchTimer = state.calculatePitchTimer;
 
-        auto* body = controller->GetRigidBody();
+        auto* body = GetControllerRigidBody(controller);
         if (body && state.rigidBody.get() == body) {
             if (body->motion.inertiaAndMassInv.quad.m128_f32[3] == 0.0f)
                 body->motion.SetMassInv(state.massInverse);
