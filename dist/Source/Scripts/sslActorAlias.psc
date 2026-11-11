@@ -528,11 +528,26 @@ State Ready
 			_ActorRef.SetFactionRank(_AnimatingFaction, 2)
 			_Thread.UpdateAnimatingActorMovement(_ActorRef) ;MOVEMENT_UNLOCK
 			float fallback_timer = 15.0
-			float prev_dist = distance + 1.0
-			Utility.Wait(2.0)
-			If (!IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
+			; Allow the package to start moving, but finish as soon as it arrives.
+			float pathTime = _Thread.GetPreparationElapsedTime(prepareRevision)
+			If (pathTime < 0.0 || !IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
 				return
 			EndIf
+			float startupDeadline = pathTime + 2.0
+			int startupChecks = 0
+			While (distance > target_distance && pathTime < startupDeadline && startupChecks < 20)
+				Utility.Wait(0.1)
+				If (!IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
+					return
+				EndIf
+				distance = prepareActor.GetDistance(target)
+				pathTime = _Thread.GetPreparationElapsedTime(prepareRevision)
+				If (pathTime < 0.0 || !IsCurrentAliasPreparation(prepareRevision, prepareActor, STATE_SETUP))
+					return
+				EndIf
+				startupChecks += 1
+			EndWhile
+			float prev_dist = distance + 1.0
 			float interval = 0.05
 			While (distance > target_distance && Math.abs(prev_dist - distance) > 0.5 && fallback_timer > 0)
 				fallback_timer -= interval

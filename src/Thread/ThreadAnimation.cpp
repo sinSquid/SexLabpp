@@ -400,9 +400,13 @@ namespace Thread
     void Instance::UpdateAnimations(float a_delta)
     {
         const auto stateLock = LockState();
-        const auto timeoutDelta = Util::IsGamePausedOrFrozen() ? 0.0f : a_delta;
+        const bool paused = Util::IsGamePausedOrFrozen();
+        const auto timeoutDelta = paused ? 0.0f : a_delta;
+        // The setup grace uses unscaled, non-paused frame time, not VM wake counts.
+        const auto preparationDelta = paused ? 0.0f : std::max(0.0f, RE::BSTimer::GetSingleton()->realTimeDelta);
         std::shared_lock lock{ _mInstances };
         for (auto&& instance : instances) {
+            instance->preparationElapsed += preparationDelta;
             instance->UpdateFixedLengthTimer(timeoutDelta);
             instance->UpdatePendingAnimations(timeoutDelta);
         }

@@ -534,7 +534,7 @@ namespace Registry
     }
 
 
-    std::vector<std::vector<RE::Actor*>> Scene::FindAssignments(const std::vector<ActorFragment>& a_fragments) const
+    std::vector<std::vector<RE::Actor*>> Scene::FindAssignments(const std::vector<ActorFragment>& a_fragments, bool a_firstOnly) const
     {
         if (a_fragments.size() != positions.size())
             return {};
@@ -563,10 +563,10 @@ namespace Registry
         std::vector<ScoredAssignment> assignments{};
         std::vector<bool> used(N, false);
         Assignment current;
-        const std::function<void(size_t, int32_t)> helper = [&](size_t fragmentIdx, int32_t accScore) {
+        const std::function<bool(size_t, int32_t)> helper = [&](size_t fragmentIdx, int32_t accScore) {
             if (fragmentIdx == N) {
                 assignments.emplace_back(current, accScore);
-                return;
+                return a_firstOnly;
             }
             for (auto&& [positionIdx, score] : fragmentGraph[fragmentIdx]) {
                 if (used[positionIdx]) {
@@ -574,10 +574,13 @@ namespace Registry
                 }
                 used[positionIdx] = true;
                 current.emplace_back(a_fragments[fragmentIdx], positionIdx);
-                helper(fragmentIdx + 1, accScore + score);
+                const bool complete = helper(fragmentIdx + 1, accScore + score);
                 current.pop_back();
                 used[positionIdx] = false;
+                if (complete)
+                    return true;
             }
+            return false;
         };
         helper(0, 0);
         if (assignments.empty()) {

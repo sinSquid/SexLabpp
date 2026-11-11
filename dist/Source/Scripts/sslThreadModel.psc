@@ -604,12 +604,23 @@ EndFunction
 int _instanceCreationWaitLock
 int Property SetupRevision = 0 Auto Hidden
 int _prepareAsyncCount
+bool _startupTimingEnabled
+float _startupStartedAt
+int _startupTimingRevision = -1
 String[] _CustomScenes
 String[] _PrimaryScenes
 String[] _LeadInScenes
 
 bool Function IsCurrentPreparation(int aiRevision)
 	return aiRevision == SetupRevision && GetState() == STATE_SETUP_M
+EndFunction
+
+; Debug-only cumulative timings. Revision labels keep cancelled/reused threads separate.
+Function TraceStartupPhase(string asPhase, int aiRevision)
+	If (_startupTimingEnabled && aiRevision == _startupTimingRevision && aiRevision == SetupRevision)
+		float elapsed = Utility.GetCurrentRealTime() - _startupStartedAt
+		LogStartupTiming(asPhase, aiRevision, elapsed)
+	EndIf
 EndFunction
 
 State Making
@@ -733,6 +744,18 @@ State Making
 	sslThreadController Function StartThread()
 		SetupRevision += 1
 		int startRevision = SetupRevision
+		bool traceStartup = Config.DebugMode
+		float traceStartedAt = 0.0
+		If (traceStartup)
+			traceStartedAt = Utility.GetCurrentRealTime()
+		EndIf
+		string startState = GetState()
+		If (startState != STATE_SETUP || startRevision != SetupRevision)
+			return none
+		EndIf
+		_startupTimingEnabled = traceStartup
+		_startupTimingRevision = startRevision
+		_startupStartedAt = traceStartedAt
 		_instanceCreationWaitLock = -1
 		UnregisterForUpdate()
 		_Positions = PapyrusUtil.RemoveActor(_Positions, none)
@@ -750,6 +773,7 @@ State Making
 		If (startRevision != SetupRevision || GetState() != STATE_SETUP)
 			return none
 		EndIf
+		TraceStartupPhase("native-request", startRevision)
 		CreateInstanceForRevision(submissives, _PrimaryScenes, _LeadInScenes, _CustomScenes, _furniStatus, startRevision)
 		While (_instanceCreationWaitLock < 0 && startRevision == SetupRevision)
 			Utility.Wait(0.05)
@@ -763,6 +787,11 @@ State Making
 			return none
 		EndIf
 		If (!_QuickResetScenes)
+			TraceStartupPhase("native-ready", startRevision)
+			string nativeReadyState = GetState()
+			If (nativeReadyState != STATE_SETUP || startRevision != SetupRevision)
+				return none
+			EndIf
 			GoToState(STATE_SETUP_M)
 		EndIf
 	return self as sslThreadController
@@ -851,6 +880,10 @@ State Making_M
 			return
 		EndIf
 		; Event to all active aliases, resync via PrepareDone() to continue startup
+		TraceStartupPhase("prepare-begin", prepareRevision)
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
 		_prepareAsyncCount = 0
 		CenterRef.SendModEvent("SSL_PREPARE_Thread" + tid, prepareRevision as string)
 		If (!IsCurrentPreparation(prepareRevision))
@@ -896,6 +929,10 @@ State Making_M
 			return
 		EndIf
 		If (_prepareAsyncCount < (_Positions.Length + 1))
+			return
+		EndIf
+		TraceStartupPhase("prepare-ready", aiRevision)
+		If (!IsCurrentPreparation(aiRevision))
 			return
 		EndIf
 		If (HasPlayer)
@@ -947,6 +984,10 @@ State Making_M
 		FinishPreparationForRevision(SetupRevision)
 	EndFunction
 	Function FinishPreparationForRevision(int aiRevision)
+		If (!IsCurrentPreparation(aiRevision))
+			return
+		EndIf
+		TraceStartupPhase("equipment-begin", aiRevision)
 		If (!IsCurrentPreparation(aiRevision))
 			return
 		EndIf
@@ -1009,6 +1050,10 @@ State Making_M
 		If (WaitForUndress)
 			Utility.Wait(1.5)
 		EndIf
+		If (!IsCurrentPreparation(prepareRevision))
+			return
+		EndIf
+		TraceStartupPhase("equipment-ready", prepareRevision)
 		If (!IsCurrentPreparation(prepareRevision))
 			return
 		EndIf
@@ -1087,6 +1132,8 @@ EndFunction
 
 Function CreateInstance(Actor[] akSubmissives, String[] asPrimaryScenes, String[] asLeadInScenes, String[] asCustomScenes, int aiFurnitureStatus) native
 Function CreateInstanceForRevision(Actor[] akSubmissives, String[] asPrimaryScenes, String[] asLeadInScenes, String[] asCustomScenes, int aiFurnitureStatus, int aiRevision) native
+Function LogStartupTiming(string asPhase, int aiRevision, float afElapsed) native
+float Function GetPreparationElapsedTime(int aiRevision) native
 bool Function BeginActorRecovery() native
 bool Function BeginPlayerDialogueWait() native
 bool Function BeginPlayerSheatheWait() native
@@ -1165,6 +1212,7 @@ State Animating
 		EndIf
 	EndEvent
 	Function AnimationStart()
+		int startPlaybackRevision = PlaybackRevision
 		_animationSyncCount += 1
 		int syncCount = _animationSyncCount
 		int syncTarget = _Positions.Length + 1
@@ -1175,6 +1223,10 @@ State Animating
 		_animationSyncPending = true
 		Log("AnimationStart called " + syncCount + "/" + syncTarget + " times")
 		Log("AnimationStart fully setup, begin animating")
+		TraceStartupPhase("aliases-ready", SetupRevision)
+		If (!IsCurrentPlayback(startPlaybackRevision))
+			return
+		EndIf
 		If (HasPlayer)
 			If(IsVictim(PlayerRef) && Config.DisablePlayer)
 				AutoAdvance = true
@@ -1586,6 +1638,7 @@ State Animating
 	EndFunction
 
 	Function OnAnimationSynchronized()
+		int synchronizedRevision = PlaybackRevision
 		_animationSyncPending = false
 		bool completedSceneReset = _sceneResetSyncPending
 		_sceneResetSyncPending = false
@@ -1600,6 +1653,10 @@ State Animating
 		OnStageChangedUpdateHUD()
 		ConfigureStageTimer(false)
 		If (!_animationStarted)
+			TraceStartupPhase("playback-started", SetupRevision)
+			If (!IsCurrentPlayback(synchronizedRevision))
+				return
+			EndIf
 			_animationStarted = true
 			SendThreadEvent("AnimationStart")
 			If (LeadIn)

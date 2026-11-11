@@ -53,6 +53,8 @@ namespace Papyrus::ThreadModel
 
     void CreateInstance(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref);
     void CreateInstanceForRevision(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref, int a_revision);
+    void LogStartupTiming(RE::TESQuest* a_qst, RE::BSFixedString a_phase, int a_revision, float a_elapsed);
+    float GetPreparationElapsedTime(QUESTARGS, int a_revision);
     void DestroyInstance(RE::TESQuest* a_qst, bool a_preservePreparedActors);
     void CancelPendingAnimations(RE::TESQuest* a_qst);
     bool BeginActorRecovery(QUESTARGS);
@@ -121,6 +123,8 @@ namespace Papyrus::ThreadModel
 
         REGISTERFUNC(CreateInstance, "sslThreadModel", true);
         REGISTERFUNC(CreateInstanceForRevision, "sslThreadModel", true);
+        REGISTERFUNC(LogStartupTiming, "sslThreadModel", true);
+        REGISTERFUNC(GetPreparationElapsedTime, "sslThreadModel", true);
         REGISTERFUNC(DestroyInstance, "sslThreadModel", true);
         REGISTERFUNC(CancelPendingAnimations, "sslThreadModel", true);
         REGISTERFUNC(BeginActorRecovery, "sslThreadModel", false);

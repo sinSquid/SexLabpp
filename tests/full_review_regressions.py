@@ -167,7 +167,8 @@ class ReviewRegressions(unittest.TestCase):
                            _LeadInScenes=array(), _CustomScenes=array(), _furniStatus=1,
                            STATE_SETUP='Making', STATE_SETUP_M='Making_M', self=model,
                            UnregisterForUpdate=lambda: None, GetState=lambda: 'Making',
-                           Config=SimpleNamespace(HOOKID_STARTING=1), RunHook=lambda *a: None,
+                           Config=SimpleNamespace(HOOKID_STARTING=1, DebugMode=False), RunHook=lambda *a: None,
+                           TraceStartupPhase=lambda *a: None,
                            GetSubmissives=lambda: array(), GoToState=transitions.append,
                            PapyrusUtil=SimpleNamespace(RemoveActor=lambda values, value: values))
 
@@ -199,13 +200,21 @@ class ReviewRegressions(unittest.TestCase):
                    LeadIn=True, _QuickResetScenes=False, _PrimaryScenes=array(['old-scene']),
                    _LeadInScenes=array(), _CustomScenes=array(), _furniStatus=1,
                    STATE_SETUP='Making', STATE_SETUP_M='Making_M', self=object(),
-                   UnregisterForUpdate=lambda: None, Config=SimpleNamespace(HOOKID_STARTING=1),
+                   UnregisterForUpdate=lambda: None, Config=SimpleNamespace(HOOKID_STARTING=1, DebugMode=False),
+                   TraceStartupPhase=lambda *a: None,
                    RunHook=lambda *a: None, GetSubmissives=lambda: array(),
                    PapyrusUtil=SimpleNamespace(RemoveActor=lambda values, value: values),
                    Utility=SimpleNamespace(Wait=lambda _: self.fail('old setup must not wait')),
                    GoToState=lambda _: self.fail('old setup must not advance'))
 
+        state_calls = []
+
         def reuse_at_state_call():
+            state_calls.append(1)
+            # The new preflight check must pass before exercising the later
+            # native-entry boundary that this regression originally covered.
+            if len(state_calls) == 1 and 'string startState = GetState()' in engine['body']('sslThreadModel', 'StartThread'):
+                return 'Making'
             # The first revision comparison already passed. Cancellation and a
             # new start occur during the remaining native GetState boundary.
             env['SetupRevision'] += 2

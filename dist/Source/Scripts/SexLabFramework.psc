@@ -931,6 +931,11 @@ endProperty
 
 ;/* DEPRECATED! */;
 int function StartSex(Actor[] Positions, sslBaseAnimation[] Anims, Actor Victim = none, ObjectReference CenterOn = none, bool AllowBed = true, string Hook = "")
+  bool traceStartup = Config.DebugMode
+  float requestStartedAt
+  If (traceStartup)
+    requestStartedAt = Utility.GetCurrentRealTime()
+  EndIf
   sslThreadModel thread = NewThread()
   If (!thread)
     Log("StartSex() - Failed to claim an available thread")
@@ -944,6 +949,9 @@ int function StartSex(Actor[] Positions, sslBaseAnimation[] Anims, Actor Victim 
   thread.DisableBedUse(!AllowBed)
   thread.SetHook(Hook)
   thread.SetConsent(Victim == none)
+  If (traceStartup)
+    thread.LogStartupTiming("legacy-request-prepared", thread.SetupRevision + 1, Utility.GetCurrentRealTime() - requestStartedAt)
+  EndIf
   If (thread.StartThread())
     return thread.GetThreadID()
   EndIf
@@ -1738,6 +1746,11 @@ sslThreadModel Function NewThread(float TimeOut = 5.0)
 EndFunction
 
 SexLabThread Function StartSceneImpl(Actor[] akPositions, String[] asScenes, String asContext, Actor[] akSubmissive, ObjectReference akCenter, int aiFurniture, String asHook)
+  bool traceStartup = Config.DebugMode
+  float requestStartedAt
+  If (traceStartup)
+    requestStartedAt = Utility.GetCurrentRealTime()
+  EndIf
   sslThreadModel thread = NewThread()
   If (!thread)
     Log("StartSceneImpl() - Failed to claim an available thread")
@@ -1751,6 +1764,9 @@ SexLabThread Function StartSceneImpl(Actor[] akPositions, String[] asScenes, Str
   thread.SetFurnitureStatus(aiFurniture)
   thread.AddContextEx(asContext)
   thread.SetHook(asHook)
+  If (traceStartup)
+    thread.LogStartupTiming("request-prepared", thread.SetupRevision + 1, Utility.GetCurrentRealTime() - requestStartedAt)
+  EndIf
   return thread.StartThread()
 EndFunction
 

@@ -292,7 +292,7 @@ namespace Papyrus::SexLabRegistry
             }
             if (!scene->IsCompatibleTags(tagdetail))
                 continue;
-            if (scene->FindAssignments(fragments).empty())
+            if (scene->FindAssignments(fragments, true).empty())
                 continue;
             ret.push_back(sceneid);
         }

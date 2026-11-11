@@ -118,7 +118,8 @@ namespace Registry
         _NODISCARD const PositionInfo* GetNthPosition(size_t n) const;
 
         _NODISCARD REX::EnumSet<FurnitureType::Value> GetFurnitureTypes() const;
-        _NODISCARD std::vector<std::vector<RE::Actor*>> FindAssignments(const std::vector<ActorFragment>& a_fragments) const;
+        // First-only queries test compatibility; full queries retain score ordering.
+        _NODISCARD std::vector<std::vector<RE::Actor*>> FindAssignments(const std::vector<ActorFragment>& a_fragments, bool a_firstOnly = false) const;
 
         _NODISCARD size_t GetNumStages() const;
         _NODISCARD const std::vector<const Stage*> GetAllStages() const;

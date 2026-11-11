@@ -314,6 +314,19 @@ namespace Papyrus::ThreadModel
         }).detach();
     }
 
+    void LogStartupTiming(RE::TESQuest* a_qst, RE::BSFixedString a_phase, int a_revision, float a_elapsed)
+    {
+        if (a_qst) {
+            logger::info("[StartupTiming] Thread {:X} revision={} phase={} elapsed={:.3f}s", a_qst->GetFormID(), a_revision, a_phase, a_elapsed);
+        }
+    }
+
+    float GetPreparationElapsedTime(QUESTARGS, int a_revision)
+    {
+        GET_INSTANCE(-1.0f);
+        return instance->GetPreparationElapsedTime(a_revision);
+    }
+
     void DestroyInstance(RE::TESQuest* a_qst, bool a_preservePreparedActors)
     {
         Thread::Instance::DestroyInstance(a_qst, a_preservePreparedActors);

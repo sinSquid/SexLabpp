@@ -112,6 +112,7 @@ namespace Thread
         const Registry::Scene* GetActiveScene() { return activeScene; }
         const Registry::Stage* GetActiveStage() { return activeStage; }
         uint64_t GetSetupTicket() const { return setupTicket; }
+        float GetPreparationElapsedTime(int a_revision) const { return a_revision == setupRevision ? static_cast<float>(preparationElapsed) : -1.0f; }
         std::vector<const Registry::Scene*> GetThreadScenes(SceneType a_type);
         std::vector<const Registry::Scene*> GetThreadScenes();
 
@@ -215,6 +216,7 @@ namespace Thread
         RE::TESQuest* linkedQst;
         uint64_t setupTicket{ 0 };
         int setupRevision{ 0 };
+        double preparationElapsed{ 0.0 };
         // Set under _mInstances before publication; unpublished temporaries own no manager entry.
         bool wasPublished{ false };
 

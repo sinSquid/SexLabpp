@@ -82,7 +82,7 @@ namespace Thread
         });
         for (size_t i = 0; i < SceneType::Total; i++) {
             scenes[i] = std::ranges::fold_left(a_scenes[i], std::vector<const Registry::Scene*>{}, [&](auto&& acc, const Registry::Scene* it) {
-                if (it->FindAssignments(fragments).empty()) {
+                if (it->FindAssignments(fragments, true).empty()) {
                     logger::warn("Scene {}, {} has no assignments.", it->id, it->name);
                     return acc;
                 } else if (it->RequiresFurniture() && a_furniturepref == FurniturePreference::Disallow) {

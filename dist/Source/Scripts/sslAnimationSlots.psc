@@ -211,6 +211,11 @@ EndFunction
 
 sslBaseAnimation Function GetBySlot(int index)
   SyncBackEnd()
+  return GetBySlotSynced(index)
+EndFunction
+
+; Internal lookup after the caller has synchronized the proxy registry.
+sslBaseAnimation Function GetBySlotSynced(int index)
   Alias[] aliases = GetAliases()
   If (index < 0 || aliases.Length <= index)
     return none
@@ -219,11 +224,11 @@ sslBaseAnimation Function GetBySlot(int index)
 EndFunction
 
 sslBaseAnimation function GetByName(string FindName)
-  return GetBySlot(FindByName(FindName))
+  return GetBySlotSynced(FindByName(FindName))
 endFunction
 
 sslBaseAnimation function GetbyRegistrar(string Registrar)
-  return GetBySlot(FindByRegistrar(Registrar))
+  return GetBySlotSynced(FindByRegistrar(Registrar))
 endFunction
 
 int function FindByRegistrar(string Registrar)

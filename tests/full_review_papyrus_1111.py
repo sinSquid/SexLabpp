@@ -45,7 +45,7 @@ def call(name, function, env, occurrence=0):
 def without_diagnostics(body):
     # Papyrus implicitly stringifies numbers in logging expressions; diagnostic
     # formatting is outside this fixture's state/return contract.
-    return re.sub(r'(?m)^(\s*)(?:Log|Error)\([^\n]*\)\s*$', r'\1pass', body)
+    return re.sub(r'(?m)^(\s*)(?:Log|Error|TraceStartupPhase)\([^\n]*\)\s*$', r'\1pass', body)
 
 
 def event(name, function, env, occurrence=0):
@@ -163,7 +163,8 @@ class PapyrusReviewRegressions(unittest.TestCase):
                 actor = NS(GetDistance=distance, SetFactionRank=lambda *a: effects.append('faction'))
                 state['actor'] = actor
                 thread = NS(SetupRevision=4, CalcPathingTargetDistance=lambda _: 10,
-                            UpdateAnimatingActorMovement=lambda _: effects.append('unlock'))
+                            UpdateAnimatingActorMovement=lambda _: effects.append('unlock'),
+                            GetPreparationElapsedTime=lambda _: sum(waits))
                 env = dict(_Thread=thread, _ActorRef=actor, _PlayerRef=object(), _raceID=0,
                            aiRevision=4, akPrepareActor=actor,
                            _AnimatingFaction=object(), DoPathToCenter=True, akPathTo=object(),
@@ -183,7 +184,8 @@ class PapyrusReviewRegressions(unittest.TestCase):
                 name = 'WaitForPathToCenterForRevision' if 'Function WaitForPathToCenterForRevision(' in source('sslActorAlias') else 'WaitForPathToCenter'
                 call('sslActorAlias', name, env)
                 if cancel_at is None:
-                    self.assertEqual(waits, [2.0, .05, .05])
+                    expected = [2.0, .05, .05] if args.baseline_ref else [.1, .1]
+                    self.assertEqual(waits, expected)
                 else:
                     self.assertEqual(effects[effects.index('cancel') + 1:], [])
 
