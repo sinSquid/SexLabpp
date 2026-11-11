@@ -6,47 +6,49 @@
 namespace Papyrus::SystemConfig
 {
     template <class T, size_t ArgC = -1>
-    inline T GetSetting(VM* a_vm, StackID a_stackID, const std::string& a_setting)
+    inline Settings::Storage<std::remove_pointer_t<T>>* GetSetting(VM* a_vm, StackID a_stackID, const std::string& a_setting)
     {
         auto w = Settings::table.find(a_setting);
         if (w == Settings::table.end()) {
             const auto err = std::format("Unrecognized setting: {}", a_setting);
             a_vm->TraceStack(err.c_str(), a_stackID);
             return 0;
-        } else if (!std::holds_alternative<T>(w->second)) {
+        } else if (!std::holds_alternative<Settings::Storage<std::remove_pointer_t<T>>*>(w->second)) {
             const auto err = std::format("Setting {} is of invalid type, expected {}", a_setting, typeid(T).name());
             a_vm->TraceStack(err.c_str(), a_stackID);
             return 0;
         }
-        return std::get<T>(w->second);
+        return std::get<Settings::Storage<std::remove_pointer_t<T>>*>(w->second);
     }
 
     int GetSettingInt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
     {
         auto ret = GetSetting<int*>(a_vm, a_stackID, a_setting);
-        return ret ? *ret : 0;
+        return ret ? ret->load(std::memory_order_relaxed) : 0;
     }
 
     float GetSettingFlt(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
     {
         auto ret = GetSetting<float*>(a_vm, a_stackID, a_setting);
-        return ret ? *ret : 0;
+        return ret ? ret->load(std::memory_order_relaxed) : 0;
     }
 
     bool GetSettingBool(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
     {
         auto ret = GetSetting<bool*>(a_vm, a_stackID, a_setting);
-        return ret ? *ret : 0;
+        return ret ? ret->load(std::memory_order_relaxed) : false;
     }
 
     std::string GetSettingStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting)
     {
+        const auto lock = Settings::Lock();
         auto ret = GetSetting<std::string*>(a_vm, a_stackID, a_setting);
         return ret ? *ret : ""s;
     }
 
     int GetSettingIntA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, size_t n)
     {
+        const auto lock = Settings::Lock();
         auto ret = GetSetting<std::vector<int>*>(a_vm, a_stackID, a_setting);
         if (!ret)
             return 0;
@@ -60,6 +62,7 @@ namespace Papyrus::SystemConfig
 
     float GetSettingFltA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, size_t n)
     {
+        const auto lock = Settings::Lock();
         auto ret = GetSetting<std::vector<float>*>(a_vm, a_stackID, a_setting);
         if (!ret)
             return 0;
@@ -100,6 +103,7 @@ namespace Papyrus::SystemConfig
 
     void SetSettingStr(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, std::string a_value)
     {
+        const auto lock = Settings::Lock();
         auto s = GetSetting<std::string*>(a_vm, a_stackID, a_setting);
         if (!s)
             return;
@@ -109,6 +113,7 @@ namespace Papyrus::SystemConfig
 
     void SetSettingIntA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, int a_value, int n)
     {
+        const auto lock = Settings::Lock();
         auto s = GetSetting<std::vector<int>*>(a_vm, a_stackID, a_setting);
         if (!s)
             return;
@@ -123,6 +128,7 @@ namespace Papyrus::SystemConfig
 
     void SetSettingFltA(VM* a_vm, StackID a_stackID, RE::StaticFunctionTag*, std::string a_setting, float a_value, int n)
     {
+        const auto lock = Settings::Lock();
         auto s = GetSetting<std::vector<float>*>(a_vm, a_stackID, a_setting);
         if (!s)
             return;

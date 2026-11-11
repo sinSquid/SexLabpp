@@ -155,7 +155,7 @@ namespace Thread::Interface
         if (ImGuiMCP::IsItemDeactivatedAfterEdit())
             OnScaleChange(a_hud, _scaleAdjustment);
         ImGuiMCP::SetNextItemWidth(-1.0f);
-        ImGuiMCP::SliderFloat("##slpp_ecmTextScale", &_textScaleAdjustment, 0.5f, 2.5f, "Text Scale %.2fx");
+        ImGuiMCP::SliderFloat("##slpp_ecmTextScale", &_textScaleAdjustment, 0.75f, 2.0f, "Text Scale %.2fx");
         if (ImGuiMCP::IsItemDeactivatedAfterEdit())
             OnTextScaleChange(a_hud, _textScaleAdjustment);
 

@@ -58,6 +58,7 @@ namespace Registry
         _NODISCARD const Scene* GetSceneById(const RE::BSFixedString& a_id) const;
         _NODISCARD const Scene* GetSceneByName(const RE::BSFixedString& a_id) const;
         _NODISCARD size_t GetSceneCount() const;
+        bool ReadScene(const RE::BSFixedString& a_id, const std::function<void(const Scene*)>& a_func) const;
 
         bool EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func);
         void EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func);
@@ -153,7 +154,7 @@ namespace Registry
         std::vector<FxConfig> fxList;
 
         mutable std::shared_mutex _mFurniture{};
-        FurnitureDetails offsetDefaultBedroll{ FurnitureType::BedRoll, Coordinate(std::vector{ 0.0f, 0.0f, 7.5f, 180.0f }) };
+        FurnitureDetails offsetDefaultBedroll{ FurnitureType::BedRoll, Coordinate(std::vector{ 0.0f, 0.0f, 7.5f, glm::radians(180.0f) }) };
         FurnitureDetails offsetDefaultBedsingle{ FurnitureType::BedSingle, Coordinate(std::vector{ 0.0f, -31.0f, 42.5f, 0.0f }) };
         FurnitureDetails offsetDefaultBeddouble{ FurnitureType::BedDouble, Coordinate(std::vector{ 0.0f, -31.0f, 42.5f, 0.0f }) };
         std::map<RE::BSFixedString, std::unique_ptr<FurnitureDetails>, FixedStringCompare> furnitures;

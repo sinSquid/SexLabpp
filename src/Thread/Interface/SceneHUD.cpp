@@ -76,14 +76,14 @@ namespace Thread::Interface
 
         if (a_bindSpeedControl)
             SetSpeedControl(a_quest, true);
-        float scaleMultiplier = a_bindSpeedControl ? instance->GetThreadProperty<float>("VarUI_MenuScaleMult") : Settings::fMenuScaleMult;
+        float scaleMultiplier = a_bindSpeedControl ? instance->GetThreadProperty<float>("VarUI_MenuScaleMult") : Settings::fMenuScaleMult.load();
         if (scaleMultiplier <= 0.0f) {
             scaleMultiplier = 1.0f;
             instance->SetThreadProperty<float>("VarUI_MenuScaleMult", scaleMultiplier);
         }
         _scale.SetMultiplier(scaleMultiplier);
 
-        float textScaleMultiplier = a_bindSpeedControl ? instance->GetThreadProperty<float>("VarUI_TextScaleMult") : Settings::fMenuTextScaleMult;
+        float textScaleMultiplier = a_bindSpeedControl ? instance->GetThreadProperty<float>("VarUI_TextScaleMult") : Settings::fMenuTextScaleMult.load();
         if (textScaleMultiplier <= 0.0f) {
             textScaleMultiplier = 1.0f;
             instance->SetThreadProperty<float>("VarUI_TextScaleMult", textScaleMultiplier);
@@ -161,8 +161,8 @@ namespace Thread::Interface
     bool SceneHUD::IsSceneSelectKey(std::uint32_t a_key, RE::InputEvent* a_events) const
     {
         const auto stateLock = Instance::LockState();
-        const auto mainKey = Settings::iOpenSceneSelect;
-        const auto modifier = Settings::iSceneSelectModifier;
+        const auto mainKey = Settings::iOpenSceneSelect.load();
+        const auto modifier = Settings::iSceneSelectModifier.load();
         if (mainKey < 0 || modifier < 0 || mainKey == modifier)
             return false;
         if (a_key == static_cast<std::uint32_t>(modifier))

@@ -30,6 +30,9 @@ namespace Registry
       tags(a_src["tags"].as<std::vector<std::string>>(std::vector<std::string>{})),
       scaling(Scaling(a_src["scaling"].as<int32_t>(std::to_underlying(Scaling::Linear))))
     {
+        if (scaling < Scaling::Linear || scaling >= Scaling::Total) {
+            throw std::runtime_error(std::format("Invalid scaling value for expression {}", id));
+        }
         if (!a_src["data"].IsDefined())
             throw std::runtime_error("Missing data field");
         for (size_t i = 0; i < RE::SEXES::kTotal; i++) {
@@ -212,7 +215,7 @@ namespace Registry
             ret[MoodType] = 7;
             return ret;
         }
-        float multiplier;
+        float multiplier = a_strength / 100.0f;
         switch (scaling) {
         case Scaling::Linear:
             multiplier = a_strength / 100.0f;
@@ -237,6 +240,8 @@ namespace Registry
                 const auto f = static_cast<float>(pow(2048, i - 1.1f));
                 multiplier += std::max<float>(0.0f, f);
             }
+            break;
+        default:
             break;
         }
         multiplier = std::min(1.25f, multiplier);

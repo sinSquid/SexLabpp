@@ -2277,6 +2277,7 @@ EndFunction
 ; Reset this thread to base status
 Function Initialize()
 	SetupRevision += 1
+	_CustomTimers = Utility.CreateFloatArray(0)
 	UnregisterForUpdate()
 	UnregisterForUpdateGameTime()
 	Config.DisableThreadControl(self as sslThreadController)

@@ -739,7 +739,7 @@ Function ExpressionEditor()
 		int MODIFIER_COUNT = 14
 		int n = 0
 		While (n < MODIFIER_COUNT)
-			AddSliderOptionST("expredit_" + n + "_" + i, "$SSL_Modifier_" + n, values[n], "{2}", flag)
+			AddSliderOptionST("expredit_" + (16 + n) + "_" + i, "$SSL_Modifier_" + n, values[16 + n], "{2}", flag)
 			n += 1
 		EndWhile
 		If (i == 0)
@@ -750,7 +750,7 @@ Function ExpressionEditor()
 		int PHONEME_COUNT = 16
 		int k = 0
 		While (k < PHONEME_COUNT)
-			AddSliderOptionST("expredit_" + (n + k) + "_" + i, "$SSL_Phoneme_" + k, values[n + k], "{2}", flag)
+			AddSliderOptionST("expredit_" + k + "_" + i, "$SSL_Phoneme_" + k, values[k], "{2}", flag)
 			k += 1
 		EndWhile
 		If (v == 0)

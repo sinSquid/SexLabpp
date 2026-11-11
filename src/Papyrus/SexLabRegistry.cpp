@@ -476,15 +476,23 @@ namespace Papyrus::SexLabRegistry
 
     bool IsSceneTag(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag)
     {
-        SCENE(false);
-        return scene->tags.HasTag(a_tag);
+        bool result = false;
+        if (!Registry::Library::GetSingleton()->ReadScene(a_id, [&](const auto* scene) {
+                result = scene->tags.HasTag(a_tag);
+            }))
+            a_vm->TraceStack("Invalid scene id", a_stackID);
+        return result;
     }
 
     bool IsSceneTagA(STATICARGS, RE::BSFixedString a_id, std::vector<std::string_view> a_tags)
     {
-        SCENE(false);
         const auto details = Registry::TagDetails(a_tags);
-        return scene->IsCompatibleTags(details);
+        bool result = false;
+        if (!Registry::Library::GetSingleton()->ReadScene(a_id, [&](const auto* scene) {
+                result = scene->IsCompatibleTags(details);
+            }))
+            a_vm->TraceStack("Invalid scene id", a_stackID);
+        return result;
     }
 
     bool IsStageTag(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_stage, RE::BSFixedString a_tag)
@@ -547,16 +555,17 @@ namespace Papyrus::SexLabRegistry
         bool first = true;
         Registry::TagData ret{};
         for (auto&& sceneid : a_ids) {
-            const auto scene = lib->GetSceneById(sceneid);
-            if (!scene) {
+            const bool found = lib->ReadScene(sceneid, [&](const auto* scene) {
+                if (first) {
+                    first = false;
+                    ret.AddTag(scene->tags);
+                } else {
+                    ret.IntersectTags(scene->tags);
+                }
+            });
+            if (!found) {
                 a_vm->TraceStack("Invalid scene id", a_stackID);
                 break;
-            }
-            if (first) {
-                first = false;
-                ret.AddTag(scene->tags);
-            } else {
-                ret.IntersectTags(scene->tags);
             }
         }
         return ret.AsVector();
@@ -980,8 +989,12 @@ namespace Papyrus::SexLabRegistry
 
     bool HasSceneAnnotation(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag)
     {
-        SCENE(false);
-        return scene->tags.HasAnnotation(a_tag);
+        bool result = false;
+        if (!Registry::Library::GetSingleton()->ReadScene(a_id, [&](const auto* scene) {
+                result = scene->tags.HasAnnotation(a_tag);
+            }))
+            a_vm->TraceStack("Invalid scene id", a_stackID);
+        return result;
     }
 
     void RemoveSceneAnnotation(STATICARGS, RE::BSFixedString a_id, RE::BSFixedString a_tag)
@@ -1008,16 +1021,24 @@ namespace Papyrus::SexLabRegistry
 
     std::vector<RE::BSFixedString> GetSceneAnnotations(STATICARGS, RE::BSFixedString a_id)
     {
-        SCENE({});
-        return scene->tags.GetAnnotations();
+        std::vector<RE::BSFixedString> result;
+        if (!Registry::Library::GetSingleton()->ReadScene(a_id, [&](const auto* scene) {
+                result = scene->tags.GetAnnotations();
+            }))
+            a_vm->TraceStack("Invalid scene id", a_stackID);
+        return result;
     }
 
     bool HasPositionAnnotation(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_tag)
     {
-        SCENE(false);
-        POSITION(false);
-        const auto& annotations = scene->positions[n].annotations;
-        return std::ranges::find(annotations, a_tag) != annotations.end();
+        bool result = false;
+        if (!Registry::Library::GetSingleton()->ReadScene(a_id, [&](const auto* scene) {
+                POSITION((void)0);
+                const auto& annotations = scene->positions[n].annotations;
+                result = std::ranges::find(annotations, a_tag) != annotations.end();
+            }))
+            a_vm->TraceStack("Invalid scene id", a_stackID);
+        return result;
     }
     void RemovePositionAnnotation(STATICARGS, RE::BSFixedString a_id, int n, RE::BSFixedString a_tag)
     {
@@ -1051,9 +1072,13 @@ namespace Papyrus::SexLabRegistry
 
     std::vector<RE::BSFixedString> GetPositionAnnotations(STATICARGS, RE::BSFixedString a_id, int n)
     {
-        SCENE({});
-        POSITION({});
-        return scene->positions[n].annotations;
+        std::vector<RE::BSFixedString> result;
+        if (!Registry::Library::GetSingleton()->ReadScene(a_id, [&](const auto* scene) {
+                POSITION((void)0);
+                result = scene->positions[n].annotations;
+            }))
+            a_vm->TraceStack("Invalid scene id", a_stackID);
+        return result;
     }
 
 }  // namespace Papyrus::SexLabRegistry

@@ -91,6 +91,29 @@ namespace Thread::Interface
         if (!scene || !stage)
             return;
 
+        std::size_t positionIndex = a_target.positionIndex;
+        a_target.valid = true;
+        if (!a_target.isCenter) {
+            const auto& actors = instance->GetActors();
+            const auto it = std::ranges::find_if(actors, [&](RE::Actor* actor) {
+                return actor && actor->GetFormID() == a_target.formId;
+            });
+            if (it == actors.end()) {
+                a_target.valid = false;
+                a_target.draggingAxis.reset();
+                return;
+            }
+            positionIndex = static_cast<std::size_t>(std::distance(actors.begin(), it));
+        }
+        if (a_target.sourceScene != scene || a_target.sourceStage != stage || a_target.positionIndex != positionIndex) {
+            a_target.axes = {};
+            a_target.draggingAxis.reset();
+            ++a_target.mappingRevision;
+            a_target.sourceScene = scene;
+            a_target.sourceStage = stage;
+            a_target.positionIndex = positionIndex;
+        }
+
         const Registry::Coordinate* offset = nullptr;
         if (a_target.isCenter) {
             offset = &scene->furnitureOffset.GetOffset();
@@ -322,6 +345,9 @@ namespace Thread::Interface
 
     void OffsetAdjustPanel::RenderTargetCard(SceneHUD& a_hud, TargetItem& a_target, std::size_t a_targetIndex)
     {
+        RefreshValues(a_hud, a_target);
+        if (!a_target.valid)
+            return;
         auto& scale = a_hud.GetScale();
         const float nestedScale = UI::Theme::Geometry.nestedMenuScale;
         const float contentX = ImGuiMCP::GetCursorPosX();
@@ -330,6 +356,7 @@ namespace Thread::Interface
         const float cardX = contentX + (availableWidth - cardWidth) * 0.5f;
 
         ImGuiMCP::PushID(static_cast<int>(a_targetIndex));
+        ImGuiMCP::PushID(static_cast<int>(a_target.mappingRevision));
         ImGuiMCP::SetCursorPosX(cardX);
         SetWindowFontSize(scale.TextPx(UI::Theme::FontSize.subsectionHeader) * nestedScale);
         const char* badge = a_target.isCenter                               ? "SCENE" :
@@ -341,6 +368,7 @@ namespace Thread::Interface
 
         if (!a_target.open) {
             ImGuiMCP::SetCursorPosX(contentX);
+            ImGuiMCP::PopID();
             ImGuiMCP::PopID();
             return;
         }
@@ -372,6 +400,7 @@ namespace Thread::Interface
         ImGuiMCP::ImDrawListManager::ChannelsMerge(drawList);
 
         ImGuiMCP::SetCursorPosX(contentX);
+        ImGuiMCP::PopID();
         ImGuiMCP::PopID();
     }
 }

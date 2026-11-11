@@ -182,25 +182,32 @@ namespace Papyrus::ThreadLibrary
             return a_positions;
         }
         auto genders = GetLegacySex(a_positions);
-        for (auto&& actor : valids) {
-            int targetsex;
-            if (genders[LegacySex::Male] < a_males) {
-                targetsex = LegacySex::Male;
-            } else if (genders[LegacySex::Female] < a_females) {
-                targetsex = LegacySex::Female;
-            } else {
-                targetsex = LegacySex::None;
-            }
-            const auto sex = GetLegacySex(actor);
-            if (targetsex == LegacySex::None || sex == targetsex) {
-                a_positions.push_back(actor);
-                if (a_positions.size() == a_total) {
-                    return a_positions;
+        bool added;
+        do {
+            added = false;
+            for (auto&& actor : valids) {
+                if (std::ranges::contains(a_positions, actor))
+                    continue;
+                int targetsex;
+                if (genders[LegacySex::Male] < a_males) {
+                    targetsex = LegacySex::Male;
+                } else if (genders[LegacySex::Female] < a_females) {
+                    targetsex = LegacySex::Female;
                 } else {
-                    genders[sex]++;
+                    targetsex = LegacySex::None;
+                }
+                const auto sex = GetLegacySex(actor);
+                if (targetsex == LegacySex::None || sex == targetsex) {
+                    a_positions.push_back(actor);
+                    added = true;
+                    if (a_positions.size() == a_total) {
+                        return a_positions;
+                    } else {
+                        genders[sex]++;
+                    }
                 }
             }
-        }
+        } while (added);
         return a_positions;
     }
 

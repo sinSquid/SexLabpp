@@ -38,6 +38,7 @@ assert 'REGISTERFUNC(SetSpeedHotkeysEnabled, "sslThreadModel", false)' in (ROOT 
 
 code = f'constexpr float kInitialSpeed = {initial}f;\n' + r'''
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cstdint>
 #include <functional>
@@ -45,7 +46,7 @@ code = f'constexpr float kInitialSpeed = {initial}f;\n' + r'''
 #include <mutex>
 #include <optional>
 #include <vector>
-struct Settings { static inline int iOpenSceneSelect=-1,iSceneSelectModifier=-1; };
+struct Settings { static inline std::atomic<int> iOpenSceneSelect{-1},iSceneSelectModifier{-1}; };
 namespace RE {
  enum class INPUT_DEVICE {kKeyboard,kMouse,kGamepad};
  enum class BSEventNotifyControl {kContinue};

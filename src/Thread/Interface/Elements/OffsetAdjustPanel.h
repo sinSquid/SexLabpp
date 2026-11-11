@@ -42,10 +42,14 @@ namespace Thread::Interface
             RE::Actor* actor{};
             std::uint32_t formId{};
             std::size_t positionIndex{};
+            const Registry::Scene* sourceScene{};
+            const Registry::Stage* sourceStage{};
+            std::uint32_t mappingRevision{};
             std::string label;
             std::array<AxisState, kAxisDefinitions.size()> axes{};
             std::optional<std::size_t> draggingAxis;
             bool isCenter{ false };
+            bool valid{ true };
             bool open{ true };
         };
 

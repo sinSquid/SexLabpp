@@ -9,6 +9,7 @@
 #include "Thread/Interface/StageSelectMenu.h"
 #include "Thread/Interface/UI/Theme.h"
 #include "UserData/StripData.h"
+#include "Util/AsyncIO.h"
 
 // class EventHandler :
 // 	public Singleton<EventHandler>,
@@ -99,11 +100,11 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
         UserData::StripData::GetSingleton()->Load();
         break;
     case SKSE::MessagingInterface::kSaveGame:
-        std::thread([]() {
+        Util::AsyncIO::Submit([]() {
             Settings::Save();
             Registry::Library::GetSingleton()->Save();
             UserData::StripData::GetSingleton()->Save();
-        }).detach();
+        });
         break;
     case SKSE::MessagingInterface::kPostLoadGame:
         // EventHandler::GetSingleton()->Register();

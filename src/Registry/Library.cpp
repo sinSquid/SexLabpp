@@ -123,6 +123,16 @@ namespace Registry
         return true;
     }
 
+    bool Library::ReadScene(const RE::BSFixedString& a_id, const std::function<void(const Scene*)>& a_func) const
+    {
+        const std::shared_lock lock{ _mScenes };
+        const auto where = sceneMap.find(a_id);
+        if (where == sceneMap.end())
+            return false;
+        a_func(where->second);
+        return true;
+    }
+
     void Library::EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func)
     {
         std::unique_lock lock{ _mScenes };

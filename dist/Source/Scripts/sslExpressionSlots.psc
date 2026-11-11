@@ -303,10 +303,16 @@ endFunction
 ; ------------------------------------------------------- ;
 
 int Function FindEmpty()
-	int n = Slotted
-	If (GetNthAlias(n + 1))
-		return n + 1
-	EndIf
+	SyncBackend()
+	Alias[] aliases = GetAliases()
+	int n = 0
+	While (n < aliases.Length)
+		sslBaseExpression it = aliases[n] as sslBaseExpression
+		If (it && !it.Registered)
+			return n
+		EndIf
+		n += 1
+	EndWhile
 	return -1
 EndFunction
 
@@ -319,14 +325,19 @@ int function Register(string Registrar)
 		Utility.WaitMenuMode(0.5)
 	endWhile
 	RegisterLock = true
-	int ret = FindEmpty()
-	If (ret == -1 || !sslBaseExpression.CreateEmptyProfile(Registrar))
-		sslBaseExpression it = GetBySlot(ret) as sslBaseExpression
-		it.Registry = it.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
-		it.Registry = Registrar
+	; A registration may have completed while this call waited for the lock.
+	If (Registry.Find(Registrar) != -1)
 		RegisterLock = false
 		return -1
 	EndIf
+	int ret = FindEmpty()
+	If (ret == -1 || !sslBaseExpression.CreateEmptyProfile(Registrar))
+		RegisterLock = false
+		return -1
+	EndIf
+	sslBaseExpression it = GetBySlot(ret) as sslBaseExpression
+	it.Registry = it.GOTTA_LOVE_PEOPLE_WHO_THINK_REGISTRATION_FUNCTIONS_ARE_JUST_DECORATION
+	it.Registry = Registrar
 	RegisterLock = false
 	return ret
 endFunction

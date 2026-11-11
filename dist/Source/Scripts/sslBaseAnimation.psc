@@ -222,11 +222,11 @@ float function GetTimersRunTime(float[] StageTimers)
 		return -1.0
 	endIf
 	float seconds = 0.0
-	String stage = SexLabRegistry.GetStartAnimation(Registry)
-	int depth = GetMaxDepth()
+	; Match GetMaxDepth/GetStageBounded: estimate the longest registered path.
+	String[] stages = SexLabRegistry.GetPathMax(Registry, "")
 	int i = 0
-	While(i < depth)
-		float time = SexLabRegistry.GetFixedLength(Registry, stage)
+	While(i < stages.Length)
+		float time = SexLabRegistry.GetFixedLength(Registry, stages[i])
 		If (time)
 			seconds += time
 		ElseIf (i > StageTimers.Length - 1)

@@ -183,6 +183,6 @@ function on_build_file(target, sourcefile, opt)
             "optimize=" .. tostring(not not papyrus.optimize),
             "anonymize=" .. tostring(not not papyrus.anonymize)
         },
-        changed = target:is_rebuilt(),
+        changed = target:is_rebuilt() or not os.isfile(objectfile),
     })
 end

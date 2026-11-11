@@ -219,7 +219,7 @@ namespace Thread
         const auto player = RE::PlayerCharacter::GetSingleton();
         const auto position = GetPosition(player);
         if (!position) {
-            switch (Settings::FurnitureSlection(Settings::iNPCBed)) {
+            switch (Settings::FurnitureSlection(Settings::iNPCBed.load())) {
             case Settings::FurnitureSlection::Never:
                 return CenterSelection::Actor;
             case Settings::FurnitureSlection::Always:
@@ -227,11 +227,11 @@ namespace Thread
             case Settings::FurnitureSlection::Sometimes:
                 return pickRandom();
             default:
-                logger::error("Invalid furniture selection setting (npc): {}", Settings::iNPCBed);
+                logger::error("Invalid furniture selection setting (npc): {}", Settings::iNPCBed.load());
                 return CenterSelection::Actor;
             }
         } else {
-            switch (Settings::FurnitureSlection(Settings::iAskBed)) {
+            switch (Settings::FurnitureSlection(Settings::iAskBed.load())) {
             case Settings::FurnitureSlection::Never:
                 return CenterSelection::Actor;
             case Settings::FurnitureSlection::Always:
@@ -246,7 +246,7 @@ namespace Thread
             case Settings::FurnitureSlection::Sometimes:
                 return pickRandom();
             default:
-                logger::error("Invalid furniture selection setting (player): {}", Settings::iAskBed);
+                logger::error("Invalid furniture selection setting (player): {}", Settings::iAskBed.load());
                 return CenterSelection::Actor;
             }
         }

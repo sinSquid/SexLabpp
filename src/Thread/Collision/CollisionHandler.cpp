@@ -68,24 +68,44 @@ namespace Thread::Collision
             a_vec.quad.m128_f32[3] = 0.0f;
         }
 
-        struct hkbFootIkDriver : RE::hkReferencedObject
-        {
-            std::byte pad10[0x20];
-            RE::hkQuaternion alignedGroundRotation;
-            std::uint64_t unk40;
-            std::uint16_t unk48;
-            bool disableFootIk;
-            std::byte pad4B[5];
-        };
-        static_assert(offsetof(hkbFootIkDriver, alignedGroundRotation) == 0x30);
-        static_assert(offsetof(hkbFootIkDriver, disableFootIk) == 0x4A);
+        constexpr std::uint32_t kOwnedControllerFlags =
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kNoGravityOnGround) |
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kNoSim) |
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kSupport) |
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kCheckSupport) |
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kHasPotentialSupportManifold) |
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kStuckQuad) |
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kOnStairs) |
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kTryStep) |
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kNotPushablePermanent) |
+            static_cast<std::uint32_t>(RE::CHARACTER_FLAGS::kPossiblePathObstacle);
 
-        struct ShadowhkbCharacter : RE::hkReferencedObject
+        struct FootIKState
         {
-            std::byte pad10[0x30];
-            RE::hkRefPtr<hkbFootIkDriver> footIkDriver;
+            RE::hkRefPtr<RE::hkbFootIkDriver> driver;
+            std::uint8_t disabled;
+            RE::hkQuaternion alignedGroundRotation;
         };
-        static_assert(offsetof(ShadowhkbCharacter, footIkDriver) == 0x40);
+
+        struct PhysicsState
+        {
+            RE::NiPointer<RE::bhkCharacterController> controller;
+            RE::hkRefPtr<RE::hkpRigidBody> rigidBody;
+            std::uint32_t flags{ 0 };
+            RE::hkpCharacterStateType characterState{ RE::hkpCharacterStateType::kOnGround };
+            float pitchAngle{ 0.0f };
+            float rollAngle{ 0.0f };
+            float calculatePitchTimer{ 0.0f };
+            float massInverse{ 0.0f };
+            RE::hkHalf gravityFactor;
+            std::vector<FootIKState> footIK;
+        };
+
+        // Guarded by CollisionHandler::_mutex together with its actor cache.
+        // Strong identity references prevent a recycled address from matching a
+        // replacement controller/body/driver during restoration.
+        std::unordered_map<RE::FormID, PhysicsState> physicsStates;
+
     }
 
     void CollisionHandler::Install()
@@ -104,7 +124,14 @@ namespace Thread::Collision
     void CollisionHandler::Clear()
     {
         const std::unique_lock lock{ _mutex };
+        for (const auto id : _cache) {
+            if (auto* actor = RE::TESForm::LookupByID<RE::Actor>(id)) {
+                SetFootIKEnabled(actor, true);
+                RestoreRigidBodyPhysics(actor);
+            }
+        }
         _cache.clear();
+        physicsStates.clear();
     }
 
     bool CollisionHandler::HasActor(RE::FormID a_actor)
@@ -148,61 +175,65 @@ namespace Thread::Collision
     void CollisionHandler::DisableRigidBodyPhysics(RE::Actor* a_actor)
     {
         auto* process = a_actor->GetMiddleHighProcess();
-        if (!process)
-            return;
-
-        auto* controller = process->charController.get();
+        auto* controller = process ? process->charController.get() : nullptr;
         if (!controller)
             return;
+
+        auto& state = physicsStates.try_emplace(a_actor->GetFormID()).first->second;
+        if (state.controller.get() != controller) {
+            state.controller = controller;
+            state.flags = controller->flags.underlying();
+            state.characterState = controller->context.currentState;
+            state.pitchAngle = controller->pitchAngle;
+            state.rollAngle = controller->rollAngle;
+            state.calculatePitchTimer = controller->calculatePitchTimer;
+            state.rigidBody.reset();
+        }
+        auto* body = controller->GetRigidBody();
+        if (body && state.rigidBody.get() != body) {
+            state.rigidBody = RE::hkRefPtr<RE::hkpRigidBody>{ body };
+            state.massInverse = body->motion.inertiaAndMassInv.quad.m128_f32[3];
+            state.gravityFactor = body->motion.gravityFactor;
+        }
 
         controller->flags.set(RE::CHARACTER_FLAGS::kNotPushablePermanent);
         controller->flags.reset(RE::CHARACTER_FLAGS::kPossiblePathObstacle);
         ZeroVector4(controller->surfaceInfo.surfaceVelocity);
-
-        auto* rigidBodyController = skyrim_cast<RE::bhkCharRigidBodyController*>(controller);
-        if (!rigidBodyController)
-            return;
-
-        auto* hkCharRB = *reinterpret_cast<RE::hkpCharacterRigidBody**>(
-            reinterpret_cast<std::uintptr_t>(&rigidBodyController->charRigidBody) + 0x10);
-
-        if (hkCharRB && hkCharRB->character && hkCharRB->character->GetCollidableRW()) {
-            hkCharRB->character->motion.SetMassInv(0.0f);
-            hkCharRB->character->motion.gravityFactor = 0.0f;
+        if (body) {
+            body->motion.SetMassInv(0.0f);
+            body->motion.gravityFactor = 0.0f;
         }
     }
 
     void CollisionHandler::RestoreRigidBodyPhysics(RE::Actor* a_actor)
     {
+        const auto where = physicsStates.find(a_actor->GetFormID());
+        if (where == physicsStates.end())
+            return;
+        const auto& state = where->second;
         auto* process = a_actor->GetMiddleHighProcess();
-        if (!process)
+        auto* controller = process ? process->charController.get() : nullptr;
+        if (!controller || state.controller.get() != controller)
             return;
 
-        auto* controller = process->charController.get();
-        if (!controller)
-            return;
+        // Only undo bits owned by this module; other flags may have changed.
+        controller->flags = static_cast<RE::CHARACTER_FLAGS>(
+            (controller->flags.underlying() & ~kOwnedControllerFlags) | (state.flags & kOwnedControllerFlags));
+        if (controller->context.currentState == RE::hkpCharacterStateType::kSwimming)
+            controller->context.currentState = state.characterState;
+        if (controller->pitchAngle == 0.0f)
+            controller->pitchAngle = state.pitchAngle;
+        if (controller->rollAngle == 0.0f)
+            controller->rollAngle = state.rollAngle;
+        if (controller->calculatePitchTimer == 55.0f)
+            controller->calculatePitchTimer = state.calculatePitchTimer;
 
-        controller->flags.reset(
-            RE::CHARACTER_FLAGS::kNoGravityOnGround,
-            RE::CHARACTER_FLAGS::kNoSim,
-            RE::CHARACTER_FLAGS::kNotPushablePermanent);
-
-        controller->flags.set(
-            RE::CHARACTER_FLAGS::kSupport,
-            RE::CHARACTER_FLAGS::kCheckSupport);
-
-        controller->context.currentState = RE::hkpCharacterStateType::kOnGround;
-
-        auto* rigidBodyController = skyrim_cast<RE::bhkCharRigidBodyController*>(controller);
-        if (!rigidBodyController)
-            return;
-
-        auto* hkCharRB = *reinterpret_cast<RE::hkpCharacterRigidBody**>(
-            reinterpret_cast<std::uintptr_t>(&rigidBodyController->charRigidBody) + 0x10);
-
-        if (hkCharRB && hkCharRB->character && hkCharRB->character->GetCollidableRW()) {
-            hkCharRB->character->motion.SetMassInv(1.0f);
-            hkCharRB->character->motion.gravityFactor = 1.0f;
+        auto* body = controller->GetRigidBody();
+        if (body && state.rigidBody.get() == body) {
+            if (body->motion.inertiaAndMassInv.quad.m128_f32[3] == 0.0f)
+                body->motion.SetMassInv(state.massInverse);
+            if (static_cast<float>(body->motion.gravityFactor) == 0.0f)
+                body->motion.gravityFactor = state.gravityFactor;
         }
     }
 
@@ -210,6 +241,10 @@ namespace Thread::Collision
     {
         if (!a_actor)
             return;
+        const auto where = physicsStates.find(a_actor->GetFormID());
+        if (where == physicsStates.end())
+            return;
+        auto& state = where->second;
 
         RE::BSAnimationGraphManagerPtr graphMgr;
         if (!a_actor->GetAnimationGraphManager(graphMgr) || !graphMgr)
@@ -219,11 +254,23 @@ namespace Thread::Collision
         for (auto& graph : graphMgr->graphs) {
             if (!graph)
                 continue;
-
-            auto* shadow = reinterpret_cast<ShadowhkbCharacter*>(&graph->characterInstance);
-            if (auto* driver = shadow->footIkDriver.get()) {
-                driver->disableFootIk = !a_enabled;
-                driver->alignedGroundRotation.vec = { 0.0f, 0.0f, 0.0f, 1.0f };
+            auto* driver = graph->characterInstance.footIkDriver.get();
+            if (!driver)
+                continue;
+            const auto saved = std::ranges::find_if(state.footIK, [&](const FootIKState& saved) {
+                return saved.driver.get() == driver;
+            });
+            if (a_enabled) {
+                if (saved != state.footIK.end()) {
+                    driver->disableFootIk = saved->disabled;
+                    driver->alignWithGroundRotation = saved->alignedGroundRotation;
+                }
+            } else {
+                if (saved == state.footIK.end()) {
+                    state.footIK.push_back({ RE::hkRefPtr<RE::hkbFootIkDriver>{ driver }, driver->disableFootIk, driver->alignWithGroundRotation });
+                }
+                driver->disableFootIk = 1;
+                driver->alignWithGroundRotation.vec = { 0.0f, 0.0f, 0.0f, 1.0f };
             }
         }
     }
@@ -231,10 +278,12 @@ namespace Thread::Collision
     void CollisionHandler::Hook_ApplyMovementDelta(RE::Actor* a_actor, float a_delta)
     {
         if (a_actor) {
-            std::shared_lock lock{ _mutex };
+            std::unique_lock lock{ _mutex };
             if (std::ranges::contains(_cache, a_actor->GetFormID())) {
                 if (auto* process = a_actor->GetMiddleHighProcess()) {
                     if (auto* controller = process->charController.get()) {
+                        // A replacement controller needs its own pristine snapshot.
+                        DisableRigidBodyPhysics(a_actor);
                         ConfigureControllerForNoCollision(controller);
                         return;
                     }
@@ -287,18 +336,19 @@ namespace Thread::Collision
             return;
 
         _cache.push_back(a_actor);
+        physicsStates.try_emplace(a_actor);
 
         auto* actor = RE::TESForm::LookupByID<RE::Actor>(a_actor);
         if (!actor)
             return;
 
+        DisableRigidBodyPhysics(actor);
         if (auto* process = actor->GetMiddleHighProcess()) {
             if (auto* controller = process->charController.get()) {
                 ConfigureControllerForNoCollision(controller);
             }
         }
 
-        DisableRigidBodyPhysics(actor);
         SetFootIKEnabled(actor, false);
     }
 
@@ -310,10 +360,10 @@ namespace Thread::Collision
         }
 
         auto* actor = RE::TESForm::LookupByID<RE::Actor>(a_actor);
-        if (!actor)
-            return;
-
-        SetFootIKEnabled(actor, true);
-        RestoreRigidBodyPhysics(actor);
+        if (actor) {
+            SetFootIKEnabled(actor, true);
+            RestoreRigidBodyPhysics(actor);
+        }
+        physicsStates.erase(a_actor);
     }
 }

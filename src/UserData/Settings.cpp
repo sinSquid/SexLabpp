@@ -4,6 +4,7 @@
 
 void Settings::Initialize()
 {
+    const auto lock = Lock();
     InitializeYAML();
     InitializeINI();
     InitializeData();
@@ -29,8 +30,9 @@ void Settings::InitializeYAML()
         const auto ReadMCM = [&yaml]<typename T>(const char* a_key, T& a_out) {
             if (!yaml[a_key].IsDefined())
                 return;
-            const auto val = yaml[a_key].as<T>();
-            if constexpr (is_vector<std::decay_t<T>>::value) {
+            using Value = decltype(Settings::Read(a_out));
+            const auto val = yaml[a_key].as<Value>();
+            if constexpr (is_vector<Value>::value) {
                 if (a_out.size() != val.size()) {
                     logger::error("Invalid array length for setting {}, expected {} but got {}", a_key, a_out.size(), val.size());
                     return;
@@ -123,9 +125,12 @@ void Settings::InitializeData()
 void Settings::Save()
 {
     YAML::Node settings{};
-#define MCM_SETTING(STR, DEFAULT) settings[#STR] = STR;
+    {
+        const auto lock = Lock();
+#define MCM_SETTING(STR, DEFAULT) settings[#STR] = Read(STR);
 #include "mcm.def"
 #undef MCM_SETTING
+    }
 
     std::ofstream fout{ YAMLPATH };
     fout << settings;

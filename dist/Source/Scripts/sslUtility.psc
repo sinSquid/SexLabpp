@@ -188,26 +188,26 @@ sslBaseAnimation[] function RemoveDupesFromList(sslBaseAnimation[] List, sslBase
 	if !Removing || Removing.Length < 1 || !List || List.Length < 1
 		return List
 	endIf
-	int Dupes
-	int i = Removing.Length
-	while i
-		i -= 1
-		Dupes += (List.Find(Removing[i]) != -1) as int
-	endWhile
-	if Dupes == 0 || (PreventAll && List.Length == Dupes)
-		return List
-	elseIf !PreventAll && Dupes == List.Length
-		return sslUtility.AnimationArray(0)
-	endIf 
-	sslBaseAnimation[] Output = sslUtility.AnimationArray(List.Length - Dupes)
-	int n = Output.Length
-	i = List.Length
-	while i > 0 && n > 0
-		i -= 1
+	int remaining = 0
+	int i = 0
+	while i < List.Length
 		if Removing.Find(List[i]) == -1
-			n -= 1
-			Output[n] = List[i]
+			remaining += 1
 		endIf
+		i += 1
+	endWhile
+	if remaining == List.Length || (PreventAll && remaining == 0)
+		return List
+	endIf 
+	sslBaseAnimation[] Output = sslUtility.AnimationArray(remaining)
+	int n = 0
+	i = 0
+	while i < List.Length
+		if Removing.Find(List[i]) == -1
+			Output[n] = List[i]
+			n += 1
+		endIf
+		i += 1
 	endwhile
 	return Output
 endFunction
@@ -347,13 +347,18 @@ int function IndexTravel(int CurrentIndex, int ArrayLength, bool Reverse = false
 endFunction
 
 string function Trim(string var) global
-	if StringUtil.GetNthChar(var, 0) == " "
-		var = StringUtil.SubString(var, 1)
+	int first = 0
+	int last = StringUtil.GetLength(var)
+	while first < last && StringUtil.GetNthChar(var, first) == " "
+		first += 1
+	endWhile
+	while last > first && StringUtil.GetNthChar(var, last - 1) == " "
+		last -= 1
+	endWhile
+	if first == last
+		return ""
 	endIf
-	if StringUtil.GetNthChar(var, (StringUtil.GetLength(var) - 1)) == " "
-		var = StringUtil.SubString(var, (StringUtil.GetLength(var) - 2))
-	endIf
-	return var
+	return StringUtil.SubString(var, first, last - first)
 endFunction
 
 string function RemoveString(string str, string toRemove, int startindex = 0) global
