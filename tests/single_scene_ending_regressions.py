@@ -14,14 +14,43 @@ def ending_reset(name, env):
 
 
 class EndingCleanupTests(unittest.TestCase):
-    def run_ending(self, interrupt=None, quick=False, timer_during_registration=False):
+    def test_old_stop_does_not_initialize_reused_slot(self):
+        effects = []
+        slot = NS(SetupRevision=4, RecycleRevision=2, STATUS_IDLE=0, GetStatus=lambda: 3, GetState=lambda: "Animating",
+                  Initialize=lambda: effects.append("reset replacement"))
+
+        def end():
+            # A deferred SetTID has recycled the original scene before EndAnimation returns.
+            slot.SetupRevision += 1
+            slot.RecycleRevision += 1
+            effects.append("original recycled")
+
+        slot.EndAnimation = end
+        stop = engine["body"]("sslThreadSlots", "StopThread").replace(
+            '"Stopping thread " + Slot', '"Stopping thread " + str(Slot)')
+        engine["execute"](stop, dict(Slot=slot, sslLog=NS(Log=lambda _: None)))
+        self.assertEqual(effects, ["original recycled"])
+
+    def test_stop_survives_startup_of_the_same_slot(self):
+        effects = []
+        slot = NS(SetupRevision=4, RecycleRevision=2, STATUS_IDLE=0,
+                  GetStatus=lambda: 1, GetState=lambda: "Making",
+                  EndAnimation=lambda: effects.append("end"), Initialize=lambda: effects.append("reset"))
+        def finish_setup(_):
+            slot.SetupRevision += 1
+        stop = engine["body"]("sslThreadSlots", "StopThread").replace(
+            '"Stopping thread " + Slot', '"Stopping thread " + str(Slot)')
+        engine["execute"](stop, dict(Slot=slot, sslLog=NS(Log=finish_setup)))
+        self.assertEqual(effects, ["end", "reset"])
+
+    def run_ending(self, interrupt=None, quick=False, timer_during_registration=False, setup_from_playback=False):
         trace = []
         actor = object()
         alias = NS(STATE_IDLE="Empty", GetState=lambda: "Empty",
                    GetActorReference=lambda: actor)
         env = dict(
             _QuickResetScenes=quick, _endingCleanupRunning=False, _initializeAfterEnding=False,
-            _endingCooldownArmed=False, _setupAliasesAfterEnding=False, id=3, tid="3", self=object(),
+            _endingCooldownArmed=False, _setupAliasesAfterEnding=False, id=3, tid="3", self=object(), RecycleRevision=1,
             ActorAlias=Array([alias, NS(STATE_IDLE="Empty", GetState=lambda: "Empty",
                                         GetActorReference=lambda: None,
                                         Clear=lambda: self.fail("empty alias was cleared"))]),
@@ -51,7 +80,19 @@ class EndingCleanupTests(unittest.TestCase):
 
         env["RegisterForSingleUpdateGameTime"] = register
         alias.Clear = clear
-        event("sslThreadModel", "OnBeginState", env, occurrence=3)
+        def enter_ending():
+            event("sslThreadModel", "OnBeginState", env, occurrence=3)
+
+        if setup_from_playback:
+            def end_playback():
+                env["Initialize"] = lambda: trace.append("recycle")
+                enter_ending()
+
+            env.update(Initialize=lambda: call("sslThreadModel", "Initialize", env, occurrence=0),
+                       EndAnimation=end_playback)
+            call("sslThreadModel", "SetTID", env)
+        else:
+            enter_ending()
         self.assertFalse(env["_endingCleanupRunning"])
         return trace
 
@@ -63,7 +104,7 @@ class EndingCleanupTests(unittest.TestCase):
     def test_manual_stop_defers_recycle_without_clearing_again(self):
         def manual_stop(env):
             # The actual StopThread calls Initialize after EndAnimation.
-            slot = NS(STATUS_IDLE=0, GetStatus=lambda: 4, GetState=lambda: "Ending",
+            slot = NS(RecycleRevision=1, STATUS_IDLE=0, GetStatus=lambda: 4, GetState=lambda: "Ending",
                       EndAnimation=lambda: None,
                       Initialize=lambda: call("sslThreadModel", "Initialize", env, occurrence=1))
             stop_thread = engine["body"]("sslThreadSlots", "StopThread").replace(
@@ -89,6 +130,32 @@ class EndingCleanupTests(unittest.TestCase):
     def test_due_timer_during_registration_is_honored(self):
         self.assertEqual(self.run_ending(timer_during_registration=True)[-2:],
                          [("cooldown", 0.1), "recycle"])
+
+    def test_set_tid_from_playback_finishes_setup_without_waiting_for_cooldown(self):
+        self.assertEqual(self.run_ending(setup_from_playback=True),
+                         ["cancel", "encounters", "clear returned",
+                          "AnimationEnding", "AnimationEnd", "hook", "recycle"])
+
+    def test_set_tid_during_quick_reset_leaves_transition_to_its_owner(self):
+        trace = []
+        env = dict(id=3, self=object(), _QuickResetScenes=True, _setupAliasesAfterEnding=False,
+                   _initializeAfterEnding=False, Initialize=lambda: trace.append("initialize"))
+        call("sslThreadModel", "SetTID", env)
+        self.assertEqual(trace, [])
+        self.assertTrue(env["_setupAliasesAfterEnding"])
+        self.assertTrue(env["_initializeAfterEnding"])
+        env.update(_endingCleanupRunning=False, SetupRevision=3, self=NS(ToggleVisibilitySceneHUD=lambda _: None),
+                   UnregisterForUpdateGameTime=lambda: None, _Positions=Array(), asTagString="",
+                   GetSubmissives=lambda: Array(), _furniStatus=0, CenterRef=None,
+                   SexLabRegistry=NS(LookupScenesA=lambda *_: Array(["new"]), GetCommonTags=lambda _: Array(),
+                                     GetSceneName=str), Log=lambda *_: None,
+                   DestroyInstance=lambda preserve: None, STATE_SETUP="Making", STATE_PLAYING="Animating",
+                   GoToState=trace.append, SetScenes=lambda _: None, StartThread=lambda: True,
+                   GetPrimaryScenes=lambda: Array(["new"]), GetActiveScene=lambda: "new",
+                   Utility=NS(CreateStringArray=lambda _: Array()), StartStage=lambda *_: None)
+        self.assertFalse(ending_reset("ResetAnimationQuick", env))
+        self.assertEqual(trace, ["Making", "Animating", "initialize"])
+        self.assertFalse(env["_QuickResetScenes"])
 
     def test_set_tid_defers_alias_setup_until_clear_returns(self):
         def reinitialize(env):
@@ -120,12 +187,31 @@ class EndingCleanupTests(unittest.TestCase):
 
         self.assertEqual(self.run_ending(reinitialize)[-2:], ["hook", "recycle"])
 
+    def test_failed_quick_restart_leaves_already_recycled_slot_alone(self):
+        states = []
+        env = dict(_endingCleanupRunning=False, _QuickResetScenes=True, SetupRevision=4,
+                   self=NS(ToggleVisibilitySceneHUD=lambda _: None), _Positions=Array(),
+                   GetSubmissives=lambda: Array(), _furniStatus=0, CenterRef=None, asTagString="",
+                   SexLabRegistry=NS(LookupScenesA=lambda *_: Array(["new"])),
+                   UnregisterForUpdateGameTime=lambda: None, DestroyInstance=lambda _: None,
+                   GoToState=states.append, SetScenes=lambda _: None, STATE_SETUP="Making", STATE_END="Ending")
+
+        def failed_start():
+            # StartThread increments SetupRevision; its failure path calls Initialize.
+            env.update(SetupRevision=6, _QuickResetScenes=False)
+            states.append("Unlocked")
+            return None
+
+        env.update(StartThread=failed_start, GetState=lambda: states[-1])
+        self.assertFalse(ending_reset("ResetAnimationQuick", env))
+        self.assertEqual(states, ["Making", "Unlocked"])
+
     def test_stop_and_load_notifications_wait_for_actual_slot_return(self):
         for load, reuse in ((False, False), (True, False), (False, True), (True, True)):
             with self.subTest(load=load, reuse=reuse):
                 notifications = []
                 def during_clear(env):
-                    slot = NS(STATUS_IDLE=0, GetStatus=lambda: 4, GetState=lambda: "Ending",
+                    slot = NS(RecycleRevision=1, STATUS_IDLE=0, GetStatus=lambda: 4, GetState=lambda: "Ending",
                               EndAnimation=lambda: None,
                               IsEndingRecyclePending=lambda: call(
                                   "sslThreadModel", "IsEndingRecyclePending", env)[0],
@@ -133,7 +219,7 @@ class EndingCleanupTests(unittest.TestCase):
                     stop = engine["body"]("sslThreadSlots", "StopThread").replace(
                         '"Stopping thread " + Slot', '"Stopping thread " + str(Slot)')
                     events = NS(Create=lambda name: name, Send=notifications.append)
-                    recycled = NS(STATUS_IDLE=0, GetStatus=lambda: 0, Initialize=lambda: None,
+                    recycled = NS(RecycleRevision=1, STATUS_IDLE=0, GetStatus=lambda: 0, Initialize=lambda: None,
                                   IsEndingRecyclePending=lambda: False)
                     participants = [slot, recycled] if reuse else [slot]
                     slots = dict(Threads=Array(participants), ModEvent=events,

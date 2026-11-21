@@ -158,11 +158,18 @@ Function CompletePendingStopNotifications()
 EndFunction
 
 Function StopThread(sslThreadController Slot)
-  If (Slot.GetStatus() != Slot.STATUS_IDLE)
-    sslLog.Log("Stopping thread " + Slot + " in state " + Slot.GetState())
-    Slot.EndAnimation()
+  int revision = Slot.RecycleRevision
+  If (Slot.GetStatus() == Slot.STATUS_IDLE)
+    return
   EndIf
-  Slot.Initialize()
+  sslLog.Log("Stopping thread " + Slot + " in state " + Slot.GetState())
+  If (revision != Slot.RecycleRevision)
+    return
+  EndIf
+  Slot.EndAnimation()
+  If (revision == Slot.RecycleRevision)
+    Slot.Initialize()
+  EndIf
 EndFunction
 
 ; ------------------------------------------------------- ;

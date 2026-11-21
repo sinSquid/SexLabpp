@@ -603,6 +603,7 @@ EndFunction
 
 int _instanceCreationWaitLock
 int Property SetupRevision = 0 Auto Hidden
+int Property RecycleRevision = 0 Auto Hidden
 int _prepareAsyncCount
 bool _startupTimingEnabled
 float _startupStartedAt
@@ -1564,6 +1565,10 @@ State Animating
 	endFunction
 
 	Function Initialize()
+		; SetTID still needs to run Alias.Setup after playback has ended.
+		If (_setupAliasesAfterEnding)
+			_initializeAfterEnding = true
+		EndIf
 		EndAnimation()
 	EndFunction
 	Function EndAnimation(bool Quickly = false)
@@ -1887,9 +1892,12 @@ State Ending
 		DestroyInstance(true)
 		GoToState(STATE_SETUP)
 		SetScenes(validScenes)
+		int restartRevision = SetupRevision + 1
 		If (!StartThread())
-			_QuickResetScenes = false
-			GoToState(STATE_END)
+			If (GetState() == STATE_SETUP && SetupRevision == restartRevision && _QuickResetScenes)
+				_QuickResetScenes = false
+				GoToState(STATE_END)
+			EndIf
 			return false
 		EndIf
 		GoToState(STATE_PLAYING)
@@ -1900,6 +1908,10 @@ State Ending
 		(self as sslThreadController).ToggleVisibilitySceneHUD(1)
 		StartStage(Utility.CreateStringArray(0), "")
 		_QuickResetScenes = false
+		If (_setupAliasesAfterEnding)
+			Initialize()
+			return false
+		EndIf
 		return true
 	EndFunction
 
@@ -2348,6 +2360,10 @@ Function SetTID(int id)
 	thread_id = id
 	Log(self, "Setup")
 	_setupAliasesAfterEnding = true
+	If (_QuickResetScenes)
+		_initializeAfterEnding = true
+		return
+	EndIf
 	Initialize()
 EndFunction
 
@@ -2397,6 +2413,7 @@ Function Initialize()
 	EnjoymentPaused = false
 	; Enter thread selection pool
 	DestroyInstance()
+	RecycleRevision += 1
 	GoToState(STATE_IDLE)
 	If (_initializeAfterEnding)
 		_initializeAfterEnding = false
