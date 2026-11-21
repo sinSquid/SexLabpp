@@ -48,8 +48,7 @@ Event OnPlayerLoadGame()
 		return
 	ElseIf (IsInstalled)
 		Config.Reload()
-		ThreadSlots.StopAll()
-		ModEvent.Send(ModEvent.Create("SexLabGameLoaded"))
+		ThreadSlots.StopAllOnGameLoad()
 	Else
 		InstallSystem()
 	EndIf

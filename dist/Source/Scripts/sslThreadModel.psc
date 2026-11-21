@@ -1801,14 +1801,19 @@ string[] Function GetInteractionStringArrayImpl(Actor akPosition) native
 	2) Reset the thread after a short buffer duration back to the idle state
 /;
 
+bool _endingCleanupRunning
+bool _initializeAfterEnding
+bool _endingCooldownArmed
+bool _setupAliasesAfterEnding
+
 State Ending
 	Event OnBeginState()
-		If (_QuickResetScenes)
+		If (_QuickResetScenes || _endingCleanupRunning)
 			return
 		EndIf
+		_endingCleanupRunning = true
 		CancelPendingAnimations()
 		Config.DisableThreadControl(self as sslThreadController)
-		SendModEvent("SSL_CLEAR_Thread" + tid, "", 1.0)
 		MoveActorsAwayFromPlayer()
 		UnregisterCollision()
 		If(IsObjectiveDisplayed(0))
@@ -1817,11 +1822,10 @@ State Ending
 		UpdateAllEncounters()
 		int i = 0
 		While (i < ActorAlias.Length)
-			If (ActorAlias[i].GetState() == ActorAlias[i].STATE_IDLE)
-				i += 1
-			Else
-				Utility.Wait(0.05)
+			If (ActorAlias[i].GetActorReference())
+				ActorAlias[i].Clear()
 			EndIf
+			i += 1
 		EndWhile
 		SendThreadEvent("AnimationEnding")
 		SendThreadEvent("AnimationEnd")
@@ -1829,10 +1833,21 @@ State Ending
 		; Cant use default OnUpdate() event as the previous state could leak a registration into this one here
 		; any attempt to prevent this leak without artificially slowing down the code have failed
 		; 0.1 gametime = 6ig minutes = 360 ig seconds = 360 / 20 rt seconds = 18 rt seconds with default timescale
-		RegisterForSingleUpdateGameTime(0.1)
+		If (!_initializeAfterEnding)
+			_endingCooldownArmed = true
+			RegisterForSingleUpdateGameTime(0.1)
+			_endingCooldownArmed = false
+		EndIf
+		_endingCleanupRunning = false
+		If (_initializeAfterEnding)
+			Initialize()
+		EndIf
 	EndEvent
 
 	bool Function ResetAnimation(Actor[] akNewPositions, Actor[] akSubmissives, ObjectReference akCenter)
+		If (_endingCleanupRunning)
+			return false
+		EndIf
 		UnregisterForUpdateGameTime()
 		If (!akCenter)
 			akCenter = CenterRef
@@ -1863,6 +1878,9 @@ State Ending
 	EndFunction
 
 	bool Function ResetAnimationQuick(String asTagString = "")
+		If (_endingCleanupRunning)
+			return false
+		EndIf
 		UnregisterForUpdateGameTime()
 		(self as sslThreadController).ToggleVisibilitySceneHUD(-1)
 		String[] validScenes = SexLabRegistry.LookupScenesA(_Positions, asTagString, GetSubmissives(), _furniStatus, CenterRef)
@@ -1886,7 +1904,13 @@ State Ending
 	EndFunction
 
 	Event OnUpdateGameTime()
-		Initialize()
+		If (_endingCleanupRunning)
+			If (_endingCooldownArmed)
+				_initializeAfterEnding = true
+			EndIf
+		Else
+			Initialize()
+		EndIf
 	EndEvent
 	Event OnEndState()
 		UnregisterForUpdateGameTime()
@@ -2323,24 +2347,34 @@ EndFunction
 Function SetTID(int id)
 	thread_id = id
 	Log(self, "Setup")
-	int i = 0
-	While(i < ActorAlias.Length)
-		ActorAlias[i].Setup()
-		i += 1
-	EndWhile
+	_setupAliasesAfterEnding = true
 	Initialize()
+EndFunction
+
+bool Function IsEndingRecyclePending()
+	return _initializeAfterEnding
 EndFunction
 
 ; Reset this thread to base status
 Function Initialize()
+	If (_endingCleanupRunning)
+		_initializeAfterEnding = true
+		return
+	EndIf
 	SetupRevision += 1
 	_CustomTimers = Utility.CreateFloatArray(0)
 	UnregisterForUpdate()
 	UnregisterForUpdateGameTime()
 	Config.DisableThreadControl(self as sslThreadController)
+	bool setupAliases = _setupAliasesAfterEnding
+	_setupAliasesAfterEnding = false
 	int i = 0
 	While(i < ActorAlias.Length)
-		ActorAlias[i].Initialize()
+		If (setupAliases)
+			ActorAlias[i].Setup()
+		Else
+			ActorAlias[i].Initialize()
+		EndIf
 		i += 1
 	EndWhile
 	CenterAlias.TryToClear()
@@ -2364,6 +2398,14 @@ Function Initialize()
 	; Enter thread selection pool
 	DestroyInstance()
 	GoToState(STATE_IDLE)
+	If (_initializeAfterEnding)
+		_initializeAfterEnding = false
+		Form framework = Config
+		sslThreadSlots slots = framework as sslThreadSlots
+		If (slots)
+			slots.CompletePendingStopNotifications()
+		EndIf
+	EndIf
 EndFunction
 
 Function DestroyInstance(bool abPreservePreparedActors = false) native

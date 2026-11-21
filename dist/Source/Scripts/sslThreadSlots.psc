@@ -86,13 +86,75 @@ bool Function IsRunning()
   return ActiveThreads() > 0
 endfunction
 
+int _stopRequestsInProgress
+int _stopRequestRevision
+bool _sendingStopNotifications
+bool _stopNotificationsPending
+bool _loadNotificationPending
+
 Function StopAll()
+  RequestStopAll(false)
+EndFunction
+
+Function StopAllOnGameLoad()
+  RequestStopAll(true)
+EndFunction
+
+Function RequestStopAll(bool abGameLoad)
+  _stopRequestsInProgress += 1
+  _stopRequestRevision += 1
+  _stopNotificationsPending = true
+  If (abGameLoad)
+    _loadNotificationPending = true
+  EndIf
   int i = Threads.Length
-  while i
+  While (i > 0)
     i -= 1
     StopThread(Threads[i])
-  endWhile
-  ModEvent.Send(ModEvent.Create("SexLabStoppedActive"))
+  EndWhile
+  _stopRequestsInProgress -= 1
+  CompletePendingStopNotifications()
+EndFunction
+
+Function CompletePendingStopNotifications()
+  If (_sendingStopNotifications || !_stopNotificationsPending || _stopRequestsInProgress > 0)
+    return
+  EndIf
+  int revision = _stopRequestRevision
+  int i = Threads.Length
+  While (i > 0)
+    i -= 1
+    If (Threads[i].IsEndingRecyclePending())
+      return
+    EndIf
+  EndWhile
+  int handle = ModEvent.Create("SexLabStoppedActive")
+  If (_sendingStopNotifications || !_stopNotificationsPending || _stopRequestsInProgress > 0 || revision != _stopRequestRevision)
+    If (handle)
+      ModEvent.Release(handle)
+    EndIf
+    return
+  EndIf
+  _sendingStopNotifications = true
+  _stopNotificationsPending = false
+  If (handle)
+    ModEvent.Send(handle)
+  EndIf
+  If (_loadNotificationPending && revision == _stopRequestRevision)
+    int loadHandle = ModEvent.Create("SexLabGameLoaded")
+    If (revision == _stopRequestRevision && _stopRequestsInProgress == 0)
+      _loadNotificationPending = false
+      If (loadHandle)
+        ModEvent.Send(loadHandle)
+      EndIf
+    ElseIf (loadHandle)
+      ModEvent.Release(loadHandle)
+    EndIf
+  EndIf
+  _sendingStopNotifications = false
+  If (_stopNotificationsPending)
+    CompletePendingStopNotifications()
+  EndIf
 EndFunction
 
 Function StopThread(sslThreadController Slot)
