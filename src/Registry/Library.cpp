@@ -1,36 +1,29 @@
 #include "Library.h"
 
 #include "Define/RaceKey.h"
+#include "Util/StringUtil.h"
 
 namespace Registry
 {
     std::vector<const Scene*> Library::LookupScenes(const std::vector<RE::Actor*>& a_actors, const std::vector<std::string_view>& a_tags, const std::vector<RE::Actor*>& a_submissives) const
     {
         const auto tStart = std::chrono::high_resolution_clock::now();
-        ActorFragment::FragmentHash hash;
-#ifndef SKYRIMVR
-        std::thread _hashbuilder{ [&]() {
-#endif
-            std::vector<ActorFragment> fragments;
-            for (auto&& position : a_actors) {
-                if (!position) {
-                    logger::warn("Warning: NULL Actor passed to LookupScenes");
-                    continue;
-                }
-                const auto submissive = std::ranges::contains(a_submissives, position);
-                fragments.emplace_back(position, submissive);
+        std::vector<ActorFragment> fragments;
+        fragments.reserve(std::min<std::size_t>(a_actors.size(), ActorFragment::MAX_ACTOR_COUNT));
+        for (auto* actor : a_actors) {
+            if (!actor) {
+                logger::warn("Warning: NULL Actor passed to LookupScenes");
+                continue;
             }
-            hash = ActorFragment::MakeFragmentHash(fragments);
-#ifndef SKYRIMVR
-        } };
-#endif
+            if (fragments.size() == ActorFragment::MAX_ACTOR_COUNT)
+                return {};
+            fragments.emplace_back(actor, std::ranges::contains(a_submissives, actor));
+        }
+        if (fragments.empty())
+            return {};
+        const auto hash = ActorFragment::MakeFragmentHash(std::move(fragments));
         TagDetails tags{ a_tags };
-        const auto tagstr = a_tags.empty() ? "[]"s : std::format("[{}]", [&] {
-            return std::accumulate(std::next(a_tags.begin()), a_tags.end(), std::string(a_tags[0]), [](std::string a, std::string_view b) {
-                return std::move(a) + ", " + b.data();
-            });
-        }());
-        _hashbuilder.join();
+        const auto tagstr = std::format("[{}]", Util::StringJoin(a_tags, ", "));
 
         const std::shared_lock lock{ _mScenes };
         const auto where = this->scenes.find(hash);
@@ -66,8 +59,8 @@ namespace Registry
     {
         TagDetails tags{ a_tags };
         std::vector<const Scene*> ret{};
-        ret.reserve(sceneMap.size() >> 5);
         const std::shared_lock lock{ _mScenes };
+        ret.reserve(sceneMap.size() >> 5);
         for (auto&& [key, scene] : sceneMap) {
             if (!scene->IsEnabled() || scene->IsPrivate())
                 continue;

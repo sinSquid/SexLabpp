@@ -360,9 +360,10 @@ class ReviewRegressions(unittest.TestCase):
 
     def test_scene_index_write_lock_contract(self):
         body = cpp_body('src/Registry/Library_SaveLoad.cpp', 'void Library::InitializeScenes()')
-        at = body.index('sceneMap[scene->id]')
-        self.assertRegex(body[:at].rstrip(), r'const std::unique_lock lock\{ _mScenes \};$')
-        self.assertIn('scenePackages[scene.get()] = package.get()', body)
+        self.assertRegex(body, r'const std::unique_lock lock\{ _mScenes \};\s*PublishScenePackage\(')
+        publication = cpp_body('src/Registry/SceneIndexPublication.h', 'void PublishScenePackage(')
+        self.assertLess(publication.index('owners.emplace('), publication.index('packages.push_back('))
+        self.assertIn('throw;', publication)
 
     def test_voice_clear_persistence_contract(self):
         clear = cpp_body('src/Registry/Library.cpp', 'void Library::ClearVoice(')

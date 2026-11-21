@@ -16,6 +16,7 @@ namespace Thread::Interaction::NiSurface
     Scene::Scene(const std::vector<RE::Actor*>& a_positions, const Registry::Scene* a_scene)
     {
         positions.reserve(a_positions.size());
+        frames.reserve(a_positions.size());
         for (std::size_t i = 0; i < a_positions.size(); ++i) {
             positions.emplace_back(a_positions[i], a_scene->GetNthPosition(i)->data.GetSex().get());
         }
@@ -72,8 +73,7 @@ namespace Thread::Interaction::NiSurface
         if (!geometryReady) {
             return;
         }
-        std::vector<ActorState::Frame> frames;
-        frames.reserve(positions.size());
+        const SKSE::stl::scope_exit clearFrames{ [this]() noexcept { frames.clear(); } };
         for (auto& position : positions) {
             frames.emplace_back(position);
         }
@@ -116,9 +116,11 @@ namespace Thread::Interaction::NiSurface
                 state.elapsed += std::max(a_delta, 0.0f);
             }
 
-            const std::set<Interaction> detected{ frames[i].interactions.begin(), frames[i].interactions.end() };
+            std::set<Interaction> detected{ frames[i].interactions.begin(), frames[i].interactions.end() };
             std::set<Interaction> updated;
-            for (auto interaction : detected) {
+            while (!detected.empty()) {
+                auto node = detected.extract(detected.begin());
+                auto& interaction = node.value();
                 const auto key = std::tuple{ interaction.partner->GetFormID(), interaction.action, interaction.motionSource };
                 auto [where, inserted] = position.motionStates.try_emplace(key, ActorState::MotionState{ interaction.motion, interaction.motionScale });
                 auto& state = where->second;
@@ -139,7 +141,7 @@ namespace Thread::Interaction::NiSurface
                 }
                 state.elapsed = 0.0f;
                 interaction.velocity = state.velocity;
-                updated.insert(std::move(interaction));
+                updated.insert(updated.end(), std::move(node));
             }
             position.interactions = std::move(updated);
 
@@ -214,9 +216,8 @@ namespace Thread::Interaction::NiSurface
     {
         const auto stateLock = Instance::LockState();
         std::scoped_lock lock{ _mutex };
-        static std::uint32_t frame = 0;
-        //const bool logTiming = frame++ % TIMING_LOG_INTERVAL == 1;
-        const auto start = std::chrono::high_resolution_clock::now();
+        if (scenes.empty())
+            return;
         auto& hud = Interface::SceneHUD::GetSingleton();
         hud.DebugNodeDrawBeginFrame();
         const auto* linkedThread = hud.GetLinkedThread();
@@ -225,10 +226,6 @@ namespace Thread::Interaction::NiSurface
             scene->UpdateInteractions(a_delta, drawNodes && linkedThread && id == linkedThread->GetFormID());
         }
         hud.DebugNodeDrawPublish();
-        //if (logTiming && !scenes.empty()) {
-        //    const auto elapsed = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - start);
-        //    logger::info("NiSurface Interaction: Frame -> {:.2f}ms", elapsed.count());
-        //}
     }
 
     std::shared_ptr<Scene> Manager::Get(RE::FormID a_id)
@@ -249,6 +246,8 @@ namespace Thread::Interaction::NiSurface
                 logger::info("NiSurface Interaction: Object with ID {:X} already registered; resetting NiSurface for scene", a_id);
                 std::swap(*where, scenes.back());
                 scenes.pop_back();
+                if (scenes.empty())
+                    Interface::SceneHUD::GetSingleton().DebugNodeDrawClear();
             }
             const auto start = std::chrono::high_resolution_clock::now();
             auto process = std::make_shared<Scene>(a_positions, a_scene);
@@ -273,6 +272,8 @@ namespace Thread::Interaction::NiSurface
             return;
         }
         scenes.erase(where);
+        if (scenes.empty())
+            Interface::SceneHUD::GetSingleton().DebugNodeDrawClear();
     }
 
 }  // namespace Thread::Interaction::NiSurface

@@ -54,6 +54,7 @@ namespace Thread::Interface
         [[nodiscard]] bool IsDebugNodeDrawEnabled() const;
         void DebugNodeDrawBeginFrame();
         void DebugNodeDrawPublish();
+        void DebugNodeDrawClear();
         void DebugNodeDrawAddRing(const RE::NiPoint3& a_center, const RE::NiPoint3& a_right, const RE::NiPoint3& a_up, float a_radius);
         void DebugNodeDrawAddTaperedCapsule(const RE::NiPoint3& a_start, const RE::NiPoint3& a_end, float a_startRadius, float a_endRadius);
 

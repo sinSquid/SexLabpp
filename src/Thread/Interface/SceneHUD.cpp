@@ -510,6 +510,13 @@ namespace Thread::Interface
             _elements->debugNodeDraw.Publish();
     }
 
+    void SceneHUD::DebugNodeDrawClear()
+    {
+        const auto stateLock = Instance::LockState();
+        if (_elements)
+            _elements->debugNodeDraw.Clear();
+    }
+
     void SceneHUD::DebugNodeDrawAddRing(const RE::NiPoint3& a_center, const RE::NiPoint3& a_right, const RE::NiPoint3& a_up, float a_radius)
     {
         const auto stateLock = Instance::LockState();

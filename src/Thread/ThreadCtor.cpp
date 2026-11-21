@@ -77,32 +77,32 @@ namespace Thread
     std::vector<Registry::ActorFragment> Instance::InitializeScenes(const SceneMapping& a_scenes, FurniturePreference a_furniturepref)
     {
         logger::info("Initializing scenes: [{},{},{}].", a_scenes[SceneType::Primary].size(), a_scenes[SceneType::LeadIn].size(), a_scenes[SceneType::Custom].size());
-        const auto fragments = std::ranges::fold_left(positions, std::vector<Registry::ActorFragment>{}, [&](auto&& acc, const auto& it) {
-            return (acc.push_back(it.data), acc);
-        });
+        const auto fragments = positions | std::views::transform([](const auto& position) { return position.data; }) | std::ranges::to<std::vector>();
         for (size_t i = 0; i < SceneType::Total; i++) {
-            scenes[i] = std::ranges::fold_left(a_scenes[i], std::vector<const Registry::Scene*>{}, [&](auto&& acc, const Registry::Scene* it) {
+            std::vector<const Registry::Scene*> compatible;
+            compatible.reserve(a_scenes[i].size());
+            for (const auto* it : a_scenes[i]) {
                 if (it->FindAssignments(fragments, true).empty()) {
                     logger::warn("Scene {}, {} has no assignments.", it->id, it->name);
-                    return acc;
+                    continue;
                 } else if (it->RequiresFurniture() && a_furniturepref == FurniturePreference::Disallow) {
                     logger::warn("Scene {}, {} requires furniture, but furniture is disallowed.", it->id, it->name);
-                    return acc;
+                    continue;
                 }
-                acc.push_back(it);
-                return acc;
-            });
+                compatible.push_back(it);
+            }
+            scenes[i] = std::move(compatible);
             if (i == SceneType::Primary && scenes[i].empty()) {
                 logger::warn("No primary scenes found for thread.");
                 const auto lib = Registry::Library::GetSingleton();
-                auto [pos, subm] = std::ranges::fold_left(positions, std::pair{ std::vector<RE::Actor*>(), std::vector<RE::Actor*>() }, [&](auto&& acc, const auto& it) {
-                    const auto actor = it.data.GetActor();
-                    if (it.data.IsSubmissive()) {
-                        acc.second.push_back(actor);
-                    }
-                    acc.first.push_back(actor);
-                    return acc;
-                });
+                std::vector<RE::Actor*> pos, subm;
+                pos.reserve(positions.size());
+                for (const auto& position : positions) {
+                    auto* actor = position.data.GetActor();
+                    pos.push_back(actor);
+                    if (position.data.IsSubmissive())
+                        subm.push_back(actor);
+                }
                 do {
                     scenes[i] = lib->LookupScenes(pos, {}, subm);
                     if (!scenes[i].empty())

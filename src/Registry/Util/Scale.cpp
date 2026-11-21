@@ -9,7 +9,7 @@ namespace Registry
         const auto baseScale = a_reference->GetScale();
         const auto nodeScale = node ? node->local.scale : 1.0f;
         const auto retVal = baseScale * nodeScale;
-        logger::info("GetScale: {:X} -> Base = {}, Skeleton = {} => {}", a_reference->GetFormID(), baseScale, nodeScale, retVal);
+        logger::debug("GetScale: {:X} -> Base = {}, Skeleton = {} => {}", a_reference->GetFormID(), baseScale, nodeScale, retVal);
         return retVal;
     }
 

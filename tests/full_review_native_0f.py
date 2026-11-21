@@ -108,6 +108,15 @@ class NativeReviewRepairs(unittest.TestCase):
                 self.assertIn('ReadScene(a_id,', read)
         common = body('src/Papyrus/SexLabRegistry.cpp', 'std::vector<RE::BSFixedString> GetCommonTags(')
         self.assertIn('ReadScene(sceneid,', common)
+        self.assertIn('ret.IntersectTags(scene->tags)', common)
+        intersect = body('src/Registry/Define/Tags.cpp', 'void TagData::IntersectTags(')
+        self.assertIn('_basetags &= a_tags._basetags;', intersect)
+
+    def test_scene_lookup_hashes_only_supported_fragment_counts(self):
+        lookup = body('src/Registry/Library.cpp', 'Library::LookupScenes(')
+        hash_at = lookup.index('ActorFragment::MakeFragmentHash(')
+        self.assertRegex(lookup[:hash_at], r'if \(fragments.empty\(\)\)\s*return \{\};')
+        self.assertRegex(lookup[:hash_at], r'if \(fragments.size\(\) == ActorFragment::MAX_ACTOR_COUNT\)\s*return \{\};')
 
 
 if __name__ == '__main__':

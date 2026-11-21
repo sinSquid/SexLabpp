@@ -12,8 +12,14 @@ namespace Combinatorics
     void ForEachCombination(const std::vector<std::vector<I>>& a_iterative, std::function<CResult(const std::vector<typename std::vector<I>::const_iterator>&)> a_iterator)
     {
         std::vector<typename std::vector<I>::const_iterator> it;
-        for (auto& subvec : a_iterative)
+        if (a_iterative.empty())
+            return;
+        it.reserve(a_iterative.size());
+        for (const auto& subvec : a_iterative) {
+            if (subvec.empty())
+                return;
             it.push_back(subvec.begin());
+        }
 
         assert(it.size() == a_iterative.size());
         const auto K = it.size() - 1;

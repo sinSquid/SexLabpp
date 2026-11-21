@@ -196,9 +196,7 @@ namespace Registry
         }
         Duplicate(Value::Submissive);
         Duplicate(Value::Unconscious);
-        return std::ranges::fold_left(ret, std::vector<ActorFragment>{}, [&](auto&& acc, auto&& it) {
-            return (acc.emplace_back(it), acc);
-        });
+        return std::vector<ActorFragment>(ret.begin(), ret.end());
     }
 
     ActorFragment::FragmentHash ActorFragment::MakeFragmentHash(std::vector<ActorFragment> a_fragments)

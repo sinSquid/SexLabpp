@@ -1,7 +1,9 @@
 #include "Library.h"
 
+#include "SceneIndexPublication.h"
 #include "Util/Combinatorics.h"
 #include "Util/StringUtil.h"
+#include <unordered_set>
 
 namespace Registry
 {
@@ -91,32 +93,28 @@ namespace Registry
                 const auto filename = file.path().filename().string();
                 try {
                     auto package = std::make_unique<AnimPackage>(file);
-                    for (auto&& scene : package->scenes) {
-                        auto positionFragments = std::ranges::fold_left(scene->positions, std::vector<std::vector<ActorFragment>>{}, [](auto acc, const auto& pos) {
-                            acc.push_back(pos.data.Split());
-                            return std::move(acc);
-                        });
+                    std::vector<std::unordered_set<ActorFragment::FragmentHash>> sceneKeys(package->scenes.size());
+                    for (std::size_t i = 0; i < package->scenes.size(); ++i) {
+                        const auto& scene = package->scenes[i];
+                        std::vector<std::vector<ActorFragment>> positionFragments;
+                        positionFragments.reserve(scene->positions.size());
+                        for (const auto& position : scene->positions)
+                            positionFragments.push_back(position.data.Split());
                         Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
                             std::vector<ActorFragment> argFragment{};
                             argFragment.reserve(it.size());
                             for (auto&& itF : it) {
                                 argFragment.emplace_back(*itF);
                             }
-                            const auto key = ActorFragment::MakeFragmentHash(argFragment);
-                            const std::unique_lock lock{ _mScenes };
-                            auto& vec = scenes[key];
-                            if (!std::ranges::contains(vec, scene.get())) {
-                                vec.push_back(scene.get());
-                            }
+                            sceneKeys[i].insert(ActorFragment::MakeFragmentHash(std::move(argFragment)));
                             return Combinatorics::CResult::Next;
                         });
+                    }
+                    {
                         const std::unique_lock lock{ _mScenes };
-                        sceneMap[scene->id] = scene.get();
-                        scenePackages[scene.get()] = package.get();
+                        PublishScenePackage(std::move(package), sceneKeys, packages, scenes, sceneMap, scenePackages);
                     }
                     logger::info("InitializeScenes: Finished parsing file {}", filename);
-                    const std::unique_lock lock{ _mScenes };
-                    packages.push_back(std::move(package));
                 } catch (const std::exception& e) {
                     logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
                 }

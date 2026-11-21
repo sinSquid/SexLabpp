@@ -22,6 +22,7 @@ namespace Thread::Interaction::NiSurface
         void DetectGeneralInteractions(std::vector<ActorState::Frame>& a_frames, const ActorState::Frame& a_source);
 
         std::vector<ActorState> positions;
+        std::vector<ActorState::Frame> frames;
         mutable std::mutex _mutex{};
     };
 

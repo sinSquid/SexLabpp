@@ -167,7 +167,7 @@ namespace Registry
             value = where->second;
             break;
         }
-        logger::info("Race: {} {:X}, Havok Behavior Id: {} => {}", a_race->formEditorID, a_race->formID, std::to_underlying(where->second.value), std::to_underlying(value));
+        logger::debug("Race: {} {:X}, Havok Behavior Id: {} => {}", a_race->formEditorID, a_race->formID, std::to_underlying(where->second.value), std::to_underlying(value));
     }
 
     RE::BSFixedString RaceKey::AsString() const

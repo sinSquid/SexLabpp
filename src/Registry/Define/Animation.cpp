@@ -647,9 +647,11 @@ namespace Registry
 
     std::vector<RE::BSFixedString> Scene::GetAnimationEvents(const Stage* a_stage) const
     {
-        return std::ranges::fold_left(a_stage->positions, std::vector<RE::BSFixedString>{}, [this](auto&& acc, auto&& it) {
-            return (acc.push_back(std::format("{}{}", hash, it.event)), acc);
-        });
+        std::vector<RE::BSFixedString> events;
+        events.reserve(a_stage->positions.size());
+        for (const auto& position : a_stage->positions)
+            events.emplace_back(std::format("{}{}", hash, position.event));
+        return events;
     }
 
     size_t Scene::GetNumStages() const
