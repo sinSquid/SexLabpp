@@ -183,11 +183,11 @@ Function SetActorMovement(Actor akActor, int aiMovement) global
 		akActor.SetRestrained(bLockMovement)
 		return
 	EndIf
-	bool bVRMode = GetConfig().HasVRIK
-	While (!bVRMode && Game.GetCameraState()==0)
-		Game.ForceThirdPerson()
-	EndWhile
 	If (aiMovement == 2) ;LOCK
+		bool bVRMode = GetConfig().HasVRIK
+		While (!bVRMode && Game.GetCameraState()==0)
+			Game.ForceThirdPerson()
+		EndWhile
 		bool bVRTPP = bVRMode && (GetConfig().POVModeVR == 2) ;VRIK_TPP_FREE
 		Game.SetPlayerAIDriven(!bVRTPP)
 		Game.DisablePlayerControls(abMovement=!bVRTPP, abCamSwitch=true, abSneaking=true, abMenu=false)

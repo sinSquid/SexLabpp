@@ -54,6 +54,38 @@ def event(name, function, env, occurrence=0):
 
 
 class PapyrusReviewRegressions(unittest.TestCase):
+    def test_player_movement_release_does_not_wait_for_camera(self):
+        player = object()
+        for mode, expected in ((0, {}), (1, dict(abFighting=False, abCamSwitch=False,
+                                                abSneaking=False, abActivate=False))):
+            with self.subTest(mode=mode):
+                actions = []
+                game = NS(GetPlayer=lambda: player, GetCameraState=lambda: 0,
+                          ForceThirdPerson=lambda: self.fail("release attempted to switch the camera"),
+                          SetPlayerAIDriven=lambda enabled: actions.append(("ai", enabled)),
+                          EnablePlayerControls=lambda **controls: actions.append(("controls", controls)))
+                call("SexLabUtil", "SetActorMovement", dict(akActor=player, aiMovement=mode,
+                     Game=game, GetConfig=lambda: NS(HasVRIK=False)))
+                self.assertEqual(actions, [("ai", False), ("controls", expected)])
+
+    def test_player_movement_lock_switches_camera_before_disabling_controls(self):
+        player = object()
+        actions = []
+        camera = [0]
+
+        def switch_camera():
+            actions.append("switch")
+            camera[0] = 8
+
+        game = NS(GetPlayer=lambda: player, GetCameraState=lambda: camera[0],
+                  ForceThirdPerson=switch_camera,
+                  SetPlayerAIDriven=lambda enabled: actions.append(("ai", enabled)),
+                  DisablePlayerControls=lambda **controls: actions.append(("controls", controls)))
+        call("SexLabUtil", "SetActorMovement", dict(akActor=player, aiMovement=2,
+             Game=game, GetConfig=lambda: NS(HasVRIK=False)))
+        self.assertEqual(actions, ["switch", ("ai", True), ("controls", dict(
+            abMovement=True, abCamSwitch=True, abSneaking=True, abMenu=False))])
+
     def test_find_bed_flags_and_ignored_refs(self):
         occupied, free, other = object(), object(), object()
         for ignore_used, ignored in itertools.product((False, True), (None, occupied, free)):
