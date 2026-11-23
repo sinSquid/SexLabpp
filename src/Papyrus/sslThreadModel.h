@@ -53,6 +53,7 @@ namespace Papyrus::ThreadModel
 
     void CreateInstance(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref);
     void CreateInstanceForRevision(QUESTARGS, std::vector<RE::Actor*> a_submissives, std::vector<RE::BSFixedString> a_scenesPrimary, std::vector<RE::BSFixedString> a_scenesLeadIn, std::vector<RE::BSFixedString> a_scenesCustom, int a_furniturepref, int a_revision);
+    bool HasNativeSetupRequest(RE::TESQuest* a_qst, int a_revision);
     void LogStartupTiming(RE::TESQuest* a_qst, RE::BSFixedString a_phase, int a_revision, float a_elapsed);
     float GetPreparationElapsedTime(QUESTARGS, int a_revision);
     void DestroyInstance(RE::TESQuest* a_qst, bool a_preservePreparedActors);
@@ -123,6 +124,7 @@ namespace Papyrus::ThreadModel
 
         REGISTERFUNC(CreateInstance, "sslThreadModel", true);
         REGISTERFUNC(CreateInstanceForRevision, "sslThreadModel", true);
+        REGISTERFUNC(HasNativeSetupRequest, "sslThreadModel", true);
         REGISTERFUNC(LogStartupTiming, "sslThreadModel", true);
         REGISTERFUNC(GetPreparationElapsedTime, "sslThreadModel", true);
         REGISTERFUNC(DestroyInstance, "sslThreadModel", true);

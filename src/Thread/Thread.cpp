@@ -16,17 +16,57 @@ namespace Thread
         const auto script = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
         if (!script || Script::GetProperty<int>(script, "SetupRevision") != a_revision)
             return 0;
-        return setupRequests[a_linkedQst] = ++nextSetupTicket;
+        const auto ticket = ++nextSetupTicket;
+        setupRequests.insert_or_assign(a_linkedQst, SetupRequest{ ticket, a_revision });
+        return ticket;
+    }
+
+    bool Instance::HasSetupRequest(RE::TESQuest* a_linkedQst, int a_revision)
+    {
+        const std::lock_guard setupLock{ _mSetup };
+        const auto request = setupRequests.find(a_linkedQst);
+        return request != setupRequests.end() && request->second.revision == a_revision;
     }
 
     bool Instance::IsCurrentSetup(RE::TESQuest* a_linkedQst, uint64_t a_ticket, int a_revision)
     {
         const std::lock_guard setupLock{ _mSetup };
         const auto request = setupRequests.find(a_linkedQst);
-        if (request == setupRequests.end() || request->second != a_ticket)
+        if (request == setupRequests.end() || request->second.ticket != a_ticket || request->second.revision != a_revision)
             return false;
         const auto script = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
         return script && Script::GetProperty<int>(script, "SetupRevision") == a_revision;
+    }
+
+    void Instance::FailSetup(RE::TESQuest* a_linkedQst, uint64_t a_ticket, int a_revision)
+    {
+        const std::lock_guard setupLock{ _mSetup };
+        Interface::FurnSelectMenu::GetSingleton().Close(a_linkedQst, a_ticket);
+        std::unique_ptr<Instance> retired;
+        {
+            std::unique_lock lock{ _mInstances };
+            const auto remove = [&](auto& list) {
+                const auto match = std::ranges::find_if(list, [&](const auto& instance) {
+                    return instance->linkedQst == a_linkedQst && instance->setupTicket == a_ticket;
+                });
+                if (match == list.end())
+                    return false;
+                retired = std::move(*match);
+                list.erase(match);
+                return true;
+            };
+            if (!remove(pendingInstances))
+                remove(instances);
+        }
+        retired.reset();
+
+        const auto request = setupRequests.find(a_linkedQst);
+        if (request == setupRequests.end() || request->second.ticket != a_ticket || request->second.revision != a_revision)
+            return;
+        const bool notify = IsCurrentSetup(a_linkedQst, a_ticket, a_revision);
+        setupRequests.erase(request);
+        if (notify)
+            DispatchContinueSetup(a_linkedQst, false, a_revision);
     }
 
     void Instance::CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, uint64_t a_ticket, int a_revision)
@@ -39,7 +79,7 @@ namespace Thread
                     return;
                 if (GetInstance(a_linkedQst) || GetPendingInstance(a_linkedQst)) {
                     logger::warn("Thread instance already exists for quest {:X}.", a_linkedQst->formID);
-                    DispatchContinueSetup(a_linkedQst, false, a_revision);
+                    FailSetup(a_linkedQst, a_ticket, a_revision);
                     return;
                 }
                 instance = std::make_unique<Instance>(a_linkedQst, a_submissives, a_ticket, a_revision);
@@ -69,17 +109,17 @@ namespace Thread
                 instance.reset();
                 throw;
             }
-            if (pending)
-                created->OpenCenterRefMenu();
-            else
-                DispatchContinueSetup(a_linkedQst, true, a_revision);
-        } catch (const std::exception& e) {
-            const std::lock_guard setupLock{ _mSetup };
-            if (IsCurrentSetup(a_linkedQst, a_ticket, a_revision)) {
-                Interface::FurnSelectMenu::GetSingleton().Close(a_linkedQst);
-                logger::error("Failed to create thread instance: {}", e.what());
-                DispatchContinueSetup(a_linkedQst, false, a_revision);
+            if (pending) {
+                if (!created->OpenCenterRefMenu()) {
+                    logger::error("Failed to open furniture selection for quest {:X}.", a_linkedQst->formID);
+                    FailSetup(a_linkedQst, a_ticket, a_revision);
+                }
+            } else if (!DispatchContinueSetup(a_linkedQst, true, a_revision)) {
+                FailSetup(a_linkedQst, a_ticket, a_revision);
             }
+        } catch (const std::exception& e) {
+            logger::error("Failed to create thread instance: {}", e.what());
+            FailSetup(a_linkedQst, a_ticket, a_revision);
         }
     }
 
@@ -143,11 +183,14 @@ namespace Thread
         return { std::move(stateLock), nullptr };
     }
 
-    void Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int a_revision)
+    bool Instance::DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int a_revision)
     {
         const auto handle = Script::GetScriptObject(a_linkedQst, "sslThreadModel");
         Script::CallbackPtr callbackPtr{};
-        Script::DispatchMethodCall(handle, "ContinueSetupForRevision", callbackPtr, std::move(a_result), std::move(a_revision));
+        if (handle && Script::DispatchMethodCall(handle, "ContinueSetupForRevision", callbackPtr, std::move(a_result), std::move(a_revision)))
+            return true;
+        logger::error("Failed to queue setup result for quest {:X}, revision {}.", a_linkedQst->formID, a_revision);
+        return false;
     }
 
     void Instance::Center::SetReference(RE::TESObjectREFR* a_ref, Registry::FurnitureOffset a_offset)
@@ -223,7 +266,7 @@ namespace Thread
         return true;
     }
 
-    std::vector<const Registry::Scene*> Instance::GetThreadScenes(SceneType a_type)
+    const std::vector<const Registry::Scene*>& Instance::GetThreadScenes(SceneType a_type) const
     {
         assert(a_type < SceneType::Total);
         return scenes[a_type];

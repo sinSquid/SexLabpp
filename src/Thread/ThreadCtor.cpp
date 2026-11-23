@@ -46,8 +46,9 @@ namespace Thread
             }
         }
         const auto firstScene = Random::draw(scenes[SceneType::LeadIn].empty() ? priorityScenes : scenes[SceneType::LeadIn]);
-        [[maybe_unused]] const auto success = SetActiveScene(firstScene);
-        assert(success && "Failed to set active scene.");
+        if (!SetActiveScene(firstScene)) {
+            throw std::runtime_error("Failed to set active scene.");
+        }
     }
 
     RE::Actor* Instance::InitializeReferences(const std::vector<RE::Actor*>& a_submissives)
@@ -105,6 +106,10 @@ namespace Thread
                 }
                 do {
                     scenes[i] = lib->LookupScenes(pos, {}, subm);
+                    std::erase_if(scenes[i], [&](const auto* scene) {
+                        return (scene->RequiresFurniture() && a_furniturepref == FurniturePreference::Disallow) ||
+                               scene->FindAssignments(fragments, true).empty();
+                    });
                     if (!scenes[i].empty())
                         break;
                     if (subm.empty())
@@ -326,7 +331,7 @@ namespace Thread
         return retVal;
     }
 
-    void Instance::OpenCenterRefMenu()
+    bool Instance::OpenCenterRefMenu()
     {
         std::vector<Interface::FurnSelectMenu::Item> items;
         const auto actName = std::format("{}", pendingCenterAct->GetDisplayFullName());
@@ -338,7 +343,7 @@ namespace Thread
             const auto itemID = std::format("0x{:X}", ref->GetFormID());
             items.emplace_back(itemName, itemType, itemID);
         }
-        Interface::FurnSelectMenu::GetSingleton().Open(linkedQst, setupTicket, items);
+        return Interface::FurnSelectMenu::GetSingleton().Open(linkedQst, setupTicket, std::move(items));
     }
 
     void Instance::SetCenterRefSelected(size_t a_index)
@@ -369,7 +374,13 @@ namespace Thread
         auto instance = GetPendingInstance(a_linkedQst);
         if (!instance || instance->setupTicket != a_ticket || !instance->pendingQst || !IsCurrentSetup(a_linkedQst, a_ticket, instance->setupRevision))
             return;
-        instance->SetCenterRefSelected(a_index);
+        const auto revision = instance->setupRevision;
+        try {
+            instance->SetCenterRefSelected(a_index);
+        } catch (const std::exception& e) {
+            logger::error("Failed to select the scene center: {}", e.what());
+            FailSetup(a_linkedQst, a_ticket, revision);
+        }
     }
 
     void Instance::FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, uint64_t a_ticket)
@@ -396,10 +407,13 @@ namespace Thread
                     std::unique_lock lock{ _mInstances };
                     instances.emplace_back(std::move(instance));
                 }
-                DispatchContinueSetup(a_linkedQst, true, revision);
+                if (!DispatchContinueSetup(a_linkedQst, true, revision)) {
+                    FailSetup(a_linkedQst, a_ticket, revision);
+                }
             } catch (const std::exception& e) {
                 logger::error("FinalizeCenterRefSelection: Failed to complete thread instance: {}", e.what());
-                DispatchContinueSetup(a_linkedQst, false, revision);
+                instance.reset();
+                FailSetup(a_linkedQst, a_ticket, revision);
             }
         }).detach();
     }

@@ -20,23 +20,26 @@ namespace Thread::Interface
         return true;
     }
 
-    void FurnSelectMenu::Open(RE::TESQuest* a_quest, uint64_t a_ticket, const std::vector<Item>& a_items)
+    bool FurnSelectMenu::Open(RE::TESQuest* a_quest, uint64_t a_ticket, std::vector<Item> a_items)
     {
         const auto stateLock = Instance::LockState();
-        if (!a_quest)
-            return;
         const std::lock_guard lock{ _mutex };
+        if (!a_quest || (_linkedThread && (_linkedThread != a_quest || _ticket != a_ticket)))
+            return false;
+        Show();
+        if (!IsVisible())
+            return false;
+        _items = std::move(a_items);
         _linkedThread = a_quest;
         _ticket = a_ticket;
-        _items = a_items;
-        Show();
+        return true;
     }
 
-    void FurnSelectMenu::Close(RE::TESQuest* a_quest)
+    void FurnSelectMenu::Close(RE::TESQuest* a_quest, uint64_t a_ticket)
     {
         const auto stateLock = Instance::LockState();
         const std::lock_guard lock{ _mutex };
-        if (_linkedThread != a_quest)
+        if (_linkedThread != a_quest || (a_ticket && _ticket != a_ticket))
             return;
         Hide();
         _linkedThread = nullptr;

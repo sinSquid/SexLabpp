@@ -9,7 +9,14 @@ namespace Thread::Interaction::NiSurface::Geometry
             std::unordered_map<std::string, std::vector<OpeningTopology>> openingAssetTopologyCache;
             std::unordered_map<std::uint64_t, OpeningTopology> openingFingerprintTopologyCache;
             std::unordered_map<std::string, OpeningSelection> openingSelectionCache;
-            std::unordered_map<std::string, std::vector<ShaftTopology>> shaftAssetTopologyCache;
+            struct AssetKeyHash
+            {
+                using is_transparent = void;
+
+                size_t operator()(std::string_view a_key) const noexcept { return std::hash<std::string_view>{}(a_key); }
+            };
+
+            std::unordered_map<std::string, std::vector<ShaftTopology>, AssetKeyHash, std::equal_to<>> shaftAssetTopologyCache;
             std::unordered_map<std::uint64_t, ShaftTopology> shaftFingerprintTopologyCache;
             std::unordered_map<std::string, std::string> shaftSelectionCache;
         }
@@ -120,7 +127,7 @@ namespace Thread::Interaction::NiSurface::Geometry
 
         std::optional<ShaftTopology> FindShaftAssetTopology(std::string_view a_key, RE::NiSkinInstance* a_skin, RE::NiSkinData* a_skinData, RE::NiSkinPartition* a_partition, RE::NiAVObject* a_base)
         {
-            if (const auto cached = shaftAssetTopologyCache.find(std::string(a_key)); cached != shaftAssetTopologyCache.end()) {
+            if (const auto cached = shaftAssetTopologyCache.find(a_key); cached != shaftAssetTopologyCache.end()) {
                 if (const auto match = std::ranges::find_if(cached->second, [&](const ShaftTopology& a_topology) {
                         return MatchesShaftTopology(a_topology, a_skin, a_skinData, a_partition, a_base);
                     }); match != cached->second.end()) {

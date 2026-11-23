@@ -3,10 +3,157 @@
 #include "SceneIndexPublication.h"
 #include "Util/Combinatorics.h"
 #include "Util/StringUtil.h"
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
+#include <atomic>
+#include <fstream>
+#include <system_error>
+#include <thread>
 #include <unordered_set>
+#include <utility>
 
 namespace Registry
 {
+    namespace
+    {
+        template <class Job>
+        void QueueRegistryJob(std::vector<std::jthread>& a_workers, const Job& a_job)
+        {
+            try {
+                a_workers.emplace_back(a_job);
+            } catch (const std::system_error& e) {
+                logger::warn("Could not start a registry worker, running its job inline: {}", e.what());
+                a_job();
+            }
+        }
+
+        template <class Job>
+        void RunRegistryJob(const char* a_description, const Job& a_job)
+        {
+            try {
+                a_job();
+            } catch (const std::exception& e) {
+                logger::error("{}: {}", a_description, e.what());
+            } catch (...) {
+                logger::error("{}: unknown exception", a_description);
+            }
+        }
+
+        fs::path MakeSceneSettingsPath(const fs::path& a_directory, std::string_view a_filename)
+        {
+            const fs::path filename{ a_filename };
+            const auto& nativeName = filename.native();
+            if (nativeName.empty() || nativeName == L"." || nativeName == L".." ||
+                nativeName.find_first_of(LR"(\/:*?"<>|)") != std::wstring::npos ||
+                std::ranges::any_of(nativeName, [](wchar_t c) { return c < 32; })) {
+                throw std::invalid_argument("Invalid scene settings filename");
+            }
+            return a_directory / filename;
+        }
+
+        fs::path RegistryIOPath(const fs::path& a_path)
+        {
+            const auto& input = a_path.native();
+            if (input.starts_with(LR"(\\?\)") || input.starts_with(LR"(\\.\)")) {
+                return a_path;
+            }
+            auto absolute = fs::absolute(a_path).lexically_normal();
+            absolute.make_preferred();
+            const auto& native = absolute.native();
+            if (native.size() < MAX_PATH) {
+                return a_path;
+            }
+            if (native.starts_with(LR"(\\)")) {
+                return fs::path{ LR"(\\?\UNC\)" + native.substr(2) };
+            }
+            return fs::path{ LR"(\\?\)" + native };
+        }
+
+        std::string RegistryPathLabel(const fs::path& a_path)
+        {
+            const auto utf8 = a_path.u8string();
+            return { reinterpret_cast<const char*>(utf8.data()), utf8.size() };
+        }
+
+        std::optional<YAML::Node> ReadRegistryYaml(const fs::path& a_path, bool a_validateEntireFile = false)
+        {
+            const auto path = RegistryIOPath(a_path);
+            const auto status = fs::symlink_status(path);
+            if (status.type() == fs::file_type::not_found) {
+                return std::nullopt;
+            }
+            if (!fs::is_regular_file(status) && (!fs::is_symlink(status) || !fs::is_regular_file(path))) {
+                throw std::runtime_error("Expected a regular registry file");
+            }
+
+            std::ifstream input(path, std::ios::binary);
+            if (!input.is_open()) {
+                throw std::runtime_error("Could not open registry file for reading");
+            }
+            input.exceptions(std::ios::badbit);
+            YAML::Node root;
+            if (a_validateEntireFile) {
+                // The emitter writes one document. Refuse to replace a file with unread or extra content.
+                const auto documents = YAML::LoadAll(input);
+                if (documents.size() > 1) {
+                    throw std::runtime_error("Expected one registry YAML document");
+                }
+                if (!documents.empty()) {
+                    root = documents.front();
+                }
+            } else {
+                root = YAML::Load(input);
+            }
+            if (input.fail() && !input.eof()) {
+                throw std::runtime_error("Could not read registry file");
+            }
+            if (!root.IsNull() && !root.IsMap()) {
+                throw std::runtime_error("Expected a registry YAML mapping");
+            }
+            return root;
+        }
+
+        bool SaveRegistryYaml(const fs::path& a_path, const YAML::Node& a_data)
+        {
+            static std::atomic_uint64_t nextTemporaryFile{ 0 };
+            fs::path temporary;
+            bool ownsTemporary = false;
+            try {
+                const auto destination = RegistryIOPath(a_path);
+                const auto name = std::format(L".slpp-{}-{}.tmp", ::GetCurrentProcessId(), nextTemporaryFile.fetch_add(1, std::memory_order_relaxed));
+                temporary = RegistryIOPath(destination.parent_path() / name);
+                fs::create_directories(temporary.parent_path());
+                std::ofstream output(temporary, std::ios::noreplace);
+                if (!output.is_open())
+                    throw std::runtime_error("Could not create temporary file");
+                ownsTemporary = true;
+                {
+                    YAML::Emitter yaml(output);
+                    yaml << a_data;
+                    if (!yaml.good())
+                        throw std::runtime_error(yaml.GetLastError());
+                }
+                output.close();
+                if (!output)
+                    throw std::runtime_error("Could not write or close temporary file");
+                if (!::MoveFileExW(temporary.c_str(), destination.c_str(), MOVEFILE_REPLACE_EXISTING))
+                    throw std::system_error(static_cast<int>(::GetLastError()), std::system_category(), "Could not replace destination");
+                return true;
+            } catch (const std::exception& e) {
+                logger::error("Failed to save {}: {}", RegistryPathLabel(a_path), e.what());
+                if (ownsTemporary) {
+                    std::error_code error;
+                    fs::remove(temporary, error);
+                    if (error)
+                        logger::warn("Could not remove temporary file {}: {}", RegistryPathLabel(temporary), error.message());
+                }
+                return false;
+            }
+        }
+    }
+
     struct CumFxTextureSource
     {
         std::string type;
@@ -25,22 +172,27 @@ namespace Registry
         logger::info("Loading Library");
         const auto tStart = std::chrono::high_resolution_clock::now();
 #ifndef SKYRIMVR
-        std::array threads{
-            std::thread{ [this]() { InitializeScenes(); } },
-            std::thread{ [this]() { InitializeVoice(); } },
-            std::thread{ [this]() { InitializeExpressions(); } },
-            std::thread{ [this]() { InitializeFurnitures(); } },
-            std::thread{ [this]() { InitializeCumFx(); } }
+        std::vector<std::jthread> threads;
+#endif
+        const auto initialize = [&](const char* description, auto loader) {
+            const auto job = [this, description, loader]() {
+                RunRegistryJob(description, [&]() { (this->*loader)(); });
+            };
+#ifndef SKYRIMVR
+            QueueRegistryJob(threads, job);
+#else
+            job();
+#endif
         };
+        initialize("Failed to initialize scenes", &Library::InitializeScenes);
+        initialize("Failed to initialize voices", &Library::InitializeVoice);
+        initialize("Failed to initialize expressions", &Library::InitializeExpressions);
+        initialize("Failed to initialize furniture", &Library::InitializeFurnitures);
+        initialize("Failed to initialize CumFx", &Library::InitializeCumFx);
+#ifndef SKYRIMVR
         for (auto& thread : threads) {
             thread.join();
         }
-#else
-        InitializeScenes();
-        InitializeVoice();
-        InitializeExpressions();
-        InitializeFurnitures();
-        InitializeCumFx();
 #endif
 
         const auto tEnd = std::chrono::high_resolution_clock::now();
@@ -57,7 +209,7 @@ namespace Registry
         logger::info("Library loaded in {}ms", ms.count());
     }
 
-    bool Library::FolderExists(const char* path, bool notifyUser) const noexcept
+    bool Library::FolderExists(const char* path, bool notifyUser) const
     {
         std::error_code ec{};
         if (!fs::exists(path, ec) || fs::is_empty(path, ec)) {
@@ -77,21 +229,20 @@ namespace Registry
         return true;
     }
 
-    void Library::InitializeScenes() noexcept
+    void Library::InitializeScenes()
     {
         if (!FolderExists(SCENE_PATH, true))
             return;
 #ifndef SKYRIMVR
-        std::vector<std::thread> threads;
+        std::vector<std::jthread> threads;
 #endif
         for (auto& file : fs::recursive_directory_iterator{ SCENE_PATH }) {
             if (file.path().extension() != ".slr")
                 continue;
-#ifndef SKYRIMVR
-            threads.emplace_back([this, file]() {
-#endif
-                const auto filename = file.path().filename().string();
+            const auto load = [this, file]() {
+                std::string filename;
                 try {
+                    filename = file.path().filename().string();
                     auto package = std::make_unique<AnimPackage>(file);
                     std::vector<std::unordered_set<ActorFragment::FragmentHash>> sceneKeys(package->scenes.size());
                     for (std::size_t i = 0; i < package->scenes.size(); ++i) {
@@ -117,30 +268,40 @@ namespace Registry
                     logger::info("InitializeScenes: Finished parsing file {}", filename);
                 } catch (const std::exception& e) {
                     logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
+                } catch (...) {
+                    logger::error("InitializeScenes: Failed to load {} due to an unknown exception", filename);
                 }
+            };
 #ifndef SKYRIMVR
-            });
-        }
-        for (auto& thread : threads) {
-            thread.join();
+            QueueRegistryJob(threads, load);
+#else
+            load();
 #endif
         }
+#ifndef SKYRIMVR
+        for (auto& thread : threads) {
+            thread.join();
+        }
+#endif
         InitializeSceneSettings();
     }
 
-    void Library::InitializeSceneSettings() noexcept
+    void Library::InitializeSceneSettings()
     {
-        if (!FolderExists(SCENE_USER_CONFIG, false))
+        const auto directory = RegistryIOPath(SCENE_USER_CONFIG);
+        if (!fs::exists(directory))
             return;
         std::unique_lock lock{ _mScenes };
-        for (auto& file : fs::directory_iterator{ SCENE_USER_CONFIG }) {
+        for (const auto& file : fs::directory_iterator{ directory }) {
             if (const auto ext = file.path().extension(); ext != ".yaml" && ext != ".yml")
                 continue;
-            const auto filename = file.path().filename().string();
+            const auto filename = RegistryPathLabel(file.path().filename());
             try {
-                const auto root = YAML::LoadFile(file.path().string());
+                const auto root = ReadRegistryYaml(file.path());
+                if (!root)
+                    continue;
                 for (auto&& [key, scene] : sceneMap) {
-                    const auto node = root[scene->id];
+                    const auto node = (*root)[scene->id];
                     if (!node.IsDefined())
                         continue;
                     scene->Load(node);
@@ -152,7 +313,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeFurnitures() noexcept
+    void Library::InitializeFurnitures()
     {
         if (!FolderExists(FURNITURE_PATH, false))
             return;
@@ -176,7 +337,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeExpressions() noexcept
+    void Library::InitializeExpressions()
     {
         std::unique_lock lock{ _mExpressions };
         // NOTE: Intialization happens in stages, beginning with default (P+) expressions, then legacy & default.
@@ -194,7 +355,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeExpressionsImpl() noexcept
+    void Library::InitializeExpressionsImpl()
     {
         if (!FolderExists(EXPRESSION_PATH, false))
             return;
@@ -217,7 +378,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeExpressionsLegacy() noexcept
+    void Library::InitializeExpressionsLegacy()
     {
         if (!FolderExists(EXPRESSION_LEGACY_CONFIG, false))
             return;
@@ -239,7 +400,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeVoice() noexcept
+    void Library::InitializeVoice()
     {
         std::unique_lock lock{ _mVoice };
         InitializeVoiceImpl();
@@ -248,7 +409,7 @@ namespace Registry
         InitializeVoiceCache();
     }
 
-    void Library::InitializeVoiceImpl() noexcept
+    void Library::InitializeVoiceImpl()
     {
         if (!FolderExists(VOICE_PATH, true))
             return;
@@ -270,7 +431,7 @@ namespace Registry
         }
     }
 
-    void Library::InitializeVoicePitches() noexcept
+    void Library::InitializeVoicePitches()
     {
         if (!FolderExists(VOICE_PATH_PITCH, false))
             return;
@@ -307,20 +468,22 @@ namespace Registry
         }
     }
 
-    void Library::InitializeVoiceSettings() noexcept
+    void Library::InitializeVoiceSettings()
     {
-        if (!FolderExists(VOICE_SETTING_PATH, false))
-            return;
         try {
-            const auto root = YAML::LoadFile(VOICE_SETTING_PATH);
-            for (auto&& it : root) {
-                const RE::BSFixedString voiceId = it.first.as<std::string>();
-                const auto voice = voices.find(voiceId);
-                if (voice == voices.end()) {
-                    logger::error("InitializeVoice: Unknown voice {} in settings file", voiceId);
-                    continue;
-                }
-                voice->second.Load(it.second);
+            const auto root = ReadRegistryYaml(VOICE_SETTING_PATH);
+            if (!root)
+                return;
+            for (auto&& it : *root) {
+                RunRegistryJob("Failed to load a voice setting", [&]() {
+                    const RE::BSFixedString voiceId = it.first.as<std::string>();
+                    const auto voice = voices.find(voiceId);
+                    if (voice == voices.end()) {
+                        logger::error("InitializeVoice: Unknown voice {} in settings file", voiceId);
+                        return;
+                    }
+                    voice->second.Load(it.second);
+                });
             }
             logger::info("InitializeVoice: Loaded Voice Settings");
         } catch (const std::exception& e) {
@@ -328,32 +491,34 @@ namespace Registry
         }
     }
 
-    void Library::InitializeVoiceCache() noexcept
+    void Library::InitializeVoiceCache()
     {
-        if (!FolderExists(VOICE_SETTINGS_CACHES_PATH, false))
-            return;
         try {
-            const auto root = YAML::LoadFile(VOICE_SETTINGS_CACHES_PATH);
-            for (auto&& it : root) {
-                const auto npcIdStr = it.first.as<std::string>();
-                const auto id = Util::FormFromString(npcIdStr);
-                if (id == 0)
-                    continue;
-                const auto voiceStr = it.second.as<std::string>();
-                const auto voice = voices.find(voiceStr);
-                if (voice == voices.end()) {
-                    logger::error("InitializeVoice: Actor {:X} uses unknown Voice {}", id, voiceStr);
-                    continue;
-                }
-                const auto& v = voice->second;
-                savedVoices.insert_or_assign(id, &v);
+            const auto root = ReadRegistryYaml(VOICE_SETTINGS_CACHES_PATH);
+            if (!root)
+                return;
+            for (auto&& it : *root) {
+                RunRegistryJob("Failed to load a cached voice assignment", [&]() {
+                    const auto npcIdStr = it.first.as<std::string>();
+                    const auto id = Util::FormFromString(npcIdStr);
+                    if (id == 0)
+                        return;
+                    const auto voiceStr = it.second.as<std::string>();
+                    const auto voice = voices.find(voiceStr);
+                    if (voice == voices.end()) {
+                        logger::error("InitializeVoice: Actor {:X} uses unknown Voice {}", id, voiceStr);
+                        return;
+                    }
+                    const auto& v = voice->second;
+                    savedVoices.insert_or_assign(id, &v);
+                });
             }
         } catch (const std::exception& e) {
             logger::error("InitializeVoice: Error while loading cached voices: {}", e.what());
         }
     }
 
-    void Library::InitializeCumFx() noexcept
+    void Library::InitializeCumFx()
     {
         fxList.clear();
         if (!FolderExists(CUM_FX_CONFIG_PATH, true))
@@ -483,32 +648,48 @@ namespace Registry
 
     void Library::Save() const noexcept
     {
-        SaveScenes();
+        bool scenesSaved = false;
+        RunRegistryJob("Failed to save scene settings", [&]() { scenesSaved = SaveScenes(); });
         SaveExpressions();
-        SaveVoices();
-        logger::info("Finished saving registry settings");
+        bool voicesSaved = false;
+        RunRegistryJob("Failed to save voice settings", [&]() { voicesSaved = SaveVoices(); });
+        if (scenesSaved && voicesSaved) {
+            logger::info("Finished saving registry settings");
+        } else {
+            logger::warn("Some registry settings could not be saved");
+        }
     }
 
-    void Library::SaveScenes() const noexcept
+    bool Library::SaveScenes() const
     {
         std::shared_lock lock{ _mScenes };
-        std::vector<std::thread> threads{};
+        std::atomic_bool allSaved{ true };
+        std::vector<std::jthread> threads;
         for (auto&& p : packages) {
-            threads.emplace_back([&]() {
-                YAML::Node data{};
-                for (auto&& scene : p->scenes) {
-                    auto node = data[scene->id];
-                    scene->Save(node);
+            QueueRegistryJob(threads, [&p, &allSaved]() {
+                bool saved = false;
+                RunRegistryJob("Failed to save animation package settings", [&]() {
+                    const auto filename = std::format("{}_{}.yaml", p->GetName().data(), p->GetHash());
+                    const auto filepath = MakeSceneSettingsPath(SCENE_USER_CONFIG, filename);
+                    YAML::Node data{};
+                    for (auto&& scene : p->scenes) {
+                        auto node = data[scene->id];
+                        scene->Save(node);
+                    }
+                    saved = SaveRegistryYaml(filepath, data);
+                });
+                if (!saved) {
+                    allSaved.store(false, std::memory_order_relaxed);
                 }
-                const auto filepath = std::format("{}\\{}_{}.yaml", SCENE_USER_CONFIG, p->GetName().data(), p->GetHash());
-                std::ofstream fout(filepath);
-                fout << data;
             });
         }
         for (auto&& thread : threads) {
             thread.join();
         }
-        logger::info("Saved scenes");
+        const bool saved = allSaved.load(std::memory_order_relaxed);
+        if (saved)
+            logger::info("Saved scenes");
+        return saved;
     }
 
     void Library::SaveExpressions() const noexcept
@@ -520,44 +701,44 @@ namespace Registry
         logger::info("Saved expressions");
     }
 
-    void Library::SaveVoices() const noexcept
+    bool Library::SaveVoices() const
     {
         const std::shared_lock lock{ _mVoice };
-        const auto getSavefile = [](auto path) -> YAML::Node {
-            try {
-                if (fs::exists(path))
-                    return YAML::LoadFile(path);
-            } catch (const std::exception& e) {
-                logger::error("Error while loading voice settings {}: {}. The file will be re-generated", path, e.what());
+        bool settingsSaved = false;
+        RunRegistryJob("Failed to save voice profiles", [&]() {
+            auto settings = ReadRegistryYaml(VOICE_SETTING_PATH, true).value_or(YAML::Node{});
+            for (auto&& [name, voice] : voices) {
+                const auto existing = std::as_const(settings)[name.data()];
+                if (existing.IsDefined()) {
+                    (void)existing.as<bool>();
+                }
+                auto voiceNode = settings[name.data()];
+                voice.Save(voiceNode);
             }
-            return YAML::Node{};
-        };
-        auto settings = getSavefile(VOICE_SETTING_PATH);
-        for (auto&& [name, voice] : voices) {
-            auto voiceNode = settings[name.data()];
-            voice.Save(voiceNode);
-        }
-        std::ofstream fout_settings(VOICE_SETTING_PATH);
-        fout_settings << settings;
-
-        auto cache = getSavefile(VOICE_SETTINGS_CACHES_PATH);
-        for (const auto& key : removedVoiceCacheKeys) {
-            cache.remove(key);
-        }
-        for (auto&& [id, voice] : savedVoices) {
-            auto form = RE::TESForm::LookupByID<RE::Actor>(id);
-            if (!form)
-                continue;
-            if (auto base = form->GetActorBase()) {
-                if (!base->IsUnique())
+            settingsSaved = SaveRegistryYaml(VOICE_SETTING_PATH, settings);
+        });
+        bool cacheSaved = false;
+        RunRegistryJob("Failed to save NPC voice assignments", [&]() {
+            auto cache = ReadRegistryYaml(VOICE_SETTINGS_CACHES_PATH, true).value_or(YAML::Node{});
+            for (const auto& key : removedVoiceCacheKeys) {
+                cache.remove(key);
+            }
+            for (auto&& [id, voice] : savedVoices) {
+                auto form = RE::TESForm::LookupByID<RE::Actor>(id);
+                if (!form)
                     continue;
+                if (auto base = form->GetActorBase()) {
+                    if (!base->IsUnique())
+                        continue;
+                }
+                auto str = Util::FormToString(form);
+                cache[str] = voice->GetId().data();
             }
-            auto str = Util::FormToString(form);
-            cache[str] = voice->GetId().data();
-        }
-        std::ofstream fout_caches(VOICE_SETTINGS_CACHES_PATH);
-        fout_caches << cache;
-        logger::info("Saved voices");
+            cacheSaved = SaveRegistryYaml(VOICE_SETTINGS_CACHES_PATH, cache);
+        });
+        if (settingsSaved && cacheSaved)
+            logger::info("Saved voices");
+        return settingsSaved && cacheSaved;
     }
 
 }  // namespace Registry

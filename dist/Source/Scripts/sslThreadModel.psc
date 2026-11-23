@@ -777,7 +777,17 @@ State Making
 		TraceStartupPhase("native-request", startRevision)
 		CreateInstanceForRevision(submissives, _PrimaryScenes, _LeadInScenes, _CustomScenes, _furniStatus, startRevision)
 		While (_instanceCreationWaitLock < 0 && startRevision == SetupRevision)
-			Utility.Wait(0.05)
+			bool requestPending = HasNativeSetupRequest(startRevision)
+			If (startRevision != SetupRevision)
+				return none
+			EndIf
+			If (_instanceCreationWaitLock < 0)
+				If (requestPending)
+					Utility.Wait(0.05)
+				Else
+					_instanceCreationWaitLock = 0
+				EndIf
+			EndIf
 		EndWhile
 		If (startRevision != SetupRevision)
 			return none
@@ -803,7 +813,13 @@ State Making
 		_instanceCreationWaitLock = abContinue as int
 	EndFunction
 	Function ContinueSetupForRevision(bool abContinue, int aiRevision)
-		If (aiRevision == SetupRevision)
+		If (aiRevision != SetupRevision || _instanceCreationWaitLock >= 0)
+			return
+		EndIf
+		If (!abContinue && HasNativeSetupRequest(aiRevision))
+			return
+		EndIf
+		If (aiRevision == SetupRevision && _instanceCreationWaitLock < 0)
 			_instanceCreationWaitLock = abContinue as int
 		EndIf
 	EndFunction
@@ -1133,6 +1149,7 @@ EndFunction
 
 Function CreateInstance(Actor[] akSubmissives, String[] asPrimaryScenes, String[] asLeadInScenes, String[] asCustomScenes, int aiFurnitureStatus) native
 Function CreateInstanceForRevision(Actor[] akSubmissives, String[] asPrimaryScenes, String[] asLeadInScenes, String[] asCustomScenes, int aiFurnitureStatus, int aiRevision) native
+bool Function HasNativeSetupRequest(int aiRevision) native
 Function LogStartupTiming(string asPhase, int aiRevision, float afElapsed) native
 float Function GetPreparationElapsedTime(int aiRevision) native
 bool Function BeginActorRecovery() native

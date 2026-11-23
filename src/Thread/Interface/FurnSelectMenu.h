@@ -16,8 +16,8 @@ namespace Thread::Interface
         static FurnSelectMenu& GetSingleton();
 
         bool Register();
-        void Open(RE::TESQuest* a_quest, uint64_t a_ticket, const std::vector<Item>& a_items);
-        void Close(RE::TESQuest* a_quest);
+        bool Open(RE::TESQuest* a_quest, uint64_t a_ticket, std::vector<Item> a_items);
+        void Close(RE::TESQuest* a_quest, uint64_t a_ticket = 0);
 
       private:
         FurnSelectMenu() = default;

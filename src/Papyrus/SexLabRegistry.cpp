@@ -365,14 +365,16 @@ namespace Papyrus::SexLabRegistry
             return -1;
         }
         const auto lib = Registry::Library::GetSingleton();
+        std::vector<Registry::ActorFragment> fragments;
         for (size_t i = 0; i < a_sceneids.size(); i++) {
             const auto scene = lib->GetSceneById(a_sceneids[i]);
             if (!scene) {
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
                 break;
             }
-            std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
-            const auto fragments = Registry::ActorFragment::MakeFragmentList(positions, { a_victim });
+            if (fragments.empty()) {
+                fragments = Registry::ActorFragment::MakeFragmentList({ a_positions.begin(), a_positions.end() }, { a_victim });
+            }
             const auto result = scene->FindAssignments(fragments);
             if (result.empty())
                 continue;
@@ -396,14 +398,16 @@ namespace Papyrus::SexLabRegistry
             return -1;
         }
         const auto lib = Registry::Library::GetSingleton();
+        std::vector<Registry::ActorFragment> fragments;
         for (size_t i = 0; i < a_sceneids.size(); i++) {
             const auto scene = lib->GetSceneById(a_sceneids[i]);
             if (!scene) {
                 a_vm->TraceStack("Invalid scene id ", a_stackID);
                 break;
             }
-            std::vector<RE::Actor*> positions{ a_positions.begin(), a_positions.end() };
-            const auto fragments = Registry::ActorFragment::MakeFragmentList(positions, a_victims);
+            if (fragments.empty()) {
+                fragments = Registry::ActorFragment::MakeFragmentList({ a_positions.begin(), a_positions.end() }, a_victims);
+            }
             const auto result = scene->FindAssignments(fragments);
             if (result.empty())
                 continue;

@@ -303,15 +303,25 @@ namespace Papyrus::ThreadModel
                 return acc;
             });
         };
-        Thread::Instance::FurniturePreference preference{ a_furniturepref };
-        Thread::Instance::SceneMapping scenes{
-            toVector(a_scenesPrimary),
-            toVector(a_scenesLeadIn),
-            toVector(a_scenesCustom)
-        };
-        std::thread([=]() {
-            Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference, ticket, a_revision);
-        }).detach();
+        try {
+            const Thread::Instance::FurniturePreference preference{ a_furniturepref };
+            const Thread::Instance::SceneMapping scenes{
+                toVector(a_scenesPrimary),
+                toVector(a_scenesLeadIn),
+                toVector(a_scenesCustom)
+            };
+            std::thread([=]() {
+                Thread::Instance::CreateInstance(a_qst, a_submissives, scenes, preference, ticket, a_revision);
+            }).detach();
+        } catch (const std::exception& e) {
+            logger::error("Failed to start scene setup: {}", e.what());
+            Thread::Instance::FailSetup(a_qst, ticket, a_revision);
+        }
+    }
+
+    bool HasNativeSetupRequest(RE::TESQuest* a_qst, int a_revision)
+    {
+        return Thread::Instance::HasSetupRequest(a_qst, a_revision);
     }
 
     void LogStartupTiming(RE::TESQuest* a_qst, RE::BSFixedString a_phase, int a_revision, float a_elapsed)
@@ -358,7 +368,7 @@ namespace Papyrus::ThreadModel
     std::vector<RE::BSFixedString> GetLeadInScenes(QUESTARGS)
     {
         GET_INSTANCE({});
-        const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::LeadIn);
+        const auto& sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::LeadIn);
         return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto acc, const auto& it) {
             acc.push_back(it->id);
             return acc;
@@ -368,7 +378,7 @@ namespace Papyrus::ThreadModel
     std::vector<RE::BSFixedString> GetPrimaryScenes(QUESTARGS)
     {
         GET_INSTANCE({});
-        const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Primary);
+        const auto& sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Primary);
         return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto acc, const auto& it) {
             acc.push_back(it->id);
             return acc;
@@ -378,7 +388,7 @@ namespace Papyrus::ThreadModel
     std::vector<RE::BSFixedString> GetCustomScenes(QUESTARGS)
     {
         GET_INSTANCE({});
-        const auto sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Custom);
+        const auto& sceneList = instance->GetThreadScenes(Thread::Instance::SceneType::Custom);
         return std::ranges::fold_left(sceneList, std::vector<RE::BSFixedString>{}, [](auto acc, const auto& it) {
             acc.push_back(it->id);
             return acc;

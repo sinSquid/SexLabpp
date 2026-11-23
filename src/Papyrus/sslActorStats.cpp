@@ -3,6 +3,7 @@
 #include "Registry/Define/RaceKey.h"
 #include "Registry/Define/Sex.h"
 #include "Registry/Stats.h"
+#include <unordered_set>
 
 namespace Papyrus::ActorStats
 {
@@ -329,14 +330,23 @@ namespace Papyrus::ActorStats
 
     std::vector<RE::BSFixedString> GetEveryStatisticID(RE::StaticFunctionTag*)
     {
+        struct StatIDHash
+        {
+            size_t operator()(const RE::BSFixedString& a_key) const noexcept
+            {
+                return a_key.empty() ? 0 : std::hash<const void*>{}(a_key.data());
+            }
+        };
+
         const auto stats = Registry::Statistics::StatisticsData::GetSingleton();
         std::vector<RE::BSFixedString> ret{};
+        std::unordered_set<RE::BSFixedString, StatIDHash> seen;
         stats->ForEachStatistic([&](Registry::Statistics::ActorStats& stats) {
             const auto keys = stats.GetEveryCustomID();
             for (auto&& key : keys) {
                 if (key == Purity || key == Lewdness || key == Foreplay)
                     continue;
-                if (std::ranges::contains(ret, key))
+                if (!seen.insert(key).second)
                     continue;
                 ret.push_back(key);
             }

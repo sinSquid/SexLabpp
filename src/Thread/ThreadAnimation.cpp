@@ -488,7 +488,9 @@ namespace Thread
                 pending.actor->NotifyAnimationGraph("AnimObjectUnequip");
                 pending.actor->NotifyAnimationGraph("IdleStop");
                 pending.actor->NotifyAnimationGraph("IdleForceDefaultState");
-                if (const auto position = GetPosition(pending.actor); position && !position->data.IsHuman()) {
+                const auto position = GetPosition(pending.actor);
+                const bool human = position && position->data.IsHuman();
+                if (position && !human) {
                     pending.actor->NotifyAnimationGraph("ReturnDefaultState");
                     pending.actor->NotifyAnimationGraph("ReturnToDefault");
                     pending.actor->NotifyAnimationGraph("FNISDefault");
@@ -499,8 +501,7 @@ namespace Thread
                 if (const auto process = pending.actor->GetActorRuntimeData().currentProcess) {
                     process->ClearMuzzleFlashes();
                 }
-                const auto position = GetPosition(pending.actor);
-                if (!position || !PrepareActorForAnimation(linkedQst, pending.actor, position->data.IsHuman())) {
+                if (!position || !PrepareActorForAnimation(linkedQst, pending.actor, human)) {
                     return;
                 }
             }
@@ -813,17 +814,26 @@ namespace Thread
 
     void Instance::SetAnimationPlaybackSpeed(float playbackSpeed)
     {
-        if (animationPlaybackSpeed == playbackSpeed) {
-            return;
-        }
+        const bool speedChanged = animationPlaybackSpeed != playbackSpeed;
         animationPlaybackSpeed = playbackSpeed;
-        std::vector<std::pair<RE::BSAnimationGraphManagerPtr, std::unique_ptr<RE::BSSpinLockGuard>>> lockedGraphs;
+        struct LockedGraph
+        {
+            Position* position;
+            RE::BSAnimationGraphManagerPtr graphMgr;
+            std::unique_ptr<RE::BSSpinLockGuard> lock;
+        };
+        std::vector<LockedGraph> lockedGraphs;
 
         for (auto& position : positions) {
-            const auto* actor = position.data.GetActor();
-            if (!actor) {
+            if (!speedChanged && !position.playbackSpeedPending) {
                 continue;
             }
+            const auto* actor = position.data.GetActor();
+            if (!actor) {
+                position.playbackSpeedPending = false;
+                continue;
+            }
+            position.playbackSpeedPending = true;
 
             RE::BSAnimationGraphManagerPtr graphMgr;
             if (!actor->GetAnimationGraphManager(graphMgr) || !graphMgr) {
@@ -832,13 +842,17 @@ namespace Thread
 
             auto& runtime = graphMgr->GetRuntimeData();
             lockedGraphs.emplace_back(
+                &position,
                 graphMgr,
                 std::make_unique<RE::BSSpinLockGuard>(runtime.updateLock));
         }
 
-        for (auto& [graphMgr, lock] : lockedGraphs) {
+        for (auto& [position, graphMgr, lock] : lockedGraphs) {
             auto& runtime = graphMgr->GetRuntimeData();
-            auto activeGraph = runtime.activeGraph;
+            const auto activeGraph = runtime.activeGraph;
+            if (activeGraph >= graphMgr->graphs.size()) {
+                continue;
+            }
 
             RE::BShkbAnimationGraph* animationGraph = graphMgr->graphs[activeGraph].get();
             if (!animationGraph || !animationGraph->behaviorGraph) {
@@ -855,15 +869,23 @@ namespace Thread
                 if (!activeNode.nodeClone) {
                     continue;
                 }
-                if (auto* clip = skyrim_cast<RE::hkbClipGenerator*>(activeNode.nodeClone)) {
-                    const bool held = std::ranges::any_of(pendingAnimations, [&](const auto& pending) {
-                        return pending.playbackHeld && pending.observedGenerator == clip;
-                    });
-                    clip->playbackSpeed = held ? 0.0f : playbackSpeed;
-                    if (clip->animationControl) {
-                        clip->animationControl->playbackSpeed = held ? 0.0f : playbackSpeed;
+                auto* clip = skyrim_cast<RE::hkbClipGenerator*>(activeNode.nodeClone);
+                if (!clip) {
+                    if (const auto synchronized = skyrim_cast<RE::BSSynchronizedClipGenerator*>(activeNode.nodeClone)) {
+                        clip = synchronized->clipGenerator;
                     }
                 }
+                if (!clip) {
+                    continue;
+                }
+                const bool held = std::ranges::any_of(pendingAnimations, [&](const auto& pending) {
+                    return pending.playbackHeld && pending.observedGenerator == clip;
+                });
+                clip->playbackSpeed = held ? 0.0f : playbackSpeed;
+                if (clip->animationControl) {
+                    clip->animationControl->playbackSpeed = clip->playbackSpeed;
+                }
+                position->playbackSpeedPending = false;
             }
         }
     }

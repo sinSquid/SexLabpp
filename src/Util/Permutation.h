@@ -18,8 +18,11 @@
 //  of magnitude faster than that, then it has failed miserably.
 
 #include <algorithm>
-#include <iostream>
+#include <cstdint>
+#include <iterator>
 #include <limits>
+#include <stdexcept>
+#include <utility>
 
 namespace Combinatorics
 {

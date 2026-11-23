@@ -157,9 +157,9 @@ class ReviewRegressions(unittest.TestCase):
         self.assertEqual(scope['_instanceCreationWaitLock'], -1)
 
     def test_start_wait_cancellation_and_success(self):
-        for mode in ('normal', 'cancel_at_create', 'cancel_at_wait'):
+        for mode in ('normal', 'cancel_at_create', 'cancel_at_wait', 'lost_failure_callback'):
             with self.subTest(mode=mode):
-                transitions, waits = [], []
+                transitions, waits, failures = [], [], []
                 model = object()
                 array = engine['Array']
                 env = dict(SetupRevision=10, _Positions=array([object()]), POSITION_COUNT_MAX=5,
@@ -184,6 +184,9 @@ class ReviewRegressions(unittest.TestCase):
                     env['SetupRevision'] += 1
 
                 env.update(CreateInstance=create, CreateInstanceForRevision=create,
+                           HasNativeSetupRequest=lambda _: mode != 'lost_failure_callback',
+                           Fatal=lambda *args: failures.append('fatal'),
+                           Initialize=lambda: failures.append('initialize'),
                            Utility=SimpleNamespace(Wait=wait))
                 result, _ = psc('sslThreadModel', 'StartThread', env)
                 if mode == 'normal':
@@ -192,6 +195,18 @@ class ReviewRegressions(unittest.TestCase):
                 else:
                     self.assertIsNone(result)
                     self.assertEqual(transitions, [])
+                self.assertEqual(failures, ['fatal', 'initialize'] if mode == 'lost_failure_callback' else [])
+                if mode == 'lost_failure_callback':
+                    self.assertEqual(waits, [])
+
+    def test_late_failure_callback_does_not_interrupt_live_setup(self):
+        for pending, wait_lock, expected in ((True, -1, -1), (False, -1, 0), (False, 1, 1)):
+            with self.subTest(pending=pending, wait_lock=wait_lock):
+                _, scope = psc('sslThreadModel', 'ContinueSetupForRevision',
+                               dict(SetupRevision=4, aiRevision=4, abContinue=False,
+                                    HasNativeSetupRequest=lambda _: pending,
+                                    _instanceCreationWaitLock=wait_lock))
+                self.assertEqual(scope['_instanceCreationWaitLock'], expected)
 
     def test_cancel_and_reuse_before_native_entry(self):
         array = engine['Array']
@@ -332,7 +347,7 @@ class ReviewRegressions(unittest.TestCase):
         self.assertLess(wrapper.index('ReserveSetupTicket(a_qst, a_revision)'), wrapper.index('std::thread('))
         self.assertIn('preference, ticket, a_revision)', wrapper)
         # An old reservation must not replace a newer request after cancellation/reuse.
-        self.assertLess(reserve.index('"SetupRevision"'), reserve.index('setupRequests[a_linkedQst]'))
+        self.assertLess(reserve.index('"SetupRevision"'), reserve.index('setupRequests.insert_or_assign'))
         self.assertIn('setupRequests.erase(a_linkedQst)', destroy)
         self.assertLess(create.index('IsCurrentSetup('), create.index('std::make_unique<Instance>'))
 
@@ -367,7 +382,7 @@ class ReviewRegressions(unittest.TestCase):
 
     def test_voice_clear_persistence_contract(self):
         clear = cpp_body('src/Registry/Library.cpp', 'void Library::ClearVoice(')
-        save = cpp_body('src/Registry/Library_SaveLoad.cpp', 'void Library::SaveVoices()')
+        save = cpp_body('src/Registry/Library_SaveLoad.cpp', 'bool Library::SaveVoices()')
         get = cpp_body('src/Registry/Library.cpp', 'const Voice* Library::GetVoice(RE::Actor*')
         self.assertIn('removedVoiceCacheKeys.insert', clear)
         self.assertIn('cache.remove(key)', save)

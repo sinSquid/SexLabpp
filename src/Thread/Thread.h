@@ -40,6 +40,7 @@ namespace Thread
             const Registry::Expression* expression{ nullptr };
             std::optional<float> ghostAlpha{ std::nullopt };
             uint8_t uniquePermutations{ 0 };
+            bool playbackSpeedPending{ false };
         };
 
         struct Center
@@ -84,7 +85,9 @@ namespace Thread
         }
 
         static uint64_t ReserveSetupTicket(RE::TESQuest* a_linkedQst, int a_revision);
+        static bool HasSetupRequest(RE::TESQuest* a_linkedQst, int a_revision);
         static bool IsCurrentSetup(RE::TESQuest* a_linkedQst, uint64_t a_ticket, int a_revision);
+        static void FailSetup(RE::TESQuest* a_linkedQst, uint64_t a_ticket, int a_revision);
         static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, uint64_t a_ticket, int a_revision);
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
@@ -92,7 +95,7 @@ namespace Thread
         static Access GetPendingInstance(RE::TESQuest* a_linkedQst);
         static void SelectCenterReference(RE::TESQuest* a_linkedQst, uint64_t a_ticket, size_t a_index);
         static void FinalizeCenterRefSelection(RE::TESQuest* a_linkedQst, uint64_t a_ticket);
-        static void DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int a_revision);
+        static bool DispatchContinueSetup(RE::TESQuest* a_linkedQst, bool a_result, int a_revision);
         static void UpdateAnimations(float a_delta);
 
       public:
@@ -113,7 +116,7 @@ namespace Thread
         const Registry::Stage* GetActiveStage() { return activeStage; }
         uint64_t GetSetupTicket() const { return setupTicket; }
         float GetPreparationElapsedTime(int a_revision) const { return a_revision == setupRevision ? static_cast<float>(preparationElapsed) : -1.0f; }
-        std::vector<const Registry::Scene*> GetThreadScenes(SceneType a_type);
+        const std::vector<const Registry::Scene*>& GetThreadScenes(SceneType a_type) const;
         std::vector<const Registry::Scene*> GetThreadScenes();
 
         const std::vector<RE::Actor*>& GetActors();
@@ -259,7 +262,7 @@ namespace Thread
         std::vector<const Registry::Scene*>& InitializeCenter(RE::Actor* centerAct, FurniturePreference furniturePreference);
         bool InitializeFixedCenter(RE::Actor* centerAct, std::vector<const Registry::Scene*>& prioScenes, REX::EnumSet<Registry::FurnitureType::Value> sceneTypes);
         CenterSelection GetSelectionMethod(FurniturePreference furniturePreference);
-        void OpenCenterRefMenu();
+        bool OpenCenterRefMenu();
         FurnitureMapping GetUniqueFurnituesOfTypeInBound(RE::Actor* a_centerAct, REX::EnumSet<Registry::FurnitureType::Value> a_furnitureTypes);
         bool GetActiveClips(RE::Actor* a_actor, std::vector<ActiveClip>& a_clips) const;
         bool QueueActorRecoveries(bool a_preparationBarrier);
@@ -278,7 +281,12 @@ namespace Thread
         // Serialize setup/cancellation without retaining the registry lock across engine calls.
         static inline std::recursive_mutex _mSetup{};
         static inline uint64_t nextSetupTicket{ 0 };
-        static inline std::unordered_map<RE::TESQuest*, uint64_t> setupRequests{};
+        struct SetupRequest
+        {
+            uint64_t ticket;
+            int revision;
+        };
+        static inline std::unordered_map<RE::TESQuest*, SetupRequest> setupRequests{};
         static inline std::shared_mutex _mInstances{};
         static inline std::vector<std::unique_ptr<Instance>> instances{};
         static inline std::vector<std::unique_ptr<Instance>> pendingInstances{};

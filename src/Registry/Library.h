@@ -116,24 +116,24 @@ namespace Registry
         void Save() const noexcept;
 
       private:
-        bool FolderExists(const char* path, bool notifyUser) const noexcept;
-        void InitializeScenes() noexcept;
-        void InitializeSceneSettings() noexcept;
-        void InitializeFurnitures() noexcept;
-        void InitializeExpressions() noexcept;
-        void InitializeExpressionsImpl() noexcept;
-        void InitializeExpressionsLegacy() noexcept;
-        void InitializeVoice() noexcept;
-        void InitializeVoiceImpl() noexcept;
-        void InitializeVoicePitches() noexcept;
-        void InitializeVoiceSettings() noexcept;
-        void InitializeVoiceCache() noexcept;
-        void InitializeCumFx() noexcept;
+        bool FolderExists(const char* path, bool notifyUser) const;
+        void InitializeScenes();
+        void InitializeSceneSettings();
+        void InitializeFurnitures();
+        void InitializeExpressions();
+        void InitializeExpressionsImpl();
+        void InitializeExpressionsLegacy();
+        void InitializeVoice();
+        void InitializeVoiceImpl();
+        void InitializeVoicePitches();
+        void InitializeVoiceSettings();
+        void InitializeVoiceCache();
+        void InitializeCumFx();
         uint8_t InitializeCumFxType(const fs::path& a_typePath) const;
 
-        void SaveScenes() const noexcept;
+        bool SaveScenes() const;
         void SaveExpressions() const noexcept;
-        void SaveVoices() const noexcept;
+        bool SaveVoices() const;
 
       private:
         mutable std::shared_mutex _mScenes{};
