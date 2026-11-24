@@ -91,6 +91,8 @@ namespace Thread
         static void CreateInstance(RE::TESQuest* a_linkedQst, const std::vector<RE::Actor*> a_submissives, const SceneMapping& a_scenes, FurniturePreference a_furniturePreference, uint64_t a_ticket, int a_revision);
         static void DestroyInstance(RE::TESQuest* a_linkedQst, bool a_preservePreparedActors = false);
         static void CancelPendingAnimations(RE::TESQuest* a_linkedQst);
+        static void RestorePlayerWeaponAfterEnding(RE::TESQuest* a_linkedQst);
+        static void DiscardPlayerWeaponControl();
         static Access GetInstance(RE::TESQuest* a_linkedQst);
         static Access GetPendingInstance(RE::TESQuest* a_linkedQst);
         static void SelectCenterReference(RE::TESQuest* a_linkedQst, uint64_t a_ticket, size_t a_index);

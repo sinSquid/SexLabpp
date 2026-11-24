@@ -2,7 +2,6 @@
 
 #include "Registry/Library.h"
 #include "Registry/Util/RayCast/Offsets.h"
-#include "Thread/Hooks.h"
 #include "Thread/Interface/SceneHUD.h"
 #include "Thread/Interface/FurnSelectMenu.h"
 #include "Thread/Interface/StageSelectMenu.h"
@@ -148,14 +147,13 @@ namespace Thread
             remove(pendingInstances);
         }
         for (const auto& instance : retired) {
-            if (!a_preservePreparedActors && instance->GetPosition(RE::PlayerCharacter::GetSingleton()))
-                Hooks::SetWeaponDrawBlocked(false);
             instance->ReleaseAnimations();
         }
         // Destructors unregister collision surfaces; never do that under _mInstances.
         retired.clear();
         if (!a_preservePreparedActors) {
             RestorePreparedActors(a_linkedQst);
+            RestorePlayerWeaponAfterEnding(a_linkedQst);
         }
     }
 

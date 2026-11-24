@@ -132,7 +132,14 @@ EndFunction
 
 Function ToggleFreeCamera(int aiForceState = -1) global
 	;[-1:Toggle, 0:TFC_STAYS_OFF, 1:TFC_STAYS_ON]
-	bool bVRMode = GetConfig().HasVRIK
+	sslSystemConfig config = GetConfig()
+	bool bVRMode = config.HasVRIK
+	If (aiForceState == -1 && !bVRMode)
+		sslThreadModel cameraThread = config.PlayerSceneCameraThread
+		If (cameraThread)
+			cameraThread.RelinquishSceneFreeCamera()
+		EndIf
+	EndIf
 	If (Game.GetCameraState() == 3)
 		If (aiForceState != 1)
 			If (!bVRMode)
@@ -147,13 +154,30 @@ Function ToggleFreeCamera(int aiForceState = -1) global
 		If (aiForceState != 0)
 			ForceThirdPerson()
 			If (!bVRMode)
-				MiscUtil.SetFreeCameraSpeed(GetConfig().AutoSUCSM)
+				MiscUtil.SetFreeCameraSpeed(config.AutoSUCSM)
 				MiscUtil.ToggleFreeCamera()
 			Else
 				Utility.SetIniBool("bDisablePlayerCollision:Havok", true)
 				SetActorMovement(Game.GetPlayer(), 2) ;MOVEMENT_LOCK (bVRTPP==true)
 			EndIf
 		EndIf
+	EndIf
+EndFunction
+
+Function EnableSceneFreeCamera(sslThreadModel akThread) global
+	sslSystemConfig config = GetConfig()
+	If (config.HasVRIK)
+		ToggleFreeCamera(1)
+		return
+	EndIf
+	If (Game.GetCameraState() == 3)
+		return
+	EndIf
+	int revision = akThread.SetupRevision
+	ForceThirdPerson()
+	MiscUtil.SetFreeCameraSpeed(config.AutoSUCSM)
+	If (Game.GetCameraState() != 3 && akThread.RecordSceneFreeCameraRequest(revision))
+		MiscUtil.ToggleFreeCamera()
 	EndIf
 EndFunction
 

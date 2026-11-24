@@ -347,6 +347,11 @@ namespace Papyrus::ThreadModel
         Thread::Instance::CancelPendingAnimations(a_qst);
     }
 
+    void RestorePlayerWeaponAfterEnding(RE::TESQuest* a_qst)
+    {
+        Thread::Instance::RestorePlayerWeaponAfterEnding(a_qst);
+    }
+
     bool BeginActorRecovery(QUESTARGS)
     {
         GET_INSTANCE(false);

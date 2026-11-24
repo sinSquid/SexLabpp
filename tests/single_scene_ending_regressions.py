@@ -43,19 +43,23 @@ class EndingCleanupTests(unittest.TestCase):
         engine["execute"](stop, dict(Slot=slot, sslLog=NS(Log=finish_setup)))
         self.assertEqual(effects, ["end", "reset"])
 
-    def run_ending(self, interrupt=None, quick=False, timer_during_registration=False, setup_from_playback=False):
+    def run_ending(self, interrupt=None, quick=False, timer_during_registration=False, setup_from_playback=False,
+                   aborted_camera=False, weapon_restore=False):
         trace = []
         actor = object()
+        thread = object()
         alias = NS(STATE_IDLE="Empty", GetState=lambda: "Empty",
                    GetActorReference=lambda: actor)
         env = dict(
             _QuickResetScenes=quick, _endingCleanupRunning=False, _initializeAfterEnding=False,
-            _endingCooldownArmed=False, _setupAliasesAfterEnding=False, id=3, tid="3", self=object(), RecycleRevision=1,
+            _endingCooldownArmed=False, _setupAliasesAfterEnding=False, id=3, tid="3", self=thread, RecycleRevision=1,
+            SetupRevision=4, _abortInitialCameraCleanup=aborted_camera, _sceneFreeCameraRequested=aborted_camera,
             ActorAlias=Array([alias, NS(STATE_IDLE="Empty", GetState=lambda: "Empty",
                                         GetActorReference=lambda: None,
                                         Clear=lambda: self.fail("empty alias was cleared"))]),
             CancelPendingAnimations=lambda: trace.append("cancel"),
-            Config=NS(DisableThreadControl=lambda _: None, HOOKID_END=1,
+            RestorePlayerWeaponAfterEnding=lambda: trace.append("weapon restore") if weapon_restore else None,
+            Config=NS(DisableThreadControl=lambda _: None, HOOKID_END=1, PlayerSceneCameraThread=thread,
                       CompletePendingStopNotifications=lambda: None),
             SendModEvent=lambda *_: None, MoveActorsAwayFromPlayer=lambda: None,
             UnregisterCollision=lambda: None, IsObjectiveDisplayed=lambda _: False,
@@ -64,6 +68,7 @@ class EndingCleanupTests(unittest.TestCase):
             SendThreadEvent=trace.append, RunHook=lambda _: trace.append("hook"),
 
             Initialize=lambda: trace.append("recycle"),
+            FinishAbortedSceneCamera=lambda revision: trace.append(("camera", revision)),
         )
 
         def clear():
@@ -94,12 +99,150 @@ class EndingCleanupTests(unittest.TestCase):
         else:
             enter_ending()
         self.assertFalse(env["_endingCleanupRunning"])
+        if aborted_camera:
+            self.assertIsNone(env["Config"].PlayerSceneCameraThread)
         return trace
 
     def test_clear_returns_before_end_events(self):
         trace = self.run_ending()
         self.assertEqual(trace, ["cancel", "encounters", "clear returned",
                                  "AnimationEnding", "AnimationEnd", "hook", ("cooldown", 0.1)])
+
+    def test_aborted_camera_cleanup_runs_after_alias_release_before_end_events(self):
+        trace = self.run_ending(aborted_camera=True)
+        self.assertEqual(trace, ["cancel", "encounters", "clear returned", ("camera", 4),
+                                 "AnimationEnding", "AnimationEnd", "hook", ("cooldown", 0.1)])
+
+    def test_weapon_restore_is_requested_after_alias_redress(self):
+        trace = self.run_ending(aborted_camera=True, weapon_restore=True)
+        self.assertEqual(trace, ["cancel", "encounters", "clear returned", "weapon restore", ("camera", 4),
+                                 "AnimationEnding", "AnimationEnd", "hook", ("cooldown", 0.1)])
+
+    def test_only_failed_initial_player_sync_defers_camera_cleanup(self):
+        for pending, started, player, vr in ((True, False, True, False), (True, True, True, False),
+                                             (False, False, True, False), (True, False, False, False),
+                                             (True, False, True, True)):
+            with self.subTest(pending=pending, started=started, player=player, vr=vr):
+                ended = []
+                env = dict(_animationSyncPending=pending, _animationStarted=started, HasPlayer=player,
+                           Config=NS(HasVRIK=vr), aiRevision=4, IsCurrentPlayback=lambda revision: revision == 4,
+                           EndAnimation=lambda: ended.append(True))
+                call("sslThreadModel", "OnAnimationSyncFailedForRevision", env)
+                self.assertEqual(env["_abortInitialCameraCleanup"], pending and not started and player and not vr)
+                self.assertEqual(ended, [True])
+
+    def test_failure_from_an_old_playback_cannot_end_the_replacement(self):
+        for switch_during_log in (False, True):
+            revision = [4 if switch_during_log else 5]
+            env = dict(aiRevision=4, IsCurrentPlayback=lambda old: old == revision[0],
+                       _abortInitialCameraCleanup=False, _animationSyncPending=True, _queuedSceneReset="replacement",
+                       Log=lambda *_: revision.__setitem__(0, 5),
+                       EndAnimation=lambda: self.fail("old failure ended the replacement"))
+            engine["execute"](engine["body"]("sslThreadModel", "OnAnimationSyncFailedForRevision"), env)
+            self.assertFalse(env["_abortInitialCameraCleanup"])
+            self.assertTrue(env["_animationSyncPending"])
+            self.assertEqual(env["_queuedSceneReset"], "replacement")
+
+    def test_disabling_thread_control_defers_camera_close_only_on_initial_abort(self):
+        for aborted in (False, True):
+            with self.subTest(aborted=aborted):
+                actions = []
+                hotkeys = dict(SceneSelectUIRevision=0, _SceneSelectRevision=0, _endingCleanupRunning=True,
+                               _abortInitialCameraCleanup=aborted, Config=NS(HasVRIK=False),
+                               SetSpeedHotkeysEnabled=lambda _: None, ToggleVisibilitySceneHUD=lambda _: None,
+                               UnregisterHotkeys=lambda: actions.append("unregister"),
+                               SexLabUtil=NS(ToggleFreeCamera=lambda _: actions.append("camera close")))
+                hotkeys["DefersAbortedSceneCameraCleanup"] = lambda: call(
+                    "sslThreadModel", "DefersAbortedSceneCameraCleanup", hotkeys)[0]
+                thread = NS(HasPlayer=True, DisableHotkeys=lambda: call("sslThreadController", "DisableHotkeys", hotkeys))
+                call("sslSystemConfig", "DisableThreadControl", dict(TargetThread=thread, _ActiveControl=thread))
+                self.assertEqual(actions, ["unregister"] if aborted else ["camera close", "unregister"])
+
+    def test_manual_toggle_relinquishes_the_scene_camera_without_untracking_the_player_thread(self):
+        owner = dict(_sceneFreeCameraRequested=True)
+        thread = NS(RelinquishSceneFreeCamera=lambda: call("sslThreadModel", "RelinquishSceneFreeCamera", owner))
+        config = NS(HasVRIK=False, PlayerSceneCameraThread=thread, AutoSUCSM=1.0)
+        camera = [3]
+        env = dict(aiForceState=-1, GetConfig=lambda: config, Game=NS(GetCameraState=lambda: camera[0]),
+                   ForceThirdPerson=lambda: None, MiscUtil=NS(SetFreeCameraSpeed=lambda _: None,
+                       ToggleFreeCamera=lambda: camera.__setitem__(0, 9 if camera[0] == 3 else 3)))
+        call("SexLabUtil", "ToggleFreeCamera", env)
+        call("SexLabUtil", "ToggleFreeCamera", env)
+        self.assertEqual(camera[0], 3)
+        self.assertFalse(owner["_sceneFreeCameraRequested"])
+        self.assertIs(config.PlayerSceneCameraThread, thread)
+
+    def run_aborted_camera(self, camera_samples, replacement=None, owns_camera=True):
+        thread = object()
+        other = object()
+        actions = []
+        camera = iter(camera_samples)
+        env = dict(self=thread, SetupRevision=3, aiRevision=3, _endingCleanupRunning=True,
+                   _abortInitialCameraCleanup=True, _sceneFreeCameraRequested=owns_camera,
+                   Config=NS(PlayerSceneCameraThread=thread), GetState=lambda: "Ending", STATE_END="Ending",
+                   MiscUtil=NS(ToggleFreeCamera=lambda: actions.append("close")))
+
+        def read_camera():
+            if replacement == "during camera read":
+                env["Config"].PlayerSceneCameraThread = other
+            return next(camera)
+
+        env["Game"] = NS(GetCameraState=read_camera)
+
+        def wait(seconds):
+            actions.append(seconds)
+            if replacement == "other slot":
+                claimed = dict(self=other, Config=env["Config"])
+                call("sslThreadModel", "ClaimPlayerSceneCamera", claimed)
+            elif replacement == "same slot":
+                env["SetupRevision"] += 1
+
+        env["Utility"] = NS(WaitMenuMode=wait)
+        env["DefersAbortedSceneCameraCleanup"] = lambda: call(
+            "sslThreadModel", "DefersAbortedSceneCameraCleanup", env)[0]
+        env["CanFinishAbortedSceneCamera"] = lambda revision: call(
+            "sslThreadModel", "CanFinishAbortedSceneCamera", dict(env, aiRevision=revision))[0]
+        call("sslThreadModel", "FinishAbortedSceneCamera", env)
+        return actions
+
+    def test_transition_into_free_camera_closes_once_and_observes_exit(self):
+        self.assertEqual(self.run_aborted_camera([6, 7, 3, 3, 6, 9]),
+                         [0.05, 0.05, "close", 0.05, 0.05, 0.05])
+
+    def test_camera_cleanup_is_bounded_and_ignores_unowned_free_camera(self):
+        self.assertEqual(self.run_aborted_camera([6] * 7), [0.05] * 6)
+        self.assertEqual(self.run_aborted_camera([3] * 7), ["close"] + [0.05] * 6)
+        self.assertEqual(self.run_aborted_camera([], owns_camera=False), [])
+
+    def test_replacement_player_scene_prevents_the_old_close(self):
+        for replacement in ("same slot", "other slot"):
+            with self.subTest(replacement=replacement):
+                self.assertEqual(self.run_aborted_camera([7], replacement=replacement), [0.05])
+        self.assertEqual(self.run_aborted_camera([3], replacement="during camera read"), [])
+
+    def test_scene_records_only_a_new_free_camera_request(self):
+        for camera, claimed in ((3, True), (9, False), (9, True)):
+            with self.subTest(camera=camera, claimed=claimed):
+                calls = []
+                thread = NS(SetupRevision=7, RecordSceneFreeCameraRequest=lambda _: claimed)
+                call("SexLabUtil", "EnableSceneFreeCamera", dict(akThread=thread,
+                     GetConfig=lambda: NS(HasVRIK=False, AutoSUCSM=1.0), Game=NS(GetCameraState=lambda: camera),
+                     ForceThirdPerson=lambda: None, MiscUtil=NS(ToggleFreeCamera=lambda: calls.append("open"),
+                                                                 SetFreeCameraSpeed=lambda _: None)))
+                self.assertEqual(calls, ["open"] if camera != 3 and claimed else [])
+
+    def test_old_camera_start_cannot_claim_a_reused_player_scene(self):
+        thread = object()
+        for revision, owns, phase in ((3, True, "Making_M"), (3, True, "Animating"),
+                                       (2, True, "Animating"), (3, False, "Animating"),
+                                       (3, True, "Ending")):
+            with self.subTest(revision=revision, owns=owns, phase=phase):
+                env = dict(aiRevision=revision, SetupRevision=3, self=thread, _sceneFreeCameraRequested=False,
+                           GetState=lambda: phase, STATE_SETUP_M="Making_M", STATE_PLAYING="Animating",
+                           Config=NS(PlayerSceneCameraThread=thread if owns else object()))
+                result, _ = call("sslThreadModel", "RecordSceneFreeCameraRequest", env)
+                accepted = revision == 3 and owns and phase != "Ending"
+                self.assertEqual((result, env["_sceneFreeCameraRequested"]), (accepted, accepted))
 
     def test_manual_stop_defers_recycle_without_clearing_again(self):
         def manual_stop(env):

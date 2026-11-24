@@ -842,6 +842,7 @@ endFunction
 ; ------------------------------------------------------- ;
 
 sslThreadController _ActiveControl
+sslThreadModel Property PlayerSceneCameraThread Auto Hidden
 sslThreadController Function GetThreadControlled()
   return _ActiveControl
 EndFunction

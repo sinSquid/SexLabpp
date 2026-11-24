@@ -36,7 +36,9 @@ Function DisableHotkeys()
 	_SceneSelectRevision += 1
 	_OpeningSceneSelect = false
 	SetSpeedHotkeysEnabled(false)
-	SexLabUtil.ToggleFreeCamera(0)
+	If (!DefersAbortedSceneCameraCleanup())
+		SexLabUtil.ToggleFreeCamera(0)
+	EndIf
 	ToggleVisibilitySceneHUD(-1)
 	UnregisterHotkeys()
 	If (Config.HasVRIK)

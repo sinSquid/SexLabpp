@@ -32,6 +32,36 @@ namespace Thread
         std::mutex actorPreparationLock;
         std::unordered_map<RE::FormID, ActorPreparation> actorPreparations;
 
+        // Guarded by Instance::LockState. Quick scene resets keep the same quest
+        // and must retain the state captured before the original sheathe.
+        struct PlayerWeaponControl
+        {
+            RE::TESQuest* owner;
+            bool wasDrawn;
+            bool restoreRequested{ false };
+        };
+        std::optional<PlayerWeaponControl> playerWeaponControl;
+
+        bool WantsWeaponDrawn(RE::WEAPON_STATE a_state)
+        {
+            return a_state == RE::WEAPON_STATE::kWantToDraw ||
+                   a_state == RE::WEAPON_STATE::kDrawing || a_state == RE::WEAPON_STATE::kDrawn;
+        }
+
+        void ApplyPlayerWeaponRestore()
+        {
+            if (!playerWeaponControl || !playerWeaponControl->restoreRequested)
+                return;
+
+            const bool wasDrawn = playerWeaponControl->wasDrawn;
+            playerWeaponControl.reset();
+            Hooks::SetWeaponDrawBlocked(false);
+            const auto player = RE::PlayerCharacter::GetSingleton();
+            if (player && !player->IsDead() && WantsWeaponDrawn(player->AsActorState()->GetWeaponState()) != wasDrawn) {
+                player->DrawWeaponMagicHands(wasDrawn);
+            }
+        }
+
         bool IsPlayerDialogueActive()
         {
             const auto ui = RE::UI::GetSingleton();
@@ -93,7 +123,6 @@ namespace Thread
         void RestorePreparedActorState(RE::TESQuest* a_owner)
         {
             std::vector<ActorPreparation> restore;
-            bool restorePlayer = false;
             {
                 std::scoped_lock lock{ actorPreparationLock };
                 for (auto actor = actorPreparations.begin(); actor != actorPreparations.end();) {
@@ -110,7 +139,6 @@ namespace Thread
                 if (!actor) {
                     continue;
                 }
-                restorePlayer |= actor->IsPlayerRef();
                 Registry::Scale::GetSingleton()->RemoveScale(actor);
                 if (preparation.hasIsNPC) {
                     actor->SetGraphVariableInt("IsNPC", preparation.isNPC);
@@ -123,9 +151,6 @@ namespace Thread
                     actor->AsActorValueOwner()->SetActorValue(RE::ActorValue::kVariable05, 0.0f);
                 }
             }
-            if (restorePlayer) {
-                Hooks::SetWeaponDrawBlocked(false);
-            }
             if (!restore.empty()) {
                 logger::info("Restored {} natively prepared actor(s) for thread {:X}.", restore.size(), a_owner->GetFormID());
             }
@@ -135,6 +160,21 @@ namespace Thread
     void Instance::RestorePreparedActors(RE::TESQuest* a_linkedQst)
     {
         RestorePreparedActorState(a_linkedQst);
+    }
+
+    void Instance::RestorePlayerWeaponAfterEnding(RE::TESQuest* a_linkedQst)
+    {
+        const auto stateLock = LockState();
+        if (playerWeaponControl && playerWeaponControl->owner == a_linkedQst) {
+            playerWeaponControl->restoreRequested = true;
+        }
+    }
+
+    void Instance::DiscardPlayerWeaponControl()
+    {
+        const auto stateLock = LockState();
+        playerWeaponControl.reset();
+        Hooks::SetWeaponDrawBlocked(false);
     }
 
     void Instance::CancelPendingAnimations(RE::TESQuest* a_linkedQst)
@@ -159,9 +199,6 @@ namespace Thread
                 instance->playerSheatheElapsed = 0.0f;
                 instance->playerSheathePreviousState = RE::WEAPON_STATE::kSheathed;
                 instance->playerSheatheActionSubmitted = false;
-                if (instance->GetPosition(RE::PlayerCharacter::GetSingleton())) {
-                    Hooks::SetWeaponDrawBlocked(false);
-                }
                 break;
             }
         }
@@ -296,7 +333,8 @@ namespace Thread
             pendingAnimations.clear();
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSyncFailed", callbackPtr)) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSyncFailedForRevision", callbackPtr,
+                                     Script::GetProperty<int>(scriptObject, "PlaybackRevision"))) {
                 logger::error("Failed to notify Papyrus of actor recovery failure for thread {:X}.", linkedQst->GetFormID());
             }
         }
@@ -313,9 +351,14 @@ namespace Thread
         if (!player || !GetPosition(player)) {
             return true;
         }
-        Hooks::SetWeaponDrawBlocked(true);
-
         const auto weaponState = player->AsActorState()->GetWeaponState();
+        if (!playerWeaponControl || playerWeaponControl->owner != linkedQst || playerWeaponControl->restoreRequested) {
+            // A new scene can take over before the previous restore reaches the frame hook.
+            // The current sheathed state still belongs to scene preparation in that case.
+            const bool wasDrawn = playerWeaponControl ? playerWeaponControl->wasDrawn : WantsWeaponDrawn(weaponState);
+            playerWeaponControl = PlayerWeaponControl{ linkedQst, wasDrawn };
+        }
+        Hooks::SetWeaponDrawBlocked(true);
         if (weaponState == RE::WEAPON_STATE::kSheathed) {
             return true;
         }
@@ -401,6 +444,9 @@ namespace Thread
     {
         const auto stateLock = LockState();
         const bool paused = Util::IsGamePausedOrFrozen();
+        if (!paused) {
+            ApplyPlayerWeaponRestore();
+        }
         const auto timeoutDelta = paused ? 0.0f : a_delta;
         // The setup grace uses unscaled, non-paused frame time, not VM wake counts.
         const auto preparationDelta = paused ? 0.0f : std::max(0.0f, RE::BSTimer::GetSingleton()->realTimeDelta);
@@ -791,7 +837,8 @@ namespace Thread
             pendingAnimations.clear();
             const auto scriptObject = Script::GetScriptObject(linkedQst, "sslThreadModel");
             Script::CallbackPtr callbackPtr{};
-            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSyncFailed", callbackPtr)) {
+            if (!scriptObject || !Script::DispatchMethodCall(scriptObject, "OnAnimationSyncFailedForRevision", callbackPtr,
+                                     Script::GetProperty<int>(scriptObject, "PlaybackRevision"))) {
                 logger::error("Failed to notify Papyrus of animation synchronization failure for thread {:X}.", linkedQst->GetFormID());
             }
             return;

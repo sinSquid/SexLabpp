@@ -1633,12 +1633,7 @@ State Animating
 	EndFunction
 
 	Function OnAnimationSyncFailed()
-		_animationSyncPending = false
-		_sceneResetSyncPending = false
-		_nextSceneResetAt = 0.0
-		_queuedSceneReset = ""
-		Log("Animation synchronization failed; ending thread", "OnAnimationSyncFailed()")
-		EndAnimation()
+		OnAnimationSyncFailedForRevision(PlaybackRevision)
 	EndFunction
 
 	Function OnNativeActorsPrepared()
@@ -1773,6 +1768,22 @@ Function OnAnimationSyncFailed()
 	Log("OnAnimationSyncFailed(), Function called from invalid state: " + GetState())
 EndFunction
 
+Function OnAnimationSyncFailedForRevision(int aiRevision)
+	If (!IsCurrentPlayback(aiRevision))
+		return
+	EndIf
+	Log("Animation synchronization failed; ending thread", "OnAnimationSyncFailed()")
+	If (!IsCurrentPlayback(aiRevision))
+		return
+	EndIf
+	_abortInitialCameraCleanup = _animationSyncPending && !_animationStarted && HasPlayer && !Config.HasVRIK
+	_animationSyncPending = false
+	_sceneResetSyncPending = false
+	_nextSceneResetAt = 0.0
+	_queuedSceneReset = ""
+	EndAnimation()
+EndFunction
+
 Function OnNativeActorsPrepared()
 	Log("OnNativeActorsPrepared(), Function called from invalid state: " + GetState())
 EndFunction
@@ -1827,6 +1838,56 @@ bool _endingCleanupRunning
 bool _initializeAfterEnding
 bool _endingCooldownArmed
 bool _setupAliasesAfterEnding
+bool _abortInitialCameraCleanup
+bool _sceneFreeCameraRequested
+
+Function ClaimPlayerSceneCamera()
+	_sceneFreeCameraRequested = false
+	Config.PlayerSceneCameraThread = self
+EndFunction
+
+bool Function RecordSceneFreeCameraRequest(int aiRevision)
+	string sceneState = GetState()
+	If (aiRevision != SetupRevision || Config.PlayerSceneCameraThread != self || (sceneState != STATE_SETUP_M && sceneState != STATE_PLAYING))
+		return false
+	EndIf
+	_sceneFreeCameraRequested = true
+	return true
+EndFunction
+
+Function RelinquishSceneFreeCamera()
+	_sceneFreeCameraRequested = false
+EndFunction
+
+bool Function DefersAbortedSceneCameraCleanup()
+	return _endingCleanupRunning && _abortInitialCameraCleanup
+EndFunction
+
+bool Function CanFinishAbortedSceneCamera(int aiRevision)
+	return DefersAbortedSceneCameraCleanup() && GetState() == STATE_END && aiRevision == SetupRevision && _sceneFreeCameraRequested && Config.PlayerSceneCameraThread == self
+EndFunction
+
+Function FinishAbortedSceneCamera(int aiRevision)
+	bool exitRequested = false
+	int sample = 0
+	While (sample < 7 && CanFinishAbortedSceneCamera(aiRevision))
+		int cameraState = Game.GetCameraState()
+		If (!CanFinishAbortedSceneCamera(aiRevision))
+			return
+		EndIf
+		If (cameraState == 3 && !exitRequested)
+			; One toggle only. The camera can still report Free while the exit is pending.
+			MiscUtil.ToggleFreeCamera()
+			exitRequested = true
+		ElseIf (exitRequested && cameraState != 3 && cameraState != 6 && cameraState != 7)
+			return
+		EndIf
+		sample += 1
+		If (sample < 7)
+			Utility.WaitMenuMode(0.05)
+		EndIf
+	EndWhile
+EndFunction
 
 State Ending
 	Event OnBeginState()
@@ -1834,6 +1895,7 @@ State Ending
 			return
 		EndIf
 		_endingCleanupRunning = true
+		int endingRevision = SetupRevision
 		CancelPendingAnimations()
 		Config.DisableThreadControl(self as sslThreadController)
 		MoveActorsAwayFromPlayer()
@@ -1849,6 +1911,19 @@ State Ending
 			EndIf
 			i += 1
 		EndWhile
+		If (SetupRevision == endingRevision)
+			RestorePlayerWeaponAfterEnding()
+		EndIf
+		If (_abortInitialCameraCleanup)
+			FinishAbortedSceneCamera(endingRevision)
+		EndIf
+		If (SetupRevision == endingRevision)
+			If (Config.PlayerSceneCameraThread == self)
+				Config.PlayerSceneCameraThread = None
+			EndIf
+			_abortInitialCameraCleanup = false
+			_sceneFreeCameraRequested = false
+		EndIf
 		SendThreadEvent("AnimationEnding")
 		SendThreadEvent("AnimationEnd")
 		RunHook(Config.HOOKID_END)
@@ -2423,6 +2498,8 @@ Function Initialize()
 	_NativeFixedLengthTimer = false
 	_QuickResetScenes = false
 	_animationStarted = false
+	_abortInitialCameraCleanup = false
+	_sceneFreeCameraRequested = false
 	_animationSyncPending = false
 	_sceneResetSyncPending = false
 	_nextSceneResetAt = 0.0
@@ -2444,6 +2521,7 @@ EndFunction
 
 Function DestroyInstance(bool abPreservePreparedActors = false) native
 Function CancelPendingAnimations() native
+Function RestorePlayerWeaponAfterEnding() native
 
 ; ------------------------------------------------------- ;
 ; --- Logging                                         --- ;

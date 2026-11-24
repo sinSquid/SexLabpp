@@ -360,6 +360,9 @@ float _LastOrgasm
 
 Auto State Empty
 	bool Function SetActor(Actor ProspectRef)
+		If (ProspectRef == _PlayerRef)
+			_Thread.ClaimPlayerSceneCamera()
+		EndIf
 		ForceRefTo(ProspectRef)
 		_ActorRef = ProspectRef
 		If (_ActorRef.IsDead())
@@ -414,7 +417,7 @@ Function NativeActorLockApplied()
 	If (_ActorRef == _PlayerRef)
 		_Config.ToggleVRIK(true, _Config.VRIK_FPP_HMD)
 		If(_Config.AutoTFC)
-			SexLabUtil.ToggleFreeCamera(1) ;TFC_ON
+			SexLabUtil.EnableSceneFreeCamera(_Thread)
 		EndIf
 	EndIf
 	Log("Locked Actor: " + GetActorName())
@@ -616,7 +619,7 @@ State Paused
 		If (_ActorRef == _PlayerRef)
 			_Config.ToggleVRIK(true, _Config.VRIK_FPP_HMD)
 			If(_Config.AutoTFC)
-				SexLabUtil.ToggleFreeCamera(1) ;TFC_ON
+				SexLabUtil.EnableSceneFreeCamera(_Thread)
 			EndIf
 		EndIf
 		Log("Locked Actor: " + GetActorName())
@@ -683,7 +686,9 @@ State Paused
 		_ActorRef.SetAnimationVariableInt("IsNPC", _AnimVarIsNPC)
 		_ActorRef.SetAnimationVariableBool("bHumanoidFootIKDisable", _AnimVarbHumanoidFootIKDisable)
 		If (_ActorRef == _PlayerRef)
-			SexLabUtil.ToggleFreeCamera(0) ;TFC_OFF
+			If (!_Thread.DefersAbortedSceneCameraCleanup())
+				SexLabUtil.ToggleFreeCamera(0) ;TFC_OFF
+			EndIf
 			_Config.ToggleVRIK(false)
 		EndIf
 		SetActorCollisions(true)

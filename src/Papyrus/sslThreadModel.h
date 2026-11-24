@@ -58,6 +58,7 @@ namespace Papyrus::ThreadModel
     float GetPreparationElapsedTime(QUESTARGS, int a_revision);
     void DestroyInstance(RE::TESQuest* a_qst, bool a_preservePreparedActors);
     void CancelPendingAnimations(RE::TESQuest* a_qst);
+    void RestorePlayerWeaponAfterEnding(RE::TESQuest* a_qst);
     bool BeginActorRecovery(QUESTARGS);
     bool BeginPlayerDialogueWait(QUESTARGS);
     bool BeginPlayerSheatheWait(QUESTARGS);
@@ -129,6 +130,7 @@ namespace Papyrus::ThreadModel
         REGISTERFUNC(GetPreparationElapsedTime, "sslThreadModel", true);
         REGISTERFUNC(DestroyInstance, "sslThreadModel", true);
         REGISTERFUNC(CancelPendingAnimations, "sslThreadModel", true);
+        REGISTERFUNC(RestorePlayerWeaponAfterEnding, "sslThreadModel", true);
         REGISTERFUNC(BeginActorRecovery, "sslThreadModel", false);
         REGISTERFUNC(BeginPlayerDialogueWait, "sslThreadModel", false);
         REGISTERFUNC(BeginPlayerSheatheWait, "sslThreadModel", false);

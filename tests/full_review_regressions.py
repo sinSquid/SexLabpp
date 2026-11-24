@@ -92,6 +92,67 @@ exec(hotkey_test[hotkey_test.index('class Returned('):
 
 
 class ReviewRegressions(unittest.TestCase):
+    def test_native_sync_failures_carry_the_current_playback_revision(self):
+        for signature in ('void Instance::UpdatePendingRecoveries(', 'void Instance::UpdatePendingAnimations('):
+            body = cpp_body('src/Thread/ThreadAnimation.cpp', signature)
+            self.assertNotIn('"OnAnimationSyncFailed"', body)
+            self.assertRegex(body, r'"OnAnimationSyncFailedForRevision", callbackPtr,\s*Script::GetProperty<int>\(scriptObject, "PlaybackRevision"\)')
+
+    def test_weapon_restore_matches_both_entry_states(self):
+        path = 'src/Thread/ThreadAnimation.cpp'
+        wants_drawn = cpp_body(path, 'bool WantsWeaponDrawn(')
+        draw_states = set(re.findall(r'a_state == RE::WEAPON_STATE::(\w+)', wants_drawn))
+        self.assertEqual(draw_states, {'kWantToDraw', 'kDrawing', 'kDrawn'})
+
+        begin = cpp_body(path, 'bool Instance::BeginPlayerSheatheWait(')
+        capture = 'PlayerWeaponControl{ linkedQst, wasDrawn }'
+        self.assertLess(begin.index('GetWeaponState()'), begin.index(capture))
+        self.assertLess(begin.index(capture), begin.index('SetWeaponDrawBlocked(true)'))
+        self.assertIn('playerWeaponControl->owner != linkedQst || playerWeaponControl->restoreRequested', begin)
+        self.assertIn('playerWeaponControl ? playerWeaponControl->wasDrawn : WantsWeaponDrawn(weaponState)', begin)
+
+        apply = cpp_body(path, 'void ApplyPlayerWeaponRestore(')
+        self.assertIn('if (!playerWeaponControl || !playerWeaponControl->restoreRequested)', apply)
+        self.assertLess(apply.index('const bool wasDrawn = playerWeaponControl->wasDrawn;'),
+                        apply.index('playerWeaponControl.reset()'))
+        self.assertLess(apply.index('playerWeaponControl.reset()'), apply.index('SetWeaponDrawBlocked(false)'))
+        self.assertLess(apply.index('SetWeaponDrawBlocked(false)'), apply.index('DrawWeaponMagicHands(wasDrawn)'))
+        comparison = re.search(r'WantsWeaponDrawn\(player->AsActorState\(\)->GetWeaponState\(\)\) (!=|==) wasDrawn', apply)
+        self.assertIsNotNone(comparison)
+        for before, at_exit, expected in (
+            ('kSheathed', 'kDrawn', False), ('kDrawn', 'kSheathed', True),
+            ('kSheathed', 'kSheathed', None), ('kDrawn', 'kDrawn', None),
+        ):
+            with self.subTest(before=before, at_exit=at_exit):
+                was_drawn = before in draw_states
+                now_drawn = at_exit in draw_states
+                changed = (now_drawn != was_drawn) if comparison[1] == '!=' else (now_drawn == was_drawn)
+                self.assertIs(was_drawn if changed else None, expected)
+
+        # The next scene can begin while the game still shows the old scene's forced sheath.
+        for remembered in (False, True):
+            with self.subTest(handoff=remembered):
+                bits = dict(playerWeaponControl=type('WeaponControl', (), {'wasDrawn': remembered})(),
+                            WantsWeaponDrawn=lambda state: state in draw_states, weaponState='kSheathed')
+                choice = re.search(r'const bool wasDrawn = (.+);', begin)[1].replace('->', '.')
+                condition, carried, sampled = re.split(r'\s*[?:]\s*', choice)
+                self.assertIs(eval(f'{carried} if {condition} else {sampled}', {}, bits), remembered)
+
+    def test_weapon_gate_survives_redress_and_quick_reset(self):
+        animation = 'src/Thread/ThreadAnimation.cpp'
+        cancel = cpp_body(animation, 'void Instance::CancelPendingAnimations(')
+        restore_actors = cpp_body(animation, 'void RestorePreparedActorState(')
+        self.assertNotIn('SetWeaponDrawBlocked(false)', cancel + restore_actors)
+        request = cpp_body(animation, 'void Instance::RestorePlayerWeaponAfterEnding(')
+        self.assertIn('playerWeaponControl->owner == a_linkedQst', request)
+        self.assertIn('playerWeaponControl->restoreRequested = true', request)
+        frame = cpp_body(animation, 'void Instance::UpdateAnimations(')
+        self.assertRegex(frame, r'if \(!paused\) \{\s*ApplyPlayerWeaponRestore\(\);')
+        destroy = cpp_body('src/Thread/Thread.cpp', 'void Instance::DestroyInstance(')
+        self.assertRegex(destroy, r'if \(!a_preservePreparedActors\) \{\s*RestorePreparedActors\(a_linkedQst\);\s*RestorePlayerWeaponAfterEnding')
+        revert = cpp_body('src/Serialization.h', 'static void RevertCallback(')
+        self.assertIn('DiscardPlayerWeaponControl()', revert)
+
     def test_shared_main_rebind_and_unbind(self):
         for modifier in (29, 42):
             for new_key in (50, -1):
