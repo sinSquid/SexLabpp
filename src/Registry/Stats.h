@@ -88,7 +88,7 @@ namespace Registry::Statistics
         struct EncounterObj
         {
             EncounterObj(RE::Actor* obj);
-            EncounterObj(SKSE::SerializationInterface* a_intfc);
+            EncounterObj(SKSE::SerializationInterface* a_intfc, uint32_t& a_remaining);
 
             void Save(SKSE::SerializationInterface* a_intfc);
 
@@ -99,7 +99,7 @@ namespace Registry::Statistics
 
       public:
         ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type);
-        ActorEncounter(SKSE::SerializationInterface* a_intfc);
+        ActorEncounter(SKSE::SerializationInterface* a_intfc, uint32_t& a_remaining, bool a_legacyCounts = false);
         ~ActorEncounter() = default;
 
         void Update(EncounterType a_type);
@@ -107,11 +107,11 @@ namespace Registry::Statistics
         std::pair<const EncounterObj&, const EncounterObj&> GetParticipants() const { return { npc1, npc2 }; }
         const ActorEncounter::EncounterObj* GetPartner(RE::Actor* a_actor) const;
         float GetLastTimeMet() const { return _lastmet; }
-        uint8_t GetTimesMet() const { return _timesmet; }
-        uint8_t GetTimesSubmissive(RE::FormID a_id) const;
-        uint8_t GetTimesDominant(RE::FormID a_id) const;
-        uint8_t GetTimesVictim(RE::FormID a_id) const;
-        uint8_t GetTimesAssailant(RE::FormID a_id) const;
+        int32_t GetTimesMet() const { return _timesmet; }
+        int32_t GetTimesSubmissive(RE::FormID a_id) const;
+        int32_t GetTimesDominant(RE::FormID a_id) const;
+        int32_t GetTimesVictim(RE::FormID a_id) const;
+        int32_t GetTimesAssailant(RE::FormID a_id) const;
 
         void Save(SKSE::SerializationInterface* a_intfc);
 
@@ -120,11 +120,11 @@ namespace Registry::Statistics
         EncounterObj npc2;
 
         float _lastmet;
-        uint8_t _timesmet;
-        uint8_t _timessubmissive;
-        uint8_t _timesdominant;
-        uint8_t _timesvictim;
-        uint8_t _timesaggressor;
+        int32_t _timesmet;
+        int32_t _timessubmissive;
+        int32_t _timesdominant;
+        int32_t _timesvictim;
+        int32_t _timesaggressor;
     };
 
     class StatisticsData :
@@ -168,6 +168,8 @@ namespace Registry::Statistics
         EventResult ProcessEvent(const RE::TESResetEvent* a_event, RE::BSTEventSource<RE::TESResetEvent>*) override;
 
         void Register();
+        void SaveEncounters(SKSE::SerializationInterface* a_intfc);
+        void LoadEncounters(SKSE::SerializationInterface* a_intfc, uint32_t a_length);
         void Save(SKSE::SerializationInterface* a_intfc);
         void Load(SKSE::SerializationInterface* a_intfc, uint32_t a_version, uint32_t a_length);
         void Revert(SKSE::SerializationInterface* a_intfc);

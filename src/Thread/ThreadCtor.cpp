@@ -54,21 +54,22 @@ namespace Thread
     RE::Actor* Instance::InitializeReferences(const std::vector<RE::Actor*>& a_submissives)
     {
         RE::Actor* centerAct{ nullptr };
-        linkedQst->aliasAccessLock.LockForRead();
-        for (auto&& alias : linkedQst->aliases) {
-            const auto aliasref = alias ? skyrim_cast<RE::BGSRefAlias*>(alias) : nullptr;
-            if (!aliasref)
-                continue;
-            if (alias->aliasName == CENTER_REF_NAME) {
-                center = { aliasref };
-            } else if (const auto ref = aliasref->GetActorReference()) {
-                positions.emplace_back(aliasref, ref, std::ranges::contains(a_submissives, ref), !a_submissives.empty());
-                if (ref->IsPlayerRef() || !centerAct) {
-                    centerAct = ref;
+        {
+            const RE::BSReadLockGuard lock{ linkedQst->aliasAccessLock };
+            for (auto&& alias : linkedQst->aliases) {
+                const auto aliasref = alias ? skyrim_cast<RE::BGSRefAlias*>(alias) : nullptr;
+                if (!aliasref)
+                    continue;
+                if (alias->aliasName == CENTER_REF_NAME) {
+                    center = { aliasref };
+                } else if (const auto ref = aliasref->GetActorReference()) {
+                    positions.emplace_back(aliasref, ref, std::ranges::contains(a_submissives, ref), !a_submissives.empty());
+                    if (ref->IsPlayerRef() || !centerAct) {
+                        centerAct = ref;
+                    }
                 }
             }
         }
-        linkedQst->aliasAccessLock.UnlockForRead();
         const auto centerId = center.GetRef() ? center.GetRef()->GetFormID() : 0;
         const auto centerName = center.GetRef() ? center.GetRef()->GetDisplayFullName() : "None";
         logger::info("Thread initialized. Center: {}, {:X}, Actors: {}.", centerName, centerId, positions.size());

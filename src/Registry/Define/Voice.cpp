@@ -77,7 +77,7 @@ namespace Registry
 
     RE::TESSound* Voice::PickOrgasmSound(REX::EnumSet<VoiceAnnotation> a_annotation) const
     {
-        const auto s = GetApplicableSet(a_annotation);
+        const auto& s = GetApplicableSet(a_annotation);
         return s.GetOrgasm() ? s.GetOrgasm() : s.Get(100);
     }
 

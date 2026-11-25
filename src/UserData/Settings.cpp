@@ -1,4 +1,5 @@
 #include "Settings.h"
+#include "Util/RegistryYaml.h"
 
 #include <SimpleIni.h>
 
@@ -20,33 +21,42 @@ struct is_vector<std::vector<T, Alloc>> : std::true_type
 
 void Settings::InitializeYAML()
 {
-    if (!fs::exists(YAMLPATH)) {
-        logger::error("No Settings file (yaml) in {}", YAMLPATH);
-        return;
-    }
-
+    _canSaveYaml = false;
     try {
-        const auto yaml = YAML::LoadFile(YAMLPATH);
-        const auto ReadMCM = [&yaml]<typename T>(const char* a_key, T& a_out) {
+        const auto loaded = Util::ReadRegistryYaml(YAMLPATH, true);
+        if (!loaded) {
+            _canSaveYaml = true;
+            return;
+        }
+        const auto& yaml = *loaded;
+        bool valid = true;
+        const auto ReadMCM = [&yaml, &valid]<typename T>(const char* a_key, T& a_out) {
             if (!yaml[a_key].IsDefined())
                 return;
             using Value = decltype(Settings::Read(a_out));
-            const auto val = yaml[a_key].as<Value>();
-            if constexpr (is_vector<Value>::value) {
-                if (a_out.size() != val.size()) {
-                    logger::error("Invalid array length for setting {}, expected {} but got {}", a_key, a_out.size(), val.size());
-                    return;
+            try {
+                const auto val = yaml[a_key].as<Value>();
+                if constexpr (is_vector<Value>::value) {
+                    if (a_out.size() != val.size()) {
+                        valid = false;
+                        logger::error("Invalid array length for setting {}, expected {} but got {}", a_key, a_out.size(), val.size());
+                        return;
+                    }
                 }
+                a_out = val;
+            } catch (const YAML::Exception& e) {
+                valid = false;
+                logger::error("Invalid setting {}: {}", a_key, e.what());
             }
-            a_out = val;
         };
 #define MCM_SETTING(STR, DEFAULT) ReadMCM(#STR, STR);
 #include "mcm.def"
 #undef MCM_SETTING
 
+        _canSaveYaml = valid;
         logger::info("Finished loading yaml settings");
     } catch (const std::exception& e) {
-        logger::error("Unable to laod settings, error: {}", e.what());
+        logger::error("Unable to load settings, error: {}", e.what());
     }
 }
 
@@ -127,14 +137,18 @@ void Settings::Save()
     YAML::Node settings{};
     {
         const auto lock = Lock();
+        if (!_canSaveYaml) {
+            logger::error("Skipping user settings save after an unsuccessful load");
+            return;
+        }
 #define MCM_SETTING(STR, DEFAULT) settings[#STR] = Read(STR);
 #include "mcm.def"
 #undef MCM_SETTING
     }
 
-    std::ofstream fout{ YAMLPATH };
-    fout << settings;
-    logger::info("Finished saving user settings");
+    if (Util::SaveRegistryYaml(YAMLPATH, settings)) {
+        logger::info("Finished saving user settings");
+    }
 }
 
 Settings::KeyType Settings::GetKeyType(uint32_t a_keyCode)

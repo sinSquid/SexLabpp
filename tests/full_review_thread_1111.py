@@ -37,6 +37,29 @@ def function(path, signature):
 
 
 class ThreadReviewRegressions(unittest.TestCase):
+    def test_sync_keeps_all_candidates_and_uses_each_clips_own_time(self):
+        update = function('src/Thread/ThreadAnimation.cpp', 'void Instance::UpdatePendingAnimations(')
+        self.assertIn('CheckPlaybackProgress(pending);', update)
+        sample = function('src/Thread/ThreadAnimation.cpp', 'void Instance::CheckPlaybackProgress(')
+        self.assertLess(sample.index('clips.clear()'), sample.index('GetActiveClips(a_pending.actor, clips)'))
+        self.assertRegex(sample, r'if \(!GetActiveClips\(a_pending.actor, clips\)\) \{\s*a_pending.observedClips.clear\(\);\s*return;')
+        self.assertLess(sample.index('HoldAnimation(a_pending)'), sample.index('a_pending.observedClips.swap(clips)'))
+
+    def test_placement_preconditions_alias_lock_and_annotation_snapshot(self):
+        placement = function('src/Thread/Thread.cpp', 'void Instance::UpdatePlacement(')
+        self.assertLess(placement.index('!a_actor || !activeStage || activeAssignment == assignments.end()'),
+                        placement.index('activeAssignment->begin()'))
+        ctor = function('src/Thread/ThreadCtor.cpp', 'RE::Actor* Instance::InitializeReferences(')
+        self.assertLess(ctor.index('RE::BSReadLockGuard'), ctor.index('positions.emplace_back('))
+        self.assertNotIn('UnlockForRead', ctor)
+        file = 'src/Thread/Interface/Elements/SceneSelectPanel.cpp'
+        read = function(file, 'void SceneSelectPanel::RebuildEntries(')
+        self.assertLess(read.index('lib->ReadScene(sc,'), read.index('scene->tags.GetAnnotations()'))
+        edit = function(file, 'void SceneSelectPanel::OnAnnotationSave(')
+        self.assertEqual(edit.count('->EditScene('), 1)
+        self.assertIn('EditScene(e.scene,', edit)
+        self.assertIn('SetAnnotations(annotations)', edit)
+
     def test_choice_is_bound_to_session_scene_and_stage(self):
         body = function('src/Thread/Interface/StageSelectMenu.cpp', 'bool StageSelectMenu::IsChoiceCurrent()')
         expression = re.search(r'return (.*?);', body, re.S)[1]
@@ -143,7 +166,7 @@ class ThreadReviewRegressions(unittest.TestCase):
             with self.subTest(name=name):
                 body = function(path, name)
                 self.assertRegex(body, r'\{\s*const auto stateLock = Instance::LockState\(\);')
-        for name in ('void FurnSelectMenu::Render()', 'void FurnSelectMenu::Open(', 'void FurnSelectMenu::Close('):
+        for name in ('void FurnSelectMenu::Render()', 'FurnSelectMenu::Open(', 'void FurnSelectMenu::Close('):
             body = function('src/Thread/Interface/FurnSelectMenu.cpp', name)
             self.assertLess(body.index('Instance::LockState()'), body.index('_mutex'))
 

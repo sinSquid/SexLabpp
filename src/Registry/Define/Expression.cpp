@@ -1,4 +1,5 @@
 #include "Expression.h"
+#include "Util/RegistryYaml.h"
 
 namespace Registry
 {
@@ -198,6 +199,7 @@ namespace Registry
 
     std::array<float, Expression::ValueType::Total> Expression::GetData(RE::SEXES::SEX a_sex, float a_strength) const
     {
+        a_strength = std::isfinite(a_strength) ? std::clamp(a_strength, 0.0f, 100.0f) : 0.0f;
         if (version < 1) {
             if (data[a_sex].empty()) {
                 logger::error("Invalid Expression Profile, {}: No data found", id);
@@ -255,11 +257,11 @@ namespace Registry
         return ret;
     }
 
-    void Expression::Save(std::string_view a_fileLocation, bool force) const
+    bool Expression::Save(std::string_view a_fileLocation, bool force) const
     {
         if (!has_edits && !force)
-            return;
-        has_edits = false;
+            return true;
+        has_edits = true;
         YAML::Node file;
         file["id"] = id.data();
         file["version"] = static_cast<int32_t>(version);
@@ -277,8 +279,11 @@ namespace Registry
             }
         }
         file["enabled"] = enabled;
-        std::ofstream fout(std::format("{}\\{}.yaml", a_fileLocation, id));
-        fout << file;
+        const auto path = Util::RegistrySettingsPath(fs::path(a_fileLocation), std::format("{}.yaml", id));
+        if (!Util::SaveRegistryYaml(path, file))
+            return false;
+        has_edits = false;
+        return true;
     }
 
     void Expression::UpdateValues(bool a_female, int a_level, std::vector<float> a_values)

@@ -88,9 +88,9 @@ function on_config(target)
 
     local batch = target:sourcebatches().papyrus
     local sourcefiles = batch and batch.sourcefiles or {}
+    target:add("installfiles", sourcefiles, {prefixdir = "Source/Scripts"})
     for _, v in ipairs(sourcefiles) do
         local objectfile = _objectfile(target, v)
-        target:add("installfiles", sourcefiles, {prefixdir = "Source/Scripts"})
         target:add("installfiles", objectfile, {prefixdir = "Scripts"})
     end
 
@@ -133,6 +133,9 @@ function on_build_file(target, sourcefile, opt)
     table.insert(depfiles, compiler.program)
     table.insert(depfiles, path.join(os.projectdir(), "xmake/papyrus/papyrus.lua"))
     table.insert(depfiles, path.join(os.projectdir(), "xmake/papyrus/modules/papyrus/dependencies.lua"))
+    if papyrus.anonymize then
+        table.insert(depfiles, path.join(os.projectdir(), "xmake/papyrus/modules/papyrus/anonymize.lua"))
+    end
     -- The flags argument can be a file resolved through the include search path.
     if os.isfile(papyrus.flags) then
         table.insert(depfiles, papyrus.flags)

@@ -59,7 +59,7 @@ namespace Registry
         void SetScaling(Expression::Scaling a_scaling);
         void SetEnabled(bool a_enabled);
 
-        void Save(std::string_view a_fileLocation, bool force) const;
+        bool Save(std::string_view a_fileLocation, bool force) const;
 
       public:
         RE::BSFixedString id;

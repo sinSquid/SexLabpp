@@ -59,8 +59,14 @@ class SupportRegressions(unittest.TestCase):
                     self.assertIn('$A\t原译文 {0}', text)
                     self.assertIn('$B\tAdded %s', text)
                     self.assertEqual(raw.startswith(b'\xff\xfe'), bom)
-                self.assertEqual((d / 'SexLab_FRENCH.txt').read_bytes(), (d / 'SexLab_ENGLISH.txt').read_bytes())
+                french = d / 'SexLab_FRENCH.txt'
+                self.assertIn('# TODO: $A', french.read_text(encoding=encoding))
                 self.assertEqual((d / 'SexLab_ENGLISH.txt').read_text(encoding=encoding), english)
+                (d / 'SexLab_ENGLISH.txt').write_text(english.replace('English', 'Updated'), encoding=encoding)
+                with contextlib.redirect_stdout(io.StringIO()):
+                    runpy.run_path(str(script), run_name='__main__')
+                self.assertIn('$A\tUpdated {0}', french.read_text(encoding=encoding))
+                self.assertIn('$A\t原译文 {0}', (d / 'SexLab_CHINESE.txt').read_text(encoding=encoding))
 
     def test_translation_repeat_run_keeps_existing_and_todo_keys(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -69,7 +75,8 @@ class SupportRegressions(unittest.TestCase):
             script = d / 'translate.py'
             script.write_bytes((ROOT / 'dist/Interface/Translations/translate.py').read_bytes())
             (d / 'SexLab_ENGLISH.txt').write_text('# TODO: $A\n$A\tNew {0}\n$B\tOther %s\n', encoding='utf-16le')
-            (d / 'SexLab_CHINESE.txt').write_text('$A\t已译 {0}\n', encoding='utf-16le')
+            (d / 'SexLab_CHINESE.txt').write_text(
+                '# TODO: $Removed\n\n# TODO: $Different\n$A\t已译 {0}\n', encoding='utf-16le')
             for _ in range(2):
                 with contextlib.redirect_stdout(io.StringIO()):
                     runpy.run_path(str(script), run_name='__main__')

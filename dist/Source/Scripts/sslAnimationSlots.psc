@@ -66,6 +66,7 @@ EndProperty
 String[] Function GetByTagsImpl(int aiActorCount, String[] asTags) native
 String[] Function GetByTypeImpl(int aiActorCount, int aiMales, int aiFemales, String[] asTags) native
 String[] Function PickByActorsImpl(Actor[] akActors, String[] asTags) native
+int[] Function FindProxyIndices(String[] asProxies, String[] asScenes, int aiLimit) global native
 
 Function SyncBackEnd()
   Alias[] aliases = GetAliases()
@@ -95,29 +96,21 @@ sslBaseAnimation Function GetSetAnimation(String asScene)
 EndFunction
 
 sslBaseAnimation[] Function AsBaseAnimation(String[] asSceneIDs)
-  sslLog.Log("Translating " + asSceneIDs.Length + " Animations to Legacy Class (" + asSceneIDs + ")")
-  sslBaseAnimation[] ret = sslUtility.AnimationArray(asSceneIDs.Length)
+  return AsLimitedBaseAnimation(asSceneIDs, 128)
+EndFunction
+
+sslBaseAnimation[] Function AsLimitedBaseAnimation(String[] asSceneIDs, int aiLimit)
+  If (aiLimit <= 0 || !asSceneIDs.Length)
+    return sslUtility.AnimationArray(0)
+  EndIf
   SyncBackEnd()
+  int[] indices = FindProxyIndices(_proxyid, asSceneIDs, PapyrusUtil.ClampInt(aiLimit, 0, 128))
+  sslBaseAnimation[] ret = sslUtility.AnimationArray(indices.Length)
   int i = 0
-  int ii = 0
   While (i < ret.Length)
-    int where = _proxyid.Find(asSceneIDs[i])
-    If (where > -1)
-      ret[ii] = GetNthAlias(where) as sslBaseAnimation
-      ii += 1
-    EndIf
+    ret[i] = GetNthAlias(indices[i]) as sslBaseAnimation
     i += 1
   EndWhile
-  If (ii < ret.Length)
-    sslBaseAnimation[] argRet = sslUtility.AnimationArray(ii)
-    int k = 0
-    While (k < argRet.Length)
-      argRet[k] = ret[k]
-      k += 1
-    EndWhile
-    ret = argRet
-  EndIf
-  sslLog.Log("Returning " + ret.Length + " Objects (" + asSceneIDs + ")")
   return ret
 EndFunction
 
@@ -148,13 +141,16 @@ sslBaseAnimation[] function GetByType(int ActorCount, int Males = -1, int Female
 endFunction
 
 sslBaseAnimation[] function PickByActors(Actor[] Positions, int Limit = 64, bool Aggressive = false)
+  If (Limit <= 0)
+    return sslUtility.AnimationArray(0)
+  EndIf
   String[] tags = new String[1]
   If (Aggressive)
     tags[0] = "Forced"
   Else
     tags[0] = "-Forced"
   EndIf
-  return AsBaseAnimation(PickByActorsImpl(Positions, tags))
+  return AsLimitedBaseAnimation(PickByActorsImpl(Positions, tags), Limit)
 endFunction
 
 sslBaseAnimation[] function GetByDefault(int Males, int Females, bool IsAggressive = false, bool UsingBed = false, bool RestrictAggressive = true)

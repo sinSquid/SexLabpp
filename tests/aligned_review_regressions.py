@@ -30,6 +30,8 @@ code = r'''
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <functional>
+#include <optional>
 #include <memory>
 #include <mutex>
 #include <ranges>
@@ -60,11 +62,55 @@ namespace YAML {
 
 registry = 'src/Registry/Library_SaveLoad.cpp'
 code += function(registry, 'template <class Job>\n        void QueueRegistryJob')
+code += '\n' + function(registry, 'template <class Items, class Job>\n        void RunPackageJobs')
 code += '\n' + function(registry, 'template <class Job>\n        void RunRegistryJob')
-code += '\n' + function(registry, 'fs::path MakeSceneSettingsPath(')
-code += '\n' + function(registry, 'fs::path RegistryIOPath(')
-code += '\n' + function(registry, 'std::string RegistryPathLabel(')
-code += '\n' + function(registry, 'bool SaveRegistryYaml(')
+code += '\n' + function('src/Util/RegistryYaml.cpp', 'fs::path RegistrySettingsPath(')
+code += '\n' + function('src/Util/RegistryYaml.cpp', 'fs::path RegistryIOPath(')
+code += '\n' + function('src/Util/RegistryYaml.cpp', 'std::string RegistryPathLabel(')
+code += '\n' + function('src/Util/RegistryYaml.cpp', 'bool SaveRegistryYaml(')
+code += r'''
+namespace ThemeTest {
+    constexpr auto THEME_PATH = "ui_theme.json";
+    struct Data { int value{}; };
+    Data data;
+    bool loadComplete{};
+    namespace glz {
+        bool read_file_json(Data& value, const char* path, std::string&) {
+            std::ifstream file(path);
+            return !(file >> value.value);
+        }
+        const char* format_error(bool, const std::string&) { return "invalid"; }
+    }
+    namespace SKSE {
+        struct Tasks {
+            std::function<void()> callback;
+            void AddTask(std::function<void()> task) { callback = std::move(task); }
+        };
+        Tasks* GetTaskInterface() { static Tasks tasks; return &tasks; }
+    }
+    namespace Util::AsyncIO {
+        bool Submit(std::function<void()>) { return false; }
+    }
+'''
+code += function('src/Thread/Interface/UI/Theme.cpp', 'void Load()')
+code += r'''
+    void test() {
+        Load();
+        assert(!loadComplete);
+        SKSE::GetTaskInterface()->callback();
+        assert(loadComplete && data.value == 0);
+        std::ofstream(THEME_PATH) << 23;
+        Load();
+        assert(!loadComplete);
+        SKSE::GetTaskInterface()->callback();
+        assert(loadComplete && data.value == 23);
+        std::ofstream(THEME_PATH) << "invalid";
+        Load();
+        SKSE::GetTaskInterface()->callback();
+        assert(!loadComplete && data.value == 23);
+    }
+}
+'''
 code += r'''
 struct InlineJob {
     int& calls;
@@ -174,6 +220,23 @@ struct Instance {
     float animationPlaybackSpeed{1.0f};
     struct Pending { bool playbackHeld; RE::hkbClipGenerator* observedGenerator; };
     std::vector<Pending> pendingAnimations;
+    struct ActiveClip { const RE::hkbClipGenerator* generator; std::string animationName; float localTime, weight; };
+    struct PendingAnimation {
+        RE::Actor* actor;
+        std::vector<ActiveClip> previousClips, observedClips, currentClips;
+        const RE::hkbClipGenerator* observedGenerator{};
+        bool playbackHeld{};
+    };
+    std::vector<ActiveClip> sample;
+    bool graphAvailable{true};
+    bool GetActiveClips(RE::Actor*, std::vector<ActiveClip>& out) {
+        if (!graphAvailable) return false;
+        assert(out.empty());
+        out=sample;
+        return true;
+    }
+    bool HoldAnimation(PendingAnimation& pending) { return pending.playbackHeld=true; }
+    void CheckPlaybackProgress(PendingAnimation&);
     struct Center {
         struct Offset { int type{}; } offset;
         RE::Actor actor;
@@ -202,6 +265,7 @@ for path, signature in (
     ('src/Thread/ThreadCtor.cpp', 'std::vector<Registry::ActorFragment> Instance::InitializeScenes('),
     ('src/Thread/ThreadCtor.cpp', 'void Instance::FinalizeInstanceMake('),
     ('src/Thread/ThreadAnimation.cpp', 'void Instance::SetAnimationPlaybackSpeed('),
+    ('src/Thread/ThreadAnimation.cpp', 'void Instance::CheckPlaybackProgress('),
 ):
     code += '\n' + function(path, signature)
 
@@ -220,6 +284,20 @@ void testWorkerFallback() {
     QueueRegistryJob(workers, [&] { ++background; });
     for (auto& worker : workers) worker.join();
     assert(first == 1 && middle == 1 && background == 2);
+
+    const std::vector<int> entries{0, 1, 2, 3, 4, 5, 6, 7};
+    std::array<std::atomic<int>, 8> visits{};
+    std::atomic<int> running{}, peak{};
+    RunPackageJobs(entries, [&](int index) {
+        const int active = ++running;
+        int previous = peak;
+        while (previous < active && !peak.compare_exchange_weak(previous, active)) {}
+        ++visits[index];
+        std::this_thread::yield();
+        --running;
+    }, 2);
+    assert(peak >= 1 && peak <= 2 && running == 0);
+    for (auto& visit : visits) assert(visit == 1);
 }
 
 void testGuardedLoader() {
@@ -257,20 +335,20 @@ void testYamlReplacement() {
 void testSceneSettingsFilename() {
     const fs::path directory = L"test-output";
     const std::string filename = "Test Pack_ABCD.yaml";
-    assert(MakeSceneSettingsPath(directory, filename) == directory / filename);
+    assert(RegistrySettingsPath(directory, filename) == directory / filename);
     const std::vector<std::string> invalid = {
         R"(C:\fixture.yaml)", R"(\fixture.yaml)", R"(..\fixture.yaml)",
         "sub/fixture.yaml", "fixture:stream.yaml", std::string("fixture\0.yaml", 13)
     };
     for (const auto& candidate : invalid) {
         bool rejected{};
-        try { (void)MakeSceneSettingsPath(directory, candidate); }
+        try { (void)RegistrySettingsPath(directory, candidate); }
         catch (const std::invalid_argument&) { rejected = true; }
         assert(rejected);
     }
 
     // Feed the save function an ordinary path. Only the test's read and cleanup explicitly use the prefix.
-    const auto longFile = MakeSceneSettingsPath(directory, std::string(246, 'a') + ".yaml");
+    const auto longFile = RegistrySettingsPath(directory, std::string(246, 'a') + ".yaml");
     const fs::path fileOnDisk{LR"(\\?\)" + fs::absolute(longFile).native()};
     const bool first = SaveRegistryYaml(longFile, YAML::Node{"first"});
     const bool second = SaveRegistryYaml(longFile, YAML::Node{"second"});
@@ -362,6 +440,29 @@ void testPlaybackGraphBounds() {
 }
 
 int main() {
+    ThemeTest::test();
+    Instance sync;
+    RE::Actor actor;
+    RE::hkbClipGenerator a,b;
+    Instance::PendingAnimation pending{&actor};
+    pending.previousClips={{&b,"same",0.02f,1.f}};
+    sync.sample={{&a,"static",0.f,1.f},{&b,"same",0.01f,1.f}};
+    sync.CheckPlaybackProgress(pending);
+    assert(!pending.playbackHeld);
+    sync.sample[1].localTime=0.03f;
+    sync.CheckPlaybackProgress(pending);
+    assert(pending.playbackHeld && pending.observedGenerator==&b);
+    pending=Instance::PendingAnimation{&actor};
+    sync.CheckPlaybackProgress(pending);
+    sync.graphAvailable=false;
+    sync.CheckPlaybackProgress(pending);
+    sync.graphAvailable=true;
+    sync.sample[1].localTime=1.f;
+    sync.CheckPlaybackProgress(pending);
+    assert(!pending.playbackHeld);
+    sync.sample[1].localTime=1.1f;
+    sync.CheckPlaybackProgress(pending);
+    assert(pending.playbackHeld && pending.observedGenerator==&b);
     testWorkerFallback();
     testGuardedLoader();
     testYamlReplacement();

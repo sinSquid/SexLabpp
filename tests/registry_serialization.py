@@ -41,6 +41,7 @@ code = r'''
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <map>
 #include <mutex>
 #include <set>
@@ -78,8 +79,24 @@ code += r'''
  void Save(SKSE::SerializationInterface*);
  void SaveLegacy(SKSE::SerializationInterface*);
 };
-struct StatisticsData {shared_mutex _m;map<RE::FormID,ActorStats>_data;vector<int>_encounters;
+struct RaceKey {enum Value : uint8_t { Human };Value value{};RaceKey()=default;RaceKey(Value v):value(v){}};
+enum class Sex : uint8_t {None, Male};
+struct ActorEncounter {
+ struct EncounterObj {
+  RE::FormID id{}; RaceKey race; Sex sex{};
+  EncounterObj()=default;EncounterObj(SKSE::SerializationInterface*,uint32_t&);
+  void Save(SKSE::SerializationInterface*);
+ };
+ EncounterObj npc1,npc2;float _lastmet{};int32_t _timesmet{},_timesaggressor{},_timesvictim{},_timesdominant{},_timessubmissive{};
+ ActorEncounter()=default;ActorEncounter(SKSE::SerializationInterface*,uint32_t&,bool=false);
+ void Save(SKSE::SerializationInterface*);
+ auto GetParticipants()const{return std::tie(npc1,npc2);}
+};
+struct StatisticsData {shared_mutex _m;map<RE::FormID,ActorStats>_data;vector<ActorEncounter>_encounters;
+ void Save(SKSE::SerializationInterface*);
  void Load(SKSE::SerializationInterface*,uint32_t,uint32_t);
+ void SaveEncounters(SKSE::SerializationInterface*);
+ void LoadEncounters(SKSE::SerializationInterface*,uint32_t);
  void Revert(SKSE::SerializationInterface*);
 };
 '''
@@ -88,8 +105,17 @@ if not BASE:
     helpers = source[source.index('    namespace\n'):source.index('    ActorStats::ActorStats(RE::Actor*')]
     code += helpers
     code += extract(source, 'ActorStats::ActorStats(SKSE::SerializationInterface*')
+    for signature in ('ActorEncounter::EncounterObj::EncounterObj(SKSE::SerializationInterface*',
+                      'void ActorEncounter::EncounterObj::Save(', 'ActorEncounter::ActorEncounter(SKSE::SerializationInterface*',
+                      'void ActorEncounter::Save(', 'void StatisticsData::Save(',
+                      'void StatisticsData::SaveEncounters(', 'void StatisticsData::LoadEncounters('):
+        code += extract(source, signature)
     code += extract(source, 'void StatisticsData::Load(')
     code += extract(source, 'void StatisticsData::Revert(')
+    tracking = read('src/Papyrus/sslLibrary/Serialize.h')
+    code += 'struct Tracking { std::shared_mutex _mutex; std::map<RE::FormID,std::vector<RE::BSFixedString>> _actors,_factions;'
+    code += extract(tracking, 'void Load(SKSE::SerializationInterface*')
+    code += extract(tracking, 'void Save(SKSE::SerializationInterface*') + '};'
     code += extract(original, 'void ActorStats::Save(').replace('ActorStats::Save(', 'ActorStats::SaveLegacy(', 1)
 
 code += r'''
@@ -115,14 +141,58 @@ if not BASE:
   SKSE::SerializationInterface stream;stream.WriteRecordData(size_t{2});
   stream.WriteRecordData(uint32_t{99});if(version==1)a.SaveLegacy(&stream);else a.Save(&stream);
   stream.WriteRecordData(uint32_t{77});if(version==1)a.SaveLegacy(&stream);else a.Save(&stream);
-  StatisticsData data;data._encounters={1,2};data.Load(&stream,version,static_cast<uint32_t>(stream.bytes.size()));
+  StatisticsData data;data.Load(&stream,version,static_cast<uint32_t>(stream.bytes.size()));
   assert(data._data.size()==1&&data._data.contains(1077));assert(data._encounters.empty());
   assert(get<float>(data._data.at(1077)._custom.at("number"))==123.25f);
   assert(stream.offset==stream.bytes.size());
-  data._encounters={3};data.Revert(nullptr);assert(data._encounters.empty()&&data._data.empty());
+  auto corrupt=stream;corrupt.offset=0;corrupt.bytes.pop_back();
+  data.Load(&corrupt,version,static_cast<uint32_t>(corrupt.bytes.size()));
+  assert(data._data.contains(1077)&&data._data.size()==1);
+  if(version==2) {
+    auto oldFork=stream;oldFork.offset=0;oldFork.WriteRecordData(uint64_t{1}); // 69a7c363 inline v2 format
+    for(uint32_t id : {14u,15u}) {
+        oldFork.WriteRecordData(id);oldFork.WriteRecordData(uint8_t{0});oldFork.WriteRecordData(uint8_t{1});
+    }
+    oldFork.WriteRecordData(42.0f);
+    for(uint8_t n : {255, 33, 22, 44, 55}) oldFork.WriteRecordData(n);
+    data._data.at(1077)._stats[0]=81.0f;
+    data.Load(&oldFork,version,static_cast<uint32_t>(oldFork.bytes.size()));
+    assert(data._data.at(1077)._stats[0]==42.5f);
+    assert(data._encounters.size()==1&&data._encounters.front().npc1.id==1014);
+    assert(data._encounters.front()._timesmet==255&&data._encounters.front()._timessubmissive==55);
+  }
+  data._encounters.resize(1);data.Revert(nullptr);assert(data._encounters.empty()&&data._data.empty());
   stream.bytes.pop_back();stream.offset=0;data.Load(&stream,version,static_cast<uint32_t>(stream.bytes.size()));
   assert(data._data.empty()); // truncated records do not leave a partially loaded registry
  }
+ // A missing participant affects only its own encounter.
+ StatisticsData saved;saved._data.emplace(77,a);
+ for (uint32_t first : {10u,99u,20u}) {
+    ActorEncounter encounter;encounter.npc1.id=first;encounter.npc2.id=55;
+    encounter.npc1.sex=Sex::Male;encounter._timesmet=512;encounter._timesdominant=400;
+    saved._encounters.push_back(encounter);
+ }
+ SKSE::SerializationInterface history;saved.SaveEncounters(&history);
+ StatisticsData restored;restored.LoadEncounters(&history,static_cast<uint32_t>(history.bytes.size()));
+ SKSE::SerializationInterface fixedStats;saved.Save(&fixedStats);
+ restored.Load(&fixedStats,2,static_cast<uint32_t>(fixedStats.bytes.size()));
+ assert(restored._data.contains(1077)&&restored._encounters.size()==2);
+ assert(restored._encounters.front().npc1.id==1010&&restored._encounters.back().npc1.id==1020);
+ assert(restored._encounters.back().npc2.id==1055&&restored._encounters.back()._timesmet==512);
+ assert(restored._encounters.back().npc1.sex==Sex::Male&&restored._encounters.back()._timesdominant==400);
+ history.bytes.pop_back();history.offset=0;restored.LoadEncounters(&history,static_cast<uint32_t>(history.bytes.size()));
+ assert(restored._encounters.size()==2&&restored._data.contains(1077));
+ Tracking tracker;tracker._actors[33].emplace_back("event");tracker._factions[99].emplace_back("missing");
+ SKSE::SerializationInterface tracked;tracker.Save(&tracked);Tracking receiver;
+ receiver.Load(&tracked,static_cast<uint32_t>(tracked.bytes.size()));
+ assert(receiver._actors.at(1033).size()==1&&receiver._factions.empty());
+ for (size_t limit=0;limit<tracked.bytes.size();++limit) {
+    tracked.offset=0;receiver.Load(&tracked,static_cast<uint32_t>(limit));
+    assert(receiver._actors.at(1033).size()==1&&receiver._factions.empty());
+ }
+ auto badMarker=tracked;badMarker.offset=0;badMarker.bytes.back()=std::byte{0};
+ receiver.Load(&badMarker,static_cast<uint32_t>(badMarker.bytes.size()));
+ assert(receiver._actors.at(1033).size()==1);
  // Reject an invalid tag and oversized string before allocating its payload.
  SKSE::SerializationInterface bad;for(size_t n=0;n<ActorStats::Total;++n)bad.WriteRecordData(0.f);
  bad.WriteRecordData(size_t{1});stl::write_string(&bad,string("k"));bad.WriteRecordData(uint32_t{9});
@@ -139,4 +209,4 @@ with tempfile.TemporaryDirectory(prefix='registry-serialization-') as directory:
     source_file.write_text(code, encoding='utf-8')
     subprocess.run([os.environ.get('CXX', 'g++'), '-std=c++23', str(source_file), '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print('PASS: v2 scalar payload, measured-v1 writer compatibility, unresolved-entry consumption, session reset and truncated/tag/string validation.')
+print('PASS: v1/v2 statistics, independent encounter roundtrip and order, unresolved IDs, counters >255, bounded tracking and malformed/truncated records.')

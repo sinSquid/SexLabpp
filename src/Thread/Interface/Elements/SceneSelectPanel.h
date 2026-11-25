@@ -1,4 +1,9 @@
 #pragma once
+namespace Registry
+{
+    class Scene;
+}
+
 namespace Thread::Interface
 {
     class SceneHUD;
@@ -15,6 +20,7 @@ namespace Thread::Interface
       private:
         struct SceneEntry
         {
+            const Registry::Scene* scene{};
             std::string id;
             std::string name;
             std::string packageName;

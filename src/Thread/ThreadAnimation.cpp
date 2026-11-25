@@ -707,13 +707,46 @@ namespace Thread
         }
     }
 
+    void Instance::CheckPlaybackProgress(PendingAnimation& a_pending)
+    {
+        constexpr float minimumClipWeight = 0.01f;
+        constexpr float minimumTimeChange = 0.0001f;
+        auto& clips = a_pending.currentClips;
+        clips.clear();
+        if (!GetActiveClips(a_pending.actor, clips)) {
+            a_pending.observedClips.clear();
+            return;
+        }
+
+        std::erase_if(clips, [&](const ActiveClip& clip) {
+            if (clip.animationName.empty() || clip.weight <= minimumClipWeight)
+                return true;
+            const auto last = std::ranges::find(a_pending.observedClips, clip.generator, &ActiveClip::generator);
+            if (last != a_pending.observedClips.end() && last->animationName == clip.animationName)
+                return false;  // A restarted clip may have advanced past its pre-dispatch time.
+            const auto before = std::ranges::find(a_pending.previousClips, clip.generator, &ActiveClip::generator);
+            return before != a_pending.previousClips.end() && before->animationName == clip.animationName &&
+                   !(clip.localTime + minimumTimeChange < before->localTime);
+        });
+        for (const auto& clip : clips) {
+            const auto last = std::ranges::find(a_pending.observedClips, clip.generator, &ActiveClip::generator);
+            if (last != a_pending.observedClips.end() && last->animationName == clip.animationName &&
+                std::abs(clip.localTime - last->localTime) > minimumTimeChange) {
+                a_pending.observedGenerator = clip.generator;
+                if (HoldAnimation(a_pending)) {
+                    logger::info("Actor {:X} held animation clip {} for synchronization.", a_pending.actor->GetFormID(), clip.animationName);
+                    break;
+                }
+            }
+        }
+        a_pending.observedClips.swap(clips);
+    }
+
     void Instance::UpdatePendingAnimations(float a_delta)
     {
         constexpr float playerSheatheTimeout = 15.0f;
         constexpr float retryTimeout = 15.0f;
         constexpr float playbackTimeout = 2.0f;
-        constexpr float minimumClipWeight = 0.01f;
-        constexpr float minimumTimeChange = 0.0001f;
 
         if (playerDialoguePending) {
             if (IsPlayerDialogueActive()) {
@@ -803,28 +836,7 @@ namespace Thread
                 continue;
             }
 
-            std::vector<ActiveClip> activeClips;
-            if (GetActiveClips(pending.actor, activeClips)) {
-                for (const auto& clip : activeClips) {
-                    if (clip.animationName.empty() || clip.weight <= minimumClipWeight) {
-                        continue;
-                    }
-                    const auto previous = std::ranges::find(pending.previousClips, clip.generator, &ActiveClip::generator);
-                    const bool changed = previous == pending.previousClips.end() || previous->animationName != clip.animationName || clip.localTime + minimumTimeChange < previous->localTime;
-                    if (!changed) {
-                        continue;
-                    }
-                    if (pending.observedGenerator == clip.generator && pending.observedAnimation == clip.animationName && std::abs(clip.localTime - pending.observedLocalTime) > minimumTimeChange) {
-                        if (HoldAnimation(pending)) {
-                            logger::info("Actor {:X} held animation clip {} for synchronization.", pending.actor->GetFormID(), clip.animationName);
-                        }
-                        break;
-                    }
-                    pending.observedGenerator = clip.generator;
-                    pending.observedAnimation = clip.animationName;
-                    pending.observedLocalTime = clip.localTime;
-                }
-            }
+            CheckPlaybackProgress(pending);
 
             if (!pending.playbackHeld && pending.elapsed >= playbackTimeout) {
                 logger::warn("Actor {:X} acknowledged animation event {}, but clip playback could not be verified.", pending.actor->GetFormID(), pending.event);

@@ -59,6 +59,7 @@ namespace Registry
         _NODISCARD const Scene* GetSceneByName(const RE::BSFixedString& a_id) const;
         _NODISCARD size_t GetSceneCount() const;
         bool ReadScene(const RE::BSFixedString& a_id, const std::function<void(const Scene*)>& a_func) const;
+        void ReadScene(const Scene* a_scene, const std::function<void(const Scene*)>& a_func) const;
 
         bool EditScene(const RE::BSFixedString& a_id, const std::function<void(Scene*)>& a_func);
         void EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func);
@@ -132,7 +133,7 @@ namespace Registry
         uint8_t InitializeCumFxType(const fs::path& a_typePath) const;
 
         bool SaveScenes() const;
-        void SaveExpressions() const noexcept;
+        bool SaveExpressions() const;
         bool SaveVoices() const;
 
       private:

@@ -126,6 +126,12 @@ namespace Registry
         return true;
     }
 
+    void Library::ReadScene(const Scene* a_scene, const std::function<void(const Scene*)>& a_func) const
+    {
+        const std::shared_lock lock{ _mScenes };
+        a_func(a_scene);
+    }
+
     void Library::EditScene(const Registry::Scene* a_scene, const std::function<void(Scene*)>& a_func)
     {
         std::unique_lock lock{ _mScenes };

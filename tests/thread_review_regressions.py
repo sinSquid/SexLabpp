@@ -77,6 +77,7 @@ struct Tags {
   if(it!=annotations.end()) annotations.erase(it);
  }
  void AddAnnotation(const std::string& a) { annotations.push_back(a); }
+ void SetAnnotations(const std::vector<std::string>& a) { annotations=a; }
 };
 struct Scene { Tags tags; };
 struct Library {
@@ -84,9 +85,11 @@ struct Library {
  static Library* GetSingleton() { static Library lib; return &lib; }
  const Scene* GetSceneById(const std::string&) { return &scene; }
  template<class F> void EditScene(const std::string&,F f) { f(&scene); }
+ template<class F> void EditScene(const Scene* s,F f) { ++edits; f(const_cast<Scene*>(s)); }
+ int edits{};
 }; }
 struct SceneSelectPanel {
- struct SceneEntry { std::string id,annotations; char annotBuf[256]{}; };
+ struct SceneEntry { const Registry::Scene* scene{}; std::string id,annotations; char annotBuf[256]{}; };
  void OnAnnotationSave(SceneEntry&);
 };
 '''
@@ -164,16 +167,19 @@ namespace Registry::Statistics {
 struct StatisticsData : Singleton<StatisticsData> {
  int saves=0;std::vector<uint32_t> loaded;
  void Save(SKSE::SerializationInterface*){++saves;}
+ void SaveEncounters(SKSE::SerializationInterface*){}
+ void LoadEncounters(SKSE::SerializationInterface*,uint32_t length){assert(length==0);}
  void Load(SKSE::SerializationInterface*,uint32_t v,uint32_t length){assert(length==0);loaded.push_back(v);}
  void Revert(SKSE::SerializationInterface*){}
 }; }
 namespace Papyrus { struct Tracking : Singleton<Tracking> {
  int saves=0,loads=0;
  void Save(SKSE::SerializationInterface*){++saves;}
- void Load(SKSE::SerializationInterface*){++loads;}
+ void Load(SKSE::SerializationInterface*,uint32_t length){assert(length==0);++loads;}
  void Revert(SKSE::SerializationInterface*){}
 }; }
 namespace Thread::Collision { struct CollisionHandler { static void Clear(){} }; }
+namespace Thread { struct Instance { static void DiscardPlayerWeaponControl(){} }; }
 '''
 header = (ROOT / 'src/Serialization.h').read_text(encoding='utf-8')
 code += '\n'.join(line for line in header.splitlines() if not line.startswith(('#include', '#pragma once')))
@@ -217,11 +223,14 @@ int main(){
   assert(std::abs(got-want)<1e-3);
  }
  SceneSelectPanel panel;SceneSelectPanel::SceneEntry entry;
- auto& tags=Registry::Library::GetSingleton()->scene.tags;
+ Registry::Scene duplicate;
+ entry.scene=&duplicate;
+ auto& tags=duplicate.tags;
  tags.annotations={"first","second","third"};entry.annotations="first,second,third";
- std::snprintf(entry.annotBuf,sizeof(entry.annotBuf)," new-a, new-b ");
+ std::snprintf(entry.annotBuf,sizeof(entry.annotBuf)," new-a, new-b, new-a ");
  panel.OnAnnotationSave(entry);assert((tags.annotations==std::vector<std::string>{"new-a","new-b"}));
  entry.annotBuf[0]='\0';panel.OnAnnotationSave(entry);assert(tags.annotations.empty());
+ assert(Registry::Library::GetSingleton()->edits==2);
  RE::TESQuest q,other;Registry::Scene a,b;Registry::Stage s,t;
  Instance ia{&a,&s},ib{&b,&t};Instance::instances={{&q,&ia},{&other,&ib}};
  StageSelectMenu menu;menu._linkedThread=&q;menu._graphOpen=true;menu._graphScene=&a;
@@ -241,7 +250,7 @@ int main(){
  menu.blocked=menu.visible=true;Instance::instances.erase(&q);
  menu.RenderSceneGraphView();assert(menu.renders==1&&!menu.visible&&!menu.blocked&&!menu._graphOpen);
  SKSE::SerializationInterface out;Serialization::Serialize::SaveCallback(&out);
- assert(out.records.size()==2&&out.records[0].second==2&&out.records[1].second==1);
+ assert(out.records.size()==3&&out.records[0].second==2&&out.records[1].second==1&&out.records[2].second==1);
  SKSE::SerializationInterface in;
  using S=Serialization::Serialize;
  in.records={{S::_Statistics,1},{S::_Statistics,2},{S::_Statistics,3},{S::_Tracking,1},{S::_Tracking,2}};

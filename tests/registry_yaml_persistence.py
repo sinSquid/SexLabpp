@@ -39,6 +39,7 @@ code = r'''
 #include <string>
 #include <system_error>
 #include <utility>
+#include <unordered_set>
 namespace fs = std::filesystem;
 namespace logger {
     template <class... Args> void info(Args&&...) {}
@@ -90,10 +91,14 @@ struct Library {
 };
 '''
 
+yaml_io = (root / 'src/Util/RegistryYaml.cpp').read_text(encoding='utf-8-sig')
+for signature in ('fs::path RegistryIOPath(', 'std::string RegistryPathLabel(',
+                  'std::optional<YAML::Node> ReadRegistryYaml(', 'bool SaveRegistryYaml('):
+    extracted = function(signature, yaml_io)
+    code += '\n' + extracted.replace('bool a_validateEntireFile)', 'bool a_validateEntireFile = false)')
+
 for signature in (
     'template <class Job>\n        void RunRegistryJob',
-    'fs::path RegistryIOPath(', 'std::string RegistryPathLabel(',
-    'std::optional<YAML::Node> ReadRegistryYaml(', 'bool SaveRegistryYaml(',
     'void Library::InitializeSceneSettings(', 'void Library::InitializeVoiceSettings(',
     'void Library::InitializeVoiceCache(', 'bool Library::SaveVoices(',
 ):
@@ -103,15 +108,33 @@ voice_source = (root / 'src/Registry/Define/Voice.cpp').read_text(encoding='utf-
 for signature in ('void Voice::Load(', 'void Voice::Save('):
     code += '\n' + function(signature, voice_source)
 
+settings_source = (root / 'src/UserData/Settings.cpp').read_text(encoding='utf-8-sig')
+code += r'''
+namespace Util { using ::ReadRegistryYaml; }
+struct Settings {
+    static inline fs::path YAMLPATH{"mcm.yaml"};
+    static inline bool _canSaveYaml{};
+    static inline int first{}, last{};
+    static inline std::vector<int> array{1, 2};
+    template<class T> static T Read(const T& value) { return value; }
+    static void InitializeYAML();
+};
+'''
+code += settings_source[settings_source.index('template <typename T>'):settings_source.index('void Settings::InitializeINI()')].replace(
+    '#include "mcm.def"', 'MCM_SETTING(first, 0)\nMCM_SETTING(array, {})\nMCM_SETTING(last, 0)')
+
 code += r'''
 void testSceneRoundtrip(const fs::path& directory) {
     Library library;
     Library::SCENE_USER_CONFIG = directory;
     Scene scene{"scene"};
+    Scene invalid{"invalid"};
+    library.sceneMap.emplace(invalid.id, &invalid);
     library.sceneMap.emplace(scene.id, &scene);
     const auto file = directory / (std::wstring(246, L'a') + L".yaml");
     const auto other = directory / L"\u4E2D\u6587.yaml";
     YAML::Node settings;
+    settings[invalid.id]["enabled"] = "broken";
     settings[scene.id]["enabled"] = false;
     assert(SaveRegistryYaml(file, settings));
     library.InitializeSceneSettings();
@@ -207,6 +230,16 @@ void testVoiceRoundtrip(const fs::path& directory) {
 }
 
 int main() {
+    Settings::InitializeYAML();
+    assert(Settings::_canSaveYaml);
+    writeBytes(Settings::YAMLPATH, "first: broken\narray: [9]\nlast: 37\n");
+    Settings::InitializeYAML();
+    assert(!Settings::_canSaveYaml && Settings::first == 0 && Settings::last == 37);
+    assert((Settings::array == std::vector<int>{1, 2}));
+    writeBytes(Settings::YAMLPATH, "first: 7\narray: [4, 5]\nlast: 8\n");
+    Settings::InitializeYAML();
+    assert(Settings::_canSaveYaml && Settings::first == 7 && Settings::last == 8);
+    assert((Settings::array == std::vector<int>{4, 5}));
     const auto sceneDir = fs::path("scenes");
     testSceneRoundtrip(sceneDir);
     const auto voiceDir = fs::path("voice") / std::string(90, 'a') / std::string(90, 'b') / std::string(90, 'c');

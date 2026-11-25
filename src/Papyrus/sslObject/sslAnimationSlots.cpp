@@ -1,6 +1,7 @@
 #include "sslAnimationSlots.h"
 
 #include "Registry/Library.h"
+#include <unordered_map>
 
 namespace Papyrus::AnimationSlots
 {
@@ -70,6 +71,29 @@ namespace Papyrus::AnimationSlots
         }
         const auto scenes = lib->LookupScenes(a_positions, a_tags, vic);
         return ScenesToString(scenes);
+    }
+
+    std::vector<int32_t> FindProxyIndices(RE::StaticFunctionTag*, std::vector<RE::BSFixedString> a_proxies, std::vector<RE::BSFixedString> a_scenes, int32_t a_limit)
+    {
+        std::vector<int32_t> result;
+        if (a_limit <= 0 || a_scenes.empty() || a_proxies.empty())
+            return result;
+        // BSFixedString equality uses the interned identity and treats all empty strings equally.
+        const auto identity = [](const RE::BSFixedString& id) { return id.empty() ? nullptr : id.data(); };
+        std::unordered_map<const char*, int32_t> byID;
+        byID.reserve(a_proxies.size());
+        for (size_t i = 0; i < a_proxies.size(); ++i)
+            byID.try_emplace(identity(a_proxies[i]), static_cast<int32_t>(i));
+        const auto limit = static_cast<size_t>(a_limit);
+        result.reserve(std::min(limit, a_scenes.size()));
+        for (const auto& scene : a_scenes) {
+            if (const auto where = byID.find(identity(scene)); where != byID.end()) {
+                result.push_back(where->second);
+                if (result.size() == limit)
+                    break;
+            }
+        }
+        return result;
     }
 
     std::vector<RE::BSFixedString> GetAllPackages(RE::StaticFunctionTag*)

@@ -31,5 +31,6 @@ namespace UserData
         mutable std::shared_mutex _mutex;
         std::map<RE::FormID, Strip> strips{};
         YAML::Node _root;
+        bool _canSave{ false };
     };
 }  // namespace UserData

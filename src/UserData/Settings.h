@@ -86,6 +86,7 @@ struct Settings
     static inline std::vector<RE::FormID> SOS_ExcludeFactions{};
 
   private:
+    static inline bool _canSaveYaml{ false };
     static inline std::mutex _mutex;
     static void InitializeYAML();
     static void InitializeINI();

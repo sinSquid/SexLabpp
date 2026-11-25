@@ -1,4 +1,3 @@
-import shutil
 from pathlib import Path
 import sys
 
@@ -43,15 +42,20 @@ def parse_file(file_path):
   encoding = 'utf-16' if file_path.read_bytes().startswith((b'\xff\xfe', b'\xfe\xff')) else 'utf-16le'
   with open(file_path, 'r', encoding=encoding, newline='') as file:
     lines = file.readlines()
-  todo_keys = {lines[i+1].split(maxsplit=1)[0] for i, line in enumerate(lines) if line.startswith("# TODO:") and i+1 < len(lines)}
-  keys = {line.split(maxsplit=1)[0]: line for line in lines if line.startswith('$') and line.split(maxsplit=1)[0] not in todo_keys}
+  keys = {}
+  for i, line in enumerate(lines):
+    if line.startswith('$'):
+      key = line.split(maxsplit=1)[0]
+      if i and lines[i-1].startswith('# TODO:') and lines[i-1][7:].strip() == key:
+        continue
+      keys[key] = line
   return keys, lines
 
 _, en_lines = parse_file(en_path)
 
 def copy_new_keys(file_path):
-  l_keys, _ = parse_file(file_path)
-  raw = file_path.read_bytes()
+  l_keys = parse_file(file_path)[0] if file_path.exists() else {}
+  raw = (file_path if file_path.exists() else en_path).read_bytes()
   encoding = 'utf-16be' if raw.startswith(b'\xfe\xff') else 'utf-16le'
   bom = raw[:2] if raw.startswith((b'\xff\xfe', b'\xfe\xff')) else b''
   newline = '\r\n' if any(line.endswith('\r\n') for line in en_lines) else '\n'
@@ -75,10 +79,6 @@ def copy_new_keys(file_path):
 for l in languages:
   new_path = translations_dir / (f_raw + l + ".txt")
   print(f"Processing {new_path}")
-  if new_path.exists():
-    print(f"Copying new keys to {l}")
-    copy_new_keys(new_path)
-    continue
-  shutil.copyfile(en_path, new_path)
+  copy_new_keys(new_path)
 
 print("Done")

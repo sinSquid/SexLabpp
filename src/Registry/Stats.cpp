@@ -176,34 +176,20 @@ namespace Registry::Statistics
 
     void ActorStats::Save(SKSE::SerializationInterface* a_intfc)
     {
-        for (auto&& stat : _stats) {
-            if (!a_intfc->WriteRecordData(stat)) {
-                logger::error("Failed to save statistic");
-                continue;
-            }
+        for (auto stat : _stats) {
+            if (!a_intfc->WriteRecordData(stat))
+                throw std::runtime_error("Failed to save statistic");
         }
-        if (!a_intfc->WriteRecordData(_custom.size())) {
-            logger::error("Failed to save number of custom statistics ({})", _custom.size());
-            return;
-        }
-        for (auto&& [id, stat] : _custom) {
-            if (!stl::write_string(a_intfc, id)) {
-                logger::error("Failed to save custom statistic {}", id);
-                continue;
-            }
-            if (std::holds_alternative<float>(stat)) {
-                a_intfc->WriteRecordData(uint32_t{ 0 });
-                if (!a_intfc->WriteRecordData(std::get<float>(stat))) {
-                    logger::error("Failed to save custom statistic {}", id);
-                    continue;
-                }
-            } else {
-                a_intfc->WriteRecordData(uint32_t{ 1 });
-                auto save = std::get<RE::BSFixedString>(stat);
-                if (!stl::write_string(a_intfc, save)) {
-                    logger::error("Failed to save custom statistic {}", id);
-                    continue;
-                }
+        if (!a_intfc->WriteRecordData(_custom.size()))
+            throw std::runtime_error("Failed to save custom statistic count");
+        for (const auto& [id, stat] : _custom) {
+            if (!stl::write_string(a_intfc, id) || !a_intfc->WriteRecordData(static_cast<uint32_t>(stat.index())))
+                throw std::runtime_error("Failed to save custom statistic key or type");
+            if (const auto number = std::get_if<float>(&stat)) {
+                if (!a_intfc->WriteRecordData(*number))
+                    throw std::runtime_error("Failed to save numeric statistic");
+            } else if (!stl::write_string(a_intfc, std::get<RE::BSFixedString>(stat))) {
+                throw std::runtime_error("Failed to save string statistic");
             }
         }
     }
@@ -211,18 +197,19 @@ namespace Registry::Statistics
     ActorEncounter::EncounterObj::EncounterObj(RE::Actor* obj) :
       id(obj->GetFormID()), race(obj), sex(Registry::GetSex(obj)) {}
 
-    ActorEncounter::EncounterObj::EncounterObj(SKSE::SerializationInterface* a_intfc)
+    ActorEncounter::EncounterObj::EncounterObj(SKSE::SerializationInterface* a_intfc, uint32_t& a_remaining)
     {
-        a_intfc->ReadRecordData(id);
-        a_intfc->ReadRecordData(race);
-        a_intfc->ReadRecordData(sex);
+        const auto savedID = ReadStatisticsValue<RE::FormID>(a_intfc, a_remaining);
+        race = ReadStatisticsValue<RaceKey::Value>(a_intfc, a_remaining);
+        sex = ReadStatisticsValue<Sex>(a_intfc, a_remaining);
+        if (!a_intfc->ResolveFormID(savedID, id))
+            id = 0;
     }
 
     void ActorEncounter::EncounterObj::Save(SKSE::SerializationInterface* a_intfc)
     {
-        a_intfc->WriteRecordData(id);
-        a_intfc->WriteRecordData(race);
-        a_intfc->WriteRecordData(sex);
+        if (!a_intfc->WriteRecordData(id) || !a_intfc->WriteRecordData(race.value) || !a_intfc->WriteRecordData(sex))
+            throw std::runtime_error("Failed to save encounter participant");
     }
 
     ActorEncounter::ActorEncounter(RE::Actor* fst, RE::Actor* snd, EncounterType a_type) :
@@ -231,18 +218,15 @@ namespace Registry::Statistics
         Update(a_type);
     }
 
-    ActorEncounter::ActorEncounter(SKSE::SerializationInterface* a_intfc) :
-      npc1(a_intfc), npc2(a_intfc)
+    ActorEncounter::ActorEncounter(SKSE::SerializationInterface* a_intfc, uint32_t& a_remaining, bool a_legacyCounts) :
+      npc1(a_intfc, a_remaining), npc2(a_intfc, a_remaining)
     {
-        if (!a_intfc->ResolveFormID(npc1.id, npc1.id) || !a_intfc->ResolveFormID(npc2.id, npc2.id)) {
-            throw std::exception("Unable to update encounter formid");
+        _lastmet = ReadStatisticsValue<float>(a_intfc, a_remaining);
+        for (auto* count : { &_timesmet, &_timesaggressor, &_timesvictim, &_timesdominant, &_timessubmissive }) {
+            *count = a_legacyCounts ? ReadStatisticsValue<uint8_t>(a_intfc, a_remaining) : ReadStatisticsValue<int32_t>(a_intfc, a_remaining);
+            if (*count < 0)
+                throw std::runtime_error("Invalid encounter count");
         }
-        a_intfc->ReadRecordData(_lastmet);
-        a_intfc->ReadRecordData(_timesmet);
-        a_intfc->ReadRecordData(_timesaggressor);
-        a_intfc->ReadRecordData(_timesvictim);
-        a_intfc->ReadRecordData(_timesdominant);
-        a_intfc->ReadRecordData(_timessubmissive);
     }
 
     const ActorEncounter::EncounterObj* ActorEncounter::GetPartner(RE::Actor* a_actor) const
@@ -254,28 +238,28 @@ namespace Registry::Statistics
         return nullptr;
     }
 
-    uint8_t ActorEncounter::GetTimesSubmissive(RE::FormID a_id) const
+    int32_t ActorEncounter::GetTimesSubmissive(RE::FormID a_id) const
     {
         return a_id == npc1.id ? _timessubmissive :
                a_id == npc2.id ? _timesdominant :
                                  0;
     }
 
-    uint8_t ActorEncounter::GetTimesDominant(RE::FormID a_id) const
+    int32_t ActorEncounter::GetTimesDominant(RE::FormID a_id) const
     {
         return a_id == npc1.id ? _timesdominant :
                a_id == npc2.id ? _timessubmissive :
                                  0;
     }
 
-    uint8_t ActorEncounter::GetTimesVictim(RE::FormID a_id) const
+    int32_t ActorEncounter::GetTimesVictim(RE::FormID a_id) const
     {
         return a_id == npc1.id ? _timesvictim :
                a_id == npc2.id ? _timesaggressor :
                                  0;
     }
 
-    uint8_t ActorEncounter::GetTimesAssailant(RE::FormID a_id) const
+    int32_t ActorEncounter::GetTimesAssailant(RE::FormID a_id) const
     {
         return a_id == npc1.id ? _timesaggressor :
                a_id == npc2.id ? _timesvictim :
@@ -285,19 +269,23 @@ namespace Registry::Statistics
     void ActorEncounter::Update(EncounterType a_type)
     {
         _lastmet = RE::Calendar::GetSingleton()->GetCurrentGameTime();
-        _timesmet++;
+        const auto increment = [](int32_t& count) {
+            if (count < (std::numeric_limits<int32_t>::max)())
+                ++count;
+        };
+        increment(_timesmet);
         switch (a_type) {
         case EncounterType::Aggressor:
-            _timesaggressor++;
+            increment(_timesaggressor);
             __fallthrough;
         case EncounterType::Dominant:
-            _timesdominant++;
+            increment(_timesdominant);
             break;
         case EncounterType::Victim:
-            _timesvictim++;
+            increment(_timesvictim);
             __fallthrough;
         case EncounterType::Submissive:
-            _timessubmissive++;
+            increment(_timessubmissive);
             break;
         }
     }
@@ -306,12 +294,12 @@ namespace Registry::Statistics
     {
         npc1.Save(a_intfc);
         npc2.Save(a_intfc);
-        a_intfc->WriteRecordData(_lastmet);
-        a_intfc->WriteRecordData(_timesmet);
-        a_intfc->WriteRecordData(_timesaggressor);
-        a_intfc->WriteRecordData(_timesvictim);
-        a_intfc->WriteRecordData(_timesdominant);
-        a_intfc->WriteRecordData(_timessubmissive);
+        if (!a_intfc->WriteRecordData(_lastmet))
+            throw std::runtime_error("Failed to save encounter time");
+        for (auto count : { _timesmet, _timesaggressor, _timesvictim, _timesdominant, _timessubmissive }) {
+            if (!a_intfc->WriteRecordData(count))
+                throw std::runtime_error("Failed to save encounter count");
+        }
     }
 
     void StatisticsData::Register()
@@ -415,7 +403,7 @@ namespace Registry::Statistics
                 }
             }
             enc->Update(a_type);
-            std::iter_swap(enc, _encounters.end() - 1);
+            std::rotate(enc, std::next(enc), _encounters.end());
             return;
         }
         _encounters.emplace_back(fst, snd, a_type);
@@ -472,7 +460,7 @@ namespace Registry::Statistics
     int StatisticsData::GetNumberEncounters(RE::Actor* a_actor, ActorEncounter::EncounterType a_type, std::function<bool(const ActorEncounter::EncounterObj&)> a_pred)
     {
         const std::shared_lock lock{ _m };
-        int ret = 0;
+        int64_t ret = 0;
         for (auto&& encounter : _encounters) {
             const auto partner = encounter.GetPartner(a_actor);
             if (!partner || !a_pred(*partner))
@@ -495,7 +483,7 @@ namespace Registry::Statistics
                 break;
             }
         }
-        return ret;
+        return static_cast<int>(std::min<int64_t>(ret, (std::numeric_limits<int>::max)()));
     }
 
     StatisticsData::EventResult StatisticsData::ProcessEvent(const RE::TESDeathEvent* a_event, RE::BSTEventSource<RE::TESDeathEvent>*)
@@ -519,20 +507,17 @@ namespace Registry::Statistics
     void StatisticsData::Save(SKSE::SerializationInterface* a_intfc)
     {
         const std::shared_lock lock{ _m };
-        if (!a_intfc->WriteRecordData(_data.size())) {
-            logger::error("Failed to save number of saved statistics ({})", _data.size());
-            return;
-        }
-        for (auto&& [id, data] : _data) {
-            if (!a_intfc->WriteRecordData(id)) {
-                logger::error("Failed to save reg ({:X})", id);
-                continue;
-            }
-            try {
+        try {
+            if (!a_intfc->WriteRecordData(_data.size()))
+                throw std::runtime_error("Failed to save statistics count");
+            for (auto&& [id, data] : _data) {
+                if (!a_intfc->WriteRecordData(id))
+                    throw std::runtime_error("Failed to save statistics actor");
                 data.Save(a_intfc);
-            } catch (const std::exception& e) {
-                logger::error("{}", e.what());
             }
+        } catch (const std::exception& e) {
+            logger::error("{}", e.what());
+            return;
         }
         logger::info("Saved {} statistics", _data.size());
     }
@@ -540,10 +525,9 @@ namespace Registry::Statistics
     void StatisticsData::Load(SKSE::SerializationInterface* a_intfc, uint32_t a_version, uint32_t a_length)
     {
         const std::unique_lock lock{ _m };
-        _data.clear();
-        _encounters.clear();
         if (a_version != 1 && a_version != 2)
             return;
+        decltype(_data) loaded;
         try {
             const auto numRegs = ReadStatisticsValue<size_t>(a_intfc, a_length);
             for (size_t i = 0; i < numRegs; i++) {
@@ -554,14 +538,64 @@ namespace Registry::Statistics
                     logger::warn("Error resolving statistics formID ({:X})", formID);
                     continue;
                 }
-                _data.insert(std::make_pair(formID, std::move(stats)));
+                loaded.emplace(formID, std::move(stats));
+            }
+            // Some v2 fork builds appended encounter history using byte-sized counters.
+            if (a_version == 2 && a_length) {
+                std::vector<ActorEncounter> encounters;
+                const auto count = ReadStatisticsValue<uint64_t>(a_intfc, a_length);
+                for (uint64_t i = 0; i < count; ++i) {
+                    ActorEncounter encounter{ a_intfc, a_length, true };
+                    const auto [first, second] = encounter.GetParticipants();
+                    if (first.id && second.id)
+                        encounters.push_back(std::move(encounter));
+                }
+                if (a_length)
+                    throw std::runtime_error("Unexpected trailing v2 encounter data");
+                _encounters.swap(encounters);
+            } else if (a_length) {
+                throw std::runtime_error("Unexpected trailing statistics data");
             }
         } catch (const std::exception& e) {
-            _data.clear();
             logger::error("Unable to load statistics record version {}: {}", a_version, e.what());
             return;
         }
+        _data.swap(loaded);
         logger::info("Loaded {} statistics", _data.size());
+    }
+
+    void StatisticsData::SaveEncounters(SKSE::SerializationInterface* a_intfc)
+    {
+        const std::shared_lock lock{ _m };
+        try {
+            if (!a_intfc->WriteRecordData(_encounters.size()))
+                throw std::runtime_error("Failed to save encounter history length");
+            for (auto& encounter : _encounters)
+                encounter.Save(a_intfc);
+        } catch (const std::exception& e) {
+            logger::error("{}", e.what());
+        }
+    }
+
+    void StatisticsData::LoadEncounters(SKSE::SerializationInterface* a_intfc, uint32_t a_length)
+    {
+        const std::unique_lock lock{ _m };
+        std::vector<ActorEncounter> encounters;
+        try {
+            const auto count = ReadStatisticsValue<size_t>(a_intfc, a_length);
+            for (size_t i = 0; i < count; ++i) {
+                ActorEncounter encounter{ a_intfc, a_length };
+                const auto [first, second] = encounter.GetParticipants();
+                if (first.id && second.id)
+                    encounters.push_back(std::move(encounter));
+            }
+            if (a_length)
+                throw std::runtime_error("Unexpected trailing encounter data");
+        } catch (const std::exception& e) {
+            logger::error("Unable to load encounter history: {}", e.what());
+            return;
+        }
+        _encounters.swap(encounters);
     }
 
     void StatisticsData::Revert(SKSE::SerializationInterface*)

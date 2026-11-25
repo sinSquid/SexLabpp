@@ -21,7 +21,7 @@ namespace Util::AsyncIO
                 _condition.notify_all();
             }
 
-            void Submit(std::move_only_function<void()> a_task)
+            bool Submit(std::move_only_function<void()> a_task)
             {
                 {
                     std::lock_guard lock{ _mutex };
@@ -29,11 +29,18 @@ namespace Util::AsyncIO
                     if (!_running) {
                         if (_worker.joinable())
                             _worker.join();
+                        try {
+                            _worker = std::jthread([this](std::stop_token a_stopToken) { Run(a_stopToken); });
+                        } catch (const std::system_error& e) {
+                            _tasks.pop_back();
+                            logger::error("Failed to start asynchronous I/O worker: {}", e.what());
+                            return false;
+                        }
                         _running = true;
-                        _worker = std::jthread([this](std::stop_token a_stopToken) { Run(a_stopToken); });
                     }
                 }
                 _condition.notify_one();
+                return true;
             }
 
           private:
@@ -72,9 +79,9 @@ namespace Util::AsyncIO
         };
     }
 
-    void Submit(std::move_only_function<void()> a_task)
+    bool Submit(std::move_only_function<void()> a_task)
     {
         static TaskConsumer consumer;
-        consumer.Submit(std::move(a_task));
+        return consumer.Submit(std::move(a_task));
     }
 }

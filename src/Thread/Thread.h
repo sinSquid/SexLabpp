@@ -180,13 +180,13 @@ namespace Thread
         {
             RE::Actor* actor;
             RE::BSFixedString event;
+            size_t position;
             std::vector<ActiveClip> previousClips;
+            std::vector<ActiveClip> observedClips;
+            std::vector<ActiveClip> currentClips;
             const RE::hkbClipGenerator* observedGenerator{ nullptr };
-            std::string observedAnimation{};
-            float observedLocalTime{ 0.0f };
             float elapsed{ 0.0f };
             float retryDelay{ 0.0f };
-            size_t position;
             uint32_t readinessChecks{ 0 };
             uint8_t dispatchAttempts{ 0 };
             bool transitionAcknowledged{ false };
@@ -270,6 +270,7 @@ namespace Thread
         bool QueueActorRecoveries(bool a_preparationBarrier);
         void TryStartAnimations();
         bool HoldAnimation(PendingAnimation& a_pending);
+        void CheckPlaybackProgress(PendingAnimation& a_pending);
         void ReleaseAnimations();
         bool StartFixedLengthTimer();
         void CancelFixedLengthTimer();

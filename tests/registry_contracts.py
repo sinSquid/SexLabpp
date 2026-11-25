@@ -265,6 +265,7 @@ int main(){VM vm;ResetStageOffset(&vm,0,nullptr,"good","good",0);assert(vm.error
 stats = read('src/Registry/Stats.cpp')
 groups['encounter_init_reset'] = PREAMBLE + r'''
 #include <new>
+#include <mutex>
 #include <cstring>
 #define __fallthrough [[fallthrough]]
 namespace RE{using FormID=uint32_t;enum class FormType{ActorCharacter};struct Actor{uint32_t formID;int race;
@@ -276,22 +277,53 @@ enum class Sex{Other};namespace Registry{Sex GetSex(RE::Actor*){return Sex::Othe
 struct ActorEncounter{
  enum class EncounterType{Any,Victim,Aggressor,Submissive,Dominant};
  struct EncounterObj{RE::FormID id;RaceKey race;Sex sex;EncounterObj(RE::Actor*);};
- EncounterObj npc1,npc2;float _lastmet;uint8_t _timesmet,_timessubmissive,_timesdominant,_timesvictim,_timesaggressor;
+ EncounterObj npc1,npc2;float _lastmet;int32_t _timesmet,_timessubmissive,_timesdominant,_timesvictim,_timesaggressor;
  ActorEncounter(RE::Actor*,RE::Actor*,EncounterType);void Update(EncounterType);
+ pair<const EncounterObj&,const EncounterObj&> GetParticipants()const{return {npc1,npc2};}
 };
-struct StatisticsData{using EventResult=RE::BSEventNotifyControl;vector<uint32_t>removed;
+struct StatisticsData{using EventResult=RE::BSEventNotifyControl;vector<uint32_t>removed;shared_mutex _m;
+ vector<ActorEncounter> _encounters;
+ vector<ActorEncounter>::iterator GetEncounterIter(RE::Actor*,RE::Actor*);
+ void AddEncounter(RE::Actor*,RE::Actor*,ActorEncounter::EncounterType);
  void DeleteStatistics(uint32_t id){removed.push_back(id);}
  EventResult ProcessEvent(const RE::TESResetEvent*,RE::BSTEventSource<RE::TESResetEvent>*);};
-''' + function(stats, 'ActorEncounter::EncounterObj::EncounterObj(RE::Actor*') + function(stats, 'ActorEncounter::ActorEncounter(RE::Actor*') + function(stats, 'void ActorEncounter::Update(') + function(stats, 'StatisticsData::EventResult StatisticsData::ProcessEvent(const RE::TESResetEvent*') + r'''
+''' + function(stats, 'ActorEncounter::EncounterObj::EncounterObj(RE::Actor*') + function(stats, 'ActorEncounter::ActorEncounter(RE::Actor*') + function(stats, 'void ActorEncounter::Update(') + function(stats, 'std::vector<ActorEncounter>::iterator StatisticsData::GetEncounterIter(') + function(stats, 'void StatisticsData::AddEncounter(') + function(stats, 'StatisticsData::EventResult StatisticsData::ProcessEvent(const RE::TESResetEvent*') + r'''
 int main(){RE::Actor a{14,0},b{15,0},nonActor{16,-1};
  alignas(ActorEncounter) unsigned char storage[sizeof(ActorEncounter)];memset(storage,0xCD,sizeof storage);
  auto*p=new(storage)ActorEncounter(&a,&b,ActorEncounter::EncounterType::Any);
  assert(p->npc1.race.value==0&&p->npc2.race.value==0);
  assert(p->_timesmet==1&&p->_timessubmissive==0&&p->_timesdominant==0&&p->_timesvictim==0&&p->_timesaggressor==0);
+ for(int i=0;i<300;++i)p->Update(ActorEncounter::EncounterType::Any);
+ assert(p->_timesmet==301);
  p->~ActorEncounter();
  StatisticsData d;RE::TESResetEvent good{&a},other{&nonActor},empty{nullptr};
  d.ProcessEvent(&good,nullptr);d.ProcessEvent(&other,nullptr);d.ProcessEvent(&empty,nullptr);d.ProcessEvent(nullptr,nullptr);
  assert((d.removed==vector<uint32_t>{14}));
+ RE::Actor owner{1,0},early{2,0},late{3,0};
+ d.AddEncounter(&a,&b,ActorEncounter::EncounterType::Any);
+ d.AddEncounter(&owner,&early,ActorEncounter::EncounterType::Any);
+ d.AddEncounter(&owner,&late,ActorEncounter::EncounterType::Any);
+ d.AddEncounter(&b,&a,ActorEncounter::EncounterType::Victim);
+ assert(d._encounters[0].npc2.id==2&&d._encounters[1].npc2.id==3&&d._encounters[2]._timesaggressor==1);
+}
+'''
+
+groups['expression_strength'] = PREAMBLE + r'''
+namespace logger {template<class...Args>void error(Args&&...){}}
+namespace RE {struct SEXES{enum SEX{kMale,kFemale};};}
+struct Expression {
+ enum ValueType {MoodType=30,Total=32};
+ enum class Scaling {Linear,Square,Cubic,Exponential};
+ int version=0;string id;Scaling scaling=Scaling::Linear;
+ array<vector<array<float,Total>>,2> data;
+ array<float,Total> GetData(RE::SEXES::SEX,float) const;
+};
+''' + function(read('src/Registry/Define/Expression.cpp'), 'std::array<float, Expression::ValueType::Total> Expression::GetData(') + r'''
+int main(){
+ Expression p;p.data[0].resize(2);p.data[0][0][0]=1;p.data[0][1][0]=2;
+ assert(p.GetData(RE::SEXES::kMale,-20)[0]==1&&p.GetData(RE::SEXES::kMale,200)[0]==2);
+ assert(p.GetData(RE::SEXES::kMale,NAN)[0]==1&&p.GetData(RE::SEXES::kMale,INFINITY)[0]==1);
+ p.version=1;assert(p.GetData(RE::SEXES::kMale,50)[0]==1.5f);
 }
 '''
 

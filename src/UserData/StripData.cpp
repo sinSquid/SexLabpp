@@ -1,4 +1,5 @@
 #include "StripData.h"
+#include "../Util/RegistryYaml.h"
 
 #include <mutex>
 
@@ -56,21 +57,30 @@ namespace UserData
         const std::unique_lock lock{ _mutex };
         try {
             const auto handler = RE::TESDataHandler::GetSingleton();
-            _root = YAML::LoadFile(STRIP_PATH);
-            for (const auto&& mod : _root) {
+            auto loaded = Util::ReadRegistryYaml(STRIP_PATH, true).value_or(YAML::Node{});
+            decltype(strips) overrides;
+            for (const auto&& mod : loaded) {
                 const auto esp = mod.first.as<std::string>();
                 if (handler->LookupModByName(esp) == nullptr) {
                     logger::info("Cannot load strip settings for {}. Plugin is not found", esp);
                     continue;
                 }
+                if (!mod.second.IsMap())
+                    throw std::runtime_error("Expected a plugin strip override mapping");
                 for (const auto&& i : mod.second) {
                     const auto id = i.first.as<uint32_t>();
                     const auto formid = handler->LookupFormID(id, esp);
-                    strips[formid] = Strip(i.second.as<int32_t>());
+                    if (formid)
+                        overrides[formid] = Strip(i.second.as<int32_t>());
                 }
             }
+            _root.reset(loaded);
+            strips.swap(overrides);
+            _canSave = true;
         } catch (const std::exception& e) {
+            _canSave = false;
             logger::error("Unable to load data. Error: {}", e.what());
+            return;
         }
         logger::info("Loaded {} custom strip settings", strips.size());
     }
@@ -78,6 +88,10 @@ namespace UserData
     void StripData::Save()
     {
         const std::unique_lock lock{ _mutex };
+        if (!_canSave) {
+            logger::error("Skipping strip settings save after an unsuccessful load");
+            return;
+        }
         try {
             for (auto&& [formid, strip] : strips) {
                 const auto entry = [&]() -> std::pair<std::string, uint32_t> {
@@ -96,9 +110,11 @@ namespace UserData
                 }
                 _root[entry.first][entry.second] = static_cast<int32_t>(strip);
             }
-            std::ofstream{ STRIP_PATH } << _root;
+            if (!Util::SaveRegistryYaml(STRIP_PATH, _root))
+                return;
         } catch (const std::exception& e) {
             logger::error("Unable to save StripConfig. Error: {}", e.what());
+            return;
         }
         logger::info("Saved custom strip settings for {} mods", _root.size());
     }

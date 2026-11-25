@@ -50,30 +50,22 @@ namespace Thread::Interface
         }();
         if (trimmed == e.annotations)
             return;
-        e.annotations = trimmed;
-
-        auto* lib = Registry::Library::GetSingleton();
-        const auto* scene = lib->GetSceneById(RE::BSFixedString{ e.id.c_str() });
-        if (!scene)
-            return;
-        const auto previousAnnotations = scene->tags.GetAnnotations();
-        for (const auto& a : previousAnnotations) {
-            lib->EditScene(RE::BSFixedString{ e.id.c_str() }, [&](Registry::Scene* s) {
-                s->tags.RemoveAnnotation(a);
-            });
-        }
+        std::vector<RE::BSFixedString> annotations;
         std::istringstream ss(trimmed);
         std::string token;
         while (std::getline(ss, token, ',')) {
             const auto start = token.find_first_not_of(' ');
             const auto end = token.find_last_not_of(' ');
             if (start != std::string::npos) {
-                lib->EditScene(RE::BSFixedString{ e.id.c_str() }, [&](Registry::Scene* s) {
-                    s->tags.AddAnnotation(RE::BSFixedString{
-                        token.substr(start, end - start + 1).c_str() });
-                });
+                RE::BSFixedString annotation{ token.substr(start, end - start + 1).c_str() };
+                if (std::ranges::find(annotations, annotation) == annotations.end())
+                    annotations.push_back(annotation);
             }
         }
+        Registry::Library::GetSingleton()->EditScene(e.scene, [&](Registry::Scene* scene) {
+            scene->tags.SetAnnotations(annotations);
+        });
+        e.annotations = trimmed;
     }
 
     void SceneSelectPanel::RebuildEntries(SceneHUD& a_hud)
@@ -87,6 +79,7 @@ namespace Thread::Interface
 
         for (const auto* sc : inst->GetThreadScenes()) {
             SceneEntry e;
+            e.scene = sc;
             e.id = sc->id;
             e.name = sc->name;
             e.isActive = (sc == active);
@@ -94,20 +87,18 @@ namespace Thread::Interface
                 e.packageName = pkg->GetName().c_str();
                 e.author = pkg->GetAuthor().c_str();
             }
-            bool first = true;
-            for (const auto& t : sc->tags.AsVector()) {
-                if (!first)
-                    e.tags += ", ";
-                e.tags += t.c_str();
-                first = false;
-            }
-            first = true;
-            for (const auto& a : sc->tags.GetAnnotations()) {
-                if (!first)
-                    e.annotations += ", ";
-                e.annotations += a.c_str();
-                first = false;
-            }
+            lib->ReadScene(sc, [&](const Registry::Scene* scene) {
+                for (const auto& tag : scene->tags.AsVector()) {
+                    if (!e.tags.empty())
+                        e.tags += ", ";
+                    e.tags += tag.c_str();
+                }
+                for (const auto& annotation : scene->tags.GetAnnotations()) {
+                    if (!e.annotations.empty())
+                        e.annotations += ", ";
+                    e.annotations += annotation.c_str();
+                }
+            });
             std::snprintf(e.annotBuf, sizeof(e.annotBuf), "%s", e.annotations.c_str());
             _entries.push_back(std::move(e));
         }

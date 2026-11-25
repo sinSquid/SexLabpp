@@ -7,5 +7,5 @@
 // after 2 seconds of non-operation
 namespace Util::AsyncIO
 {
-    void Submit(std::move_only_function<void()> a_task);
+    bool Submit(std::move_only_function<void()> a_task);
 }

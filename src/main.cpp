@@ -100,11 +100,13 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
         UserData::StripData::GetSingleton()->Load();
         break;
     case SKSE::MessagingInterface::kSaveGame:
-        Util::AsyncIO::Submit([]() {
+        if (!Util::AsyncIO::Submit([]() {
             Settings::Save();
             Registry::Library::GetSingleton()->Save();
             UserData::StripData::GetSingleton()->Save();
-        });
+        })) {
+            logger::error("Registry save request could not be queued");
+        }
         break;
     case SKSE::MessagingInterface::kPostLoadGame:
         // EventHandler::GetSingleton()->Register();

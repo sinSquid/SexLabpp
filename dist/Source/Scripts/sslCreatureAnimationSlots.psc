@@ -43,10 +43,11 @@ function AddRaceID(string RaceKey, string RaceID) global
 EndFunction
 
 bool function HasRaceID(string RaceKey, string RaceID) global
-  return SexLabRegistry.MapRaceKeyToID(RaceKey) > 0
+  Race target = GetRaceByEditorID(RaceID)
+  return target && RaceKey != "" && GetAllRaceKeys(target).Find(RaceKey) >= 0
 EndFunction
 bool function HasRaceKey(string RaceKey) global
-  return GetAllRaceKeys().Find(RaceKey) > 0
+  return GetAllRaceKeys().Find(RaceKey) >= 0
 EndFunction
 bool function ClearRaceKey(string RaceKey) global
   return true

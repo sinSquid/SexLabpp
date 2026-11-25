@@ -29,6 +29,7 @@ namespace Serialization
             _StatisticsVersion = 2,
 
             _Statistics = 'stcs',
+            _Encounters = 'enct',
             _Tracking = 'trcn'
         };
 
@@ -42,6 +43,7 @@ namespace Serialization
         func;                                              \
     }
             SAVE(_Statistics, _StatisticsVersion, Registry::Statistics::StatisticsData::GetSingleton()->Save(a_intfc))
+            SAVE(_Encounters, _Version, Registry::Statistics::StatisticsData::GetSingleton()->SaveEncounters(a_intfc))
             SAVE(_Tracking, _Version, Papyrus::Tracking::GetSingleton()->Save(a_intfc))
 
 #undef SAVE
@@ -54,15 +56,21 @@ namespace Serialization
                 logger::info("Loading record {}", GetTypeName(type));
                 switch (type) {
                 case _Statistics:
-                    if (version == _Version || version == _StatisticsVersion) {
+                    if (version >= 1 && version <= _StatisticsVersion) {
                         Registry::Statistics::StatisticsData::GetSingleton()->Load(a_intfc, version, length);
                     } else {
                         logger::warn("Unsupported statistics record version: {}", version);
                     }
                     break;
+                case _Encounters:
+                    if (version == _Version)
+                        Registry::Statistics::StatisticsData::GetSingleton()->LoadEncounters(a_intfc, length);
+                    else
+                        logger::warn("Unsupported encounter record version: {}", version);
+                    break;
                 case _Tracking:
                     if (version == _Version) {
-                        Papyrus::Tracking::GetSingleton()->Load(a_intfc);
+                        Papyrus::Tracking::GetSingleton()->Load(a_intfc, length);
                     } else {
                         logger::warn("Unsupported tracking record version: {}", version);
                     }

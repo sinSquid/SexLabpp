@@ -1269,14 +1269,34 @@ State Animating
 			_queuedSceneReset = asNewScene
 			return true
 		EndIf
+		return ResetSceneAtStage(asNewScene, "", PlaybackRevision)
+	EndFunction
+
+	bool Function ResetSceneAtStage(String asNewScene, String asStage, int aiRevision)
+		If (asStage != "" && !SexLabRegistry.StageExists(asNewScene, asStage))
+			return false
+		EndIf
+		If (!IsCurrentPlayback(aiRevision) || _animationSyncPending)
+			return false
+		EndIf
 		_animationSyncPending = true
 		_sceneResetSyncPending = true
 		UnregisterForUpdate()
 		String currentScene = GetActiveScene()
 		AddExperience(_Positions, currentScene, _StageHistory)
+		If (!IsCurrentPlayback(aiRevision))
+			return false
+		EndIf
 		If (asNewScene != currentScene)
-			If (!SetActiveScene(asNewScene))
+			bool changedScene = SetActiveScene(asNewScene)
+			If (!IsCurrentPlayback(aiRevision))
+				return false
+			EndIf
+			If (!changedScene)
 				Log("Unable to reset scene. New scene is invalid for this thread")
+				If (!IsCurrentPlayback(aiRevision))
+					return false
+				EndIf
 				_animationSyncPending = false
 				_sceneResetSyncPending = false
 				RegisterForSingleUpdate(ANIMATING_UPDATE_INTERVAL)
@@ -1285,15 +1305,24 @@ State Animating
 			SortAliasesToPositions()
 		EndIf
 		String activeScene = GetActiveScene()
-		int[] strips_ = SexLabRegistry.GetStripDataA(activeScene, "")
+		int[] strips_ = SexLabRegistry.GetStripDataA(activeScene, asStage)
 		int[] sex_ = SexLabRegistry.GetPositionSexA(activeScene)
 		int i = 0
 		While (i < _Positions.Length)
+			If (!IsCurrentPlayback(aiRevision))
+				return false
+			EndIf
 			ActorAlias[i].TryLockAndUnpause()
+			If (!IsCurrentPlayback(aiRevision))
+				return false
+			EndIf
 			ActorAlias[i].ResetPosition(strips_[i], sex_[i])
 			i += 1
 		EndWhile
-		StartStage(Utility.CreateStringArray(0), "")
+		If (!IsCurrentPlayback(aiRevision))
+			return false
+		EndIf
+		StartStage(Utility.CreateStringArray(0), asStage)
 		return true
 	EndFunction
 
@@ -1344,13 +1373,19 @@ State Animating
 	EndFunction
 
 	Function StartStage(String[] asHistory, String asNextStageId)
+		int revision = PlaybackRevision
 		If (GetActiveStage() != asNextStageId || !asHistory.Length)
 			_animationSyncPending = true
 		EndIf
 		Log("Starting stage " + asNextStageId + " with history: " + asHistory, "StartStage()")
 		SendThreadEvent("StageStart")
 		RunHook(Config.HOOKID_STAGESTART)
-		_StageHistory = AdvanceScene(asHistory, asNextStageId)
+		If (IsCurrentPlayback(revision))
+			string[] history = AdvanceScene(asHistory, asNextStageId)
+			If (IsCurrentPlayback(revision))
+				_StageHistory = history
+			EndIf
+		EndIf
 	EndFunction
 
 	; NOTE: This here counts from 1 instead of 0
@@ -1454,14 +1489,26 @@ State Animating
 	Endfunction
 	
 	Function AdvanceFromTimer()
+		int revision = PlaybackRevision
 		If !ThreadWaitsForOrgasm()
-			GoToStage(_StageHistory.Length + 1)
+			If (IsCurrentPlayback(revision))
+				GoToStage(_StageHistory.Length + 1)
+			EndIf
 		Else
+			string originalScene = GetActiveScene()
+			string originalStage = GetActiveStage()
 			string[] NewSceneStage = FindSimilarSceneStage()
-			ResetScene(NewSceneStage[0])
-			int NewStageNum = SexlabRegistry.GetAllStages(NewSceneStage[0]).Find(NewSceneStage[1])
-			GoToStage(NewStageNum)
-			Log("Skipped scene to " + SexlabRegistry.GetSceneName(NewSceneStage[0]) + " (Stage: " + NewStageNum + ")")
+			If (!IsCurrentPlayback(revision) || _animationSyncPending || originalScene != GetActiveScene() || originalStage != GetActiveStage())
+				return
+			EndIf
+			If (NewSceneStage.Length == 2 && NewSceneStage[0] != "" && NewSceneStage[1] != "")
+				If (ResetSceneAtStage(NewSceneStage[0], NewSceneStage[1], revision))
+					return
+				EndIf
+			EndIf
+			If (IsCurrentPlayback(revision) && !_animationSyncPending)
+				ReStartTimer()
+			EndIf
 		EndIf
 	EndFunction
 
@@ -1704,6 +1751,10 @@ Function ChangeActors(Actor[] NewPositions)
 EndFunction
 bool Function ResetScene(String asNewScene)
 	Log("Cannot reset outside the playing state", "ResetScene()")
+	return false
+EndFunction
+
+bool Function ResetSceneAtStage(String asNewScene, String asStage, int aiRevision)
 	return false
 EndFunction
 Function ResetStage()
@@ -2662,11 +2713,15 @@ string[] Function FindSimilarSceneStage()
 		If AvailableScene != PlayingScene
 			string[] AvailableStages = SexLabRegistry.GetAllStages(AvailableScene)
 			int CountStages = AvailableStages.Length
-			int n = 3 ;skip first two stages
+			int n = 2 ;skip first two stages
 			While (n < CountStages)
 				string AvailableStage = AvailableStages[n]
 				bool[] AvailableStageType = CheckSpecificStageTags(AvailableScene, AvailableStage)
-				If (AvailableStageType == PlayingStageType)
+				int tagIndex = 0
+				While (tagIndex < PlayingStageType.Length && AvailableStageType[tagIndex] == PlayingStageType[tagIndex])
+					tagIndex += 1
+				EndWhile
+				If (tagIndex == PlayingStageType.Length)
 					ret[0] = AvailableScene
 					ret[1] = AvailableStage
 					return ret

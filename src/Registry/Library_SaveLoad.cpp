@@ -3,6 +3,7 @@
 #include "SceneIndexPublication.h"
 #include "Util/Combinatorics.h"
 #include "Util/StringUtil.h"
+#include "Util/RegistryYaml.h"
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -16,6 +17,11 @@
 
 namespace Registry
 {
+    using Util::ReadRegistryYaml;
+    using Util::RegistryIOPath;
+    using Util::RegistryPathLabel;
+    using Util::SaveRegistryYaml;
+
     namespace
     {
         template <class Job>
@@ -41,116 +47,26 @@ namespace Registry
             }
         }
 
-        fs::path MakeSceneSettingsPath(const fs::path& a_directory, std::string_view a_filename)
-        {
-            const fs::path filename{ a_filename };
-            const auto& nativeName = filename.native();
-            if (nativeName.empty() || nativeName == L"." || nativeName == L".." ||
-                nativeName.find_first_of(LR"(\/:*?"<>|)") != std::wstring::npos ||
-                std::ranges::any_of(nativeName, [](wchar_t c) { return c < 32; })) {
-                throw std::invalid_argument("Invalid scene settings filename");
-            }
-            return a_directory / filename;
-        }
 
-        fs::path RegistryIOPath(const fs::path& a_path)
-        {
-            const auto& input = a_path.native();
-            if (input.starts_with(LR"(\\?\)") || input.starts_with(LR"(\\.\)")) {
-                return a_path;
-            }
-            auto absolute = fs::absolute(a_path).lexically_normal();
-            absolute.make_preferred();
-            const auto& native = absolute.native();
-            if (native.size() < MAX_PATH) {
-                return a_path;
-            }
-            if (native.starts_with(LR"(\\)")) {
-                return fs::path{ LR"(\\?\UNC\)" + native.substr(2) };
-            }
-            return fs::path{ LR"(\\?\)" + native };
-        }
 
-        std::string RegistryPathLabel(const fs::path& a_path)
+        template <class Items, class Job>
+        void RunPackageJobs(const Items& items, const Job& job, size_t limit)
         {
-            const auto utf8 = a_path.u8string();
-            return { reinterpret_cast<const char*>(utf8.data()), utf8.size() };
-        }
-
-        std::optional<YAML::Node> ReadRegistryYaml(const fs::path& a_path, bool a_validateEntireFile = false)
-        {
-            const auto path = RegistryIOPath(a_path);
-            const auto status = fs::symlink_status(path);
-            if (status.type() == fs::file_type::not_found) {
-                return std::nullopt;
-            }
-            if (!fs::is_regular_file(status) && (!fs::is_symlink(status) || !fs::is_regular_file(path))) {
-                throw std::runtime_error("Expected a regular registry file");
-            }
-
-            std::ifstream input(path, std::ios::binary);
-            if (!input.is_open()) {
-                throw std::runtime_error("Could not open registry file for reading");
-            }
-            input.exceptions(std::ios::badbit);
-            YAML::Node root;
-            if (a_validateEntireFile) {
-                // The emitter writes one document. Refuse to replace a file with unread or extra content.
-                const auto documents = YAML::LoadAll(input);
-                if (documents.size() > 1) {
-                    throw std::runtime_error("Expected one registry YAML document");
+            if (items.empty())
+                return;
+            std::atomic_size_t next{};
+            const auto drain = [&]() {
+                for (auto i = next.fetch_add(1, std::memory_order_relaxed); i < items.size();
+                     i = next.fetch_add(1, std::memory_order_relaxed)) {
+                    job(items[i]);
                 }
-                if (!documents.empty()) {
-                    root = documents.front();
-                }
-            } else {
-                root = YAML::Load(input);
+            };
+            const size_t count = std::min(items.size(), limit);
+            std::vector<std::jthread> workers;
+            for (size_t i = 1; i < count; ++i) {
+                QueueRegistryJob(workers, drain);
             }
-            if (input.fail() && !input.eof()) {
-                throw std::runtime_error("Could not read registry file");
-            }
-            if (!root.IsNull() && !root.IsMap()) {
-                throw std::runtime_error("Expected a registry YAML mapping");
-            }
-            return root;
-        }
-
-        bool SaveRegistryYaml(const fs::path& a_path, const YAML::Node& a_data)
-        {
-            static std::atomic_uint64_t nextTemporaryFile{ 0 };
-            fs::path temporary;
-            bool ownsTemporary = false;
-            try {
-                const auto destination = RegistryIOPath(a_path);
-                const auto name = std::format(L".slpp-{}-{}.tmp", ::GetCurrentProcessId(), nextTemporaryFile.fetch_add(1, std::memory_order_relaxed));
-                temporary = RegistryIOPath(destination.parent_path() / name);
-                fs::create_directories(temporary.parent_path());
-                std::ofstream output(temporary, std::ios::noreplace);
-                if (!output.is_open())
-                    throw std::runtime_error("Could not create temporary file");
-                ownsTemporary = true;
-                {
-                    YAML::Emitter yaml(output);
-                    yaml << a_data;
-                    if (!yaml.good())
-                        throw std::runtime_error(yaml.GetLastError());
-                }
-                output.close();
-                if (!output)
-                    throw std::runtime_error("Could not write or close temporary file");
-                if (!::MoveFileExW(temporary.c_str(), destination.c_str(), MOVEFILE_REPLACE_EXISTING))
-                    throw std::system_error(static_cast<int>(::GetLastError()), std::system_category(), "Could not replace destination");
-                return true;
-            } catch (const std::exception& e) {
-                logger::error("Failed to save {}: {}", RegistryPathLabel(a_path), e.what());
-                if (ownsTemporary) {
-                    std::error_code error;
-                    fs::remove(temporary, error);
-                    if (error)
-                        logger::warn("Could not remove temporary file {}: {}", RegistryPathLabel(temporary), error.message());
-                }
-                return false;
-            }
+            drain();
         }
     }
 
@@ -233,55 +149,49 @@ namespace Registry
     {
         if (!FolderExists(SCENE_PATH, true))
             return;
-#ifndef SKYRIMVR
-        std::vector<std::jthread> threads;
-#endif
+        std::vector<fs::path> files;
         for (auto& file : fs::recursive_directory_iterator{ SCENE_PATH }) {
-            if (file.path().extension() != ".slr")
-                continue;
-            const auto load = [this, file]() {
-                std::string filename;
-                try {
-                    filename = file.path().filename().string();
-                    auto package = std::make_unique<AnimPackage>(file);
-                    std::vector<std::unordered_set<ActorFragment::FragmentHash>> sceneKeys(package->scenes.size());
-                    for (std::size_t i = 0; i < package->scenes.size(); ++i) {
-                        const auto& scene = package->scenes[i];
-                        std::vector<std::vector<ActorFragment>> positionFragments;
-                        positionFragments.reserve(scene->positions.size());
-                        for (const auto& position : scene->positions)
-                            positionFragments.push_back(position.data.Split());
-                        Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
-                            std::vector<ActorFragment> argFragment{};
-                            argFragment.reserve(it.size());
-                            for (auto&& itF : it) {
-                                argFragment.emplace_back(*itF);
-                            }
-                            sceneKeys[i].insert(ActorFragment::MakeFragmentHash(std::move(argFragment)));
-                            return Combinatorics::CResult::Next;
-                        });
-                    }
-                    {
-                        const std::unique_lock lock{ _mScenes };
-                        PublishScenePackage(std::move(package), sceneKeys, packages, scenes, sceneMap, scenePackages);
-                    }
-                    logger::info("InitializeScenes: Finished parsing file {}", filename);
-                } catch (const std::exception& e) {
-                    logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
-                } catch (...) {
-                    logger::error("InitializeScenes: Failed to load {} due to an unknown exception", filename);
+            if (file.path().extension() == ".slr")
+                files.push_back(file.path());
+        }
+        const auto load = [this](const fs::path& file) {
+            std::string filename;
+            try {
+                filename = file.filename().string();
+                auto package = std::make_unique<AnimPackage>(file);
+                std::vector<std::unordered_set<ActorFragment::FragmentHash>> sceneKeys(package->scenes.size());
+                for (std::size_t i = 0; i < package->scenes.size(); ++i) {
+                    const auto& scene = package->scenes[i];
+                    std::vector<std::vector<ActorFragment>> positionFragments;
+                    positionFragments.reserve(scene->positions.size());
+                    for (const auto& position : scene->positions)
+                        positionFragments.push_back(position.data.Split());
+                    Combinatorics::ForEachCombination<ActorFragment>(positionFragments, [&](const std::vector<std::vector<ActorFragment>::const_iterator>& it) {
+                        std::vector<ActorFragment> argFragment{};
+                        argFragment.reserve(it.size());
+                        for (auto&& itF : it) {
+                            argFragment.emplace_back(*itF);
+                        }
+                        sceneKeys[i].insert(ActorFragment::MakeFragmentHash(std::move(argFragment)));
+                        return Combinatorics::CResult::Next;
+                    });
                 }
-            };
+                {
+                    const std::unique_lock lock{ _mScenes };
+                    PublishScenePackage(std::move(package), sceneKeys, packages, scenes, sceneMap, scenePackages);
+                }
+                logger::info("InitializeScenes: Finished parsing file {}", filename);
+            } catch (const std::exception& e) {
+                logger::error("InitializeScenes: Failed to load {}: {}", filename, e.what());
+            } catch (...) {
+                logger::error("InitializeScenes: Failed to load {} due to an unknown exception", filename);
+            }
+        };
 #ifndef SKYRIMVR
-            QueueRegistryJob(threads, load);
+        RunPackageJobs(files, load, 4);
 #else
-            load();
-#endif
-        }
-#ifndef SKYRIMVR
-        for (auto& thread : threads) {
-            thread.join();
-        }
+        for (const auto& file : files)
+            load(file);
 #endif
         InitializeSceneSettings();
     }
@@ -300,11 +210,19 @@ namespace Registry
                 const auto root = ReadRegistryYaml(file.path());
                 if (!root)
                     continue;
-                for (auto&& [key, scene] : sceneMap) {
-                    const auto node = (*root)[scene->id];
-                    if (!node.IsDefined())
+                std::unordered_set<Scene*> applied;
+                for (const auto& entry : *root) {
+                    if (!entry.first.IsScalar())
                         continue;
-                    scene->Load(node);
+                    const auto& id = entry.first.Scalar();
+                    const auto found = sceneMap.find(RE::BSFixedString{ id.c_str() });
+                    if (found != sceneMap.end() && id == found->second->id && applied.insert(found->second).second) {
+                        try {
+                            found->second->Load(entry.second);
+                        } catch (const YAML::Exception& e) {
+                            logger::error("InitializeScenes: Invalid settings for scene {} in {}: {}", id, filename, e.what());
+                        }
+                    }
                 }
                 logger::info("InitializeScenes: Finished parsing file {}", filename);
             } catch (const std::exception& e) {
@@ -357,16 +275,19 @@ namespace Registry
 
     void Library::InitializeExpressionsImpl()
     {
-        if (!FolderExists(EXPRESSION_PATH, false))
+        const auto directory = RegistryIOPath(EXPRESSION_PATH);
+        if (!fs::exists(directory))
             return;
-        for (auto& file : fs::recursive_directory_iterator{ EXPRESSION_PATH }) {
+        for (auto& file : fs::recursive_directory_iterator{ directory }) {
             const auto extension = file.path().extension();
             if (extension != ".yaml" && extension != ".yml")
                 continue;
-            const auto filename = file.path().filename().string();
+            const auto filename = RegistryPathLabel(file.path().filename());
             try {
-                const auto yaml = YAML::LoadFile(file.path().string());
-                auto profile = Expression{ yaml };
+                const auto yaml = ReadRegistryYaml(file.path());
+                if (!yaml)
+                    continue;
+                auto profile = Expression{ *yaml };
                 if (expressions.emplace(profile.GetId(), std::move(profile)).second) {
                     logger::info("InitializeExpressions: Added expression {}", filename);
                 } else {
@@ -390,8 +311,7 @@ namespace Registry
             try {
                 auto profile = Expression::FromLegacyFile(file.path());
                 auto succ = expressions.emplace(profile.GetId(), std::move(profile));
-                if (succ.second) {
-                    succ.first->second.Save(EXPRESSION_PATH, true);
+                if (succ.second && succ.first->second.Save(EXPRESSION_PATH, true)) {
                     logger::info("InitializeExpressions: Added legacy expression {}. This file may now be deleted", filename);
                 }
             } catch (const std::exception& e) {
@@ -650,10 +570,11 @@ namespace Registry
     {
         bool scenesSaved = false;
         RunRegistryJob("Failed to save scene settings", [&]() { scenesSaved = SaveScenes(); });
-        SaveExpressions();
+        bool expressionsSaved = false;
+        RunRegistryJob("Failed to save expression settings", [&]() { expressionsSaved = SaveExpressions(); });
         bool voicesSaved = false;
         RunRegistryJob("Failed to save voice settings", [&]() { voicesSaved = SaveVoices(); });
-        if (scenesSaved && voicesSaved) {
+        if (scenesSaved && expressionsSaved && voicesSaved) {
             logger::info("Finished saving registry settings");
         } else {
             logger::warn("Some registry settings could not be saved");
@@ -664,41 +585,43 @@ namespace Registry
     {
         std::shared_lock lock{ _mScenes };
         std::atomic_bool allSaved{ true };
-        std::vector<std::jthread> threads;
-        for (auto&& p : packages) {
-            QueueRegistryJob(threads, [&p, &allSaved]() {
-                bool saved = false;
-                RunRegistryJob("Failed to save animation package settings", [&]() {
-                    const auto filename = std::format("{}_{}.yaml", p->GetName().data(), p->GetHash());
-                    const auto filepath = MakeSceneSettingsPath(SCENE_USER_CONFIG, filename);
-                    YAML::Node data{};
-                    for (auto&& scene : p->scenes) {
-                        auto node = data[scene->id];
-                        scene->Save(node);
-                    }
-                    saved = SaveRegistryYaml(filepath, data);
-                });
-                if (!saved) {
-                    allSaved.store(false, std::memory_order_relaxed);
+        RunPackageJobs(packages, [&](const auto& p) {
+            bool saved = false;
+            RunRegistryJob("Failed to save animation package settings", [&]() {
+                const auto filename = std::format("{}_{}.yaml", p->GetName().data(), p->GetHash());
+                const auto filepath = Util::RegistrySettingsPath(SCENE_USER_CONFIG, filename);
+                YAML::Node data{};
+                for (auto&& scene : p->scenes) {
+                    auto node = data[scene->id];
+                    scene->Save(node);
                 }
+                saved = SaveRegistryYaml(filepath, data);
             });
-        }
-        for (auto&& thread : threads) {
-            thread.join();
-        }
+            if (!saved) {
+                allSaved.store(false, std::memory_order_relaxed);
+            }
+        }, 8);
         const bool saved = allSaved.load(std::memory_order_relaxed);
         if (saved)
             logger::info("Saved scenes");
         return saved;
     }
 
-    void Library::SaveExpressions() const noexcept
+    bool Library::SaveExpressions() const
     {
         std::unique_lock lock{ _mExpressions };
+        bool allSaved = true;
         for (auto&& [id, expression] : expressions) {
-            expression.Save(EXPRESSION_PATH, false);
+            bool saved = false;
+            RunRegistryJob("Failed to save expression", [&]() { saved = expression.Save(EXPRESSION_PATH, false); });
+            if (!saved) {
+                logger::error("Expression {} was not saved", id);
+                allSaved = false;
+            }
         }
-        logger::info("Saved expressions");
+        if (allSaved)
+            logger::info("Saved expressions");
+        return allSaved;
     }
 
     bool Library::SaveVoices() const

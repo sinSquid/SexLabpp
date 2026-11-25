@@ -214,7 +214,7 @@ namespace Thread
             const auto& actor = activeAssignment->at(i);
             const auto& animationEvent = activeScene->GetNthAnimationEvent(a_nextStage, i);
 
-            pendingAnimations.emplace_back(actor, animationEvent, std::vector<ActiveClip>{}, nullptr, std::string{}, 0.0f, 0.0f, 0.0f, i);
+            pendingAnimations.emplace_back(actor, animationEvent, i);
         }
         //if (ControlsMenu()) {
         //    Interface::SceneMenu::UpdateStageInfo();
@@ -236,13 +236,13 @@ namespace Thread
             return false;
         }
         const auto fragments = positions | std::views::transform([](const auto& position) { return position.data; }) | std::ranges::to<std::vector>();
-        const auto newAssignments = a_scene->FindAssignments(fragments);
+        auto newAssignments = a_scene->FindAssignments(fragments);
         if (newAssignments.empty()) {
             logger::warn("Scene {} has no valid assignments.", a_scene->id);
             return false;
         }
         CancelFixedLengthTimer();
-        assignments = newAssignments;
+        assignments = std::move(newAssignments);
         activeScene = a_scene;
         ReleaseAnimations();
         pendingAnimations.clear();
@@ -311,9 +311,9 @@ namespace Thread
 
     void Instance::UpdatePlacement(RE::Actor* a_actor)
     {
-        assert(a_actor);
+        if (!a_actor || !activeStage || activeAssignment == assignments.end())
+            return;
         const auto i = std::distance(activeAssignment->begin(), std::find(activeAssignment->begin(), activeAssignment->end(), a_actor));
-        assert(i >= 0);
         if (static_cast<size_t>(i) >= activeAssignment->size()) {
             logger::warn("Actor {} is not part of the current scene.", a_actor->GetFormID());
             return;

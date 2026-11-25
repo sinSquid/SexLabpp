@@ -23,7 +23,7 @@ namespace Thread::Interface::UI::Theme
     void Load()
     {
         loadComplete = false;
-        Util::AsyncIO::Submit([]() {
+        const auto readTheme = []() {
             std::optional<Data> loadedTheme;
             std::error_code fileError;
             if (fs::exists(THEME_PATH, fileError)) {
@@ -43,17 +43,21 @@ namespace Thread::Interface::UI::Theme
             }
 
             SKSE::GetTaskInterface()->AddTask([loadedTheme = std::move(loadedTheme)]() mutable {
-                if (loadedTheme)
+                if (loadedTheme) {
                     data = std::move(*loadedTheme);
-                loadComplete = true;
+                    loadComplete = true;
+                }
             });
-        });
+        };
+        if (!Util::AsyncIO::Submit(readTheme)) {
+            readTheme();
+        }
     }
 
     void Save()
     {
         if (!IsLoaded()) {
-            logger::warn("UI theme save ignored while the initial load is pending");
+            logger::warn("UI theme save ignored until the theme has loaded successfully");
             return;
         }
 

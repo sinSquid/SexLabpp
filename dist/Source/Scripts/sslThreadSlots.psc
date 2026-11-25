@@ -41,6 +41,9 @@ sslThreadModel Function PickModel(float TimeOut = 5.0)
 EndFunction
 
 SexLabThread Function GetThread(int aiThreadID)
+  If (aiThreadID < 0 || aiThreadID >= Threads.Length)
+    return none
+  EndIf
   return Threads[aiThreadID]
 EndFunction
 
@@ -83,7 +86,14 @@ int Function ActiveThreads()
 endfunction
 
 bool Function IsRunning()
-  return ActiveThreads() > 0
+  int i = 0
+  While (i < Threads.Length)
+    If (Threads[i].IsLocked)
+      return true
+    EndIf
+    i += 1
+  EndWhile
+  return false
 endfunction
 
 int _stopRequestsInProgress

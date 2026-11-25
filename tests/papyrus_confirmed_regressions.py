@@ -167,6 +167,8 @@ def timer_paths():
     env = dict(control, _sceneResetSyncPending=False, _nextSceneResetAt=0, _animationSyncPending=False,
                SexLabUtil=NS(GetCurrentGameRealTime=lambda: 1), asNewScene='bad', GetActiveScene=lambda: 'old',
                _Positions=Array(), _StageHistory=Array(['a']), AddExperience=lambda *a: None, SetActiveScene=lambda s: False)
+    env['ResetSceneAtStage'] = lambda scene, stage, revision: execute(body('sslThreadModel', 'ResetSceneAtStage'),
+        dict(env, asNewScene=scene, asStage=stage, aiRevision=revision))[0]
     value, _ = execute(body('sslThreadModel', 'ResetScene'), env)
     assert value is False and subscribed[0]
     env = dict(control, SexLabRegistry=NS(IsCompatibleCenter=lambda *a: True), Game=NS(GetPlayer=lambda: 'player'),

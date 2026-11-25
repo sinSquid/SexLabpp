@@ -6,9 +6,12 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <filesystem>
+#include <format>
+namespace fs = std::filesystem;
 using namespace std::literals;
 template<class T> struct Singleton {};
-namespace logger { template<class... T> void info(T&&...){} template<class... T> void error(T&&...){} }
+namespace logger { template<class... T> void info(T&&...){} template<class... T> void error(T&&...){} template<class... T> void warn(T&&...){} }
 namespace RE {
 using FormID=uint32_t;
 struct TESFile {const char* fileName;uint8_t compileIndex;};
@@ -31,6 +34,7 @@ struct TESDataHandler {
 const char* testPath;
 #define STRIP_PATH testPath
 #include "../src/UserData/StripData.h"
+#include "../src/Util/RegistryYaml.cpp"
 #include "../src/UserData/StripData.cpp"
 int main(int argc,char** argv) {
  assert(argc==2);testPath=argv[1];
@@ -51,4 +55,8 @@ int main(int argc,char** argv) {
  assert(!saved["loaded.ESP"]&&!saved["Loaded.esp"]&&!saved["Light.esl"]);
  assert(saved["Missing.esp"][99].as<int>()==-1);
  assert(saved["Disabled.esp"][98].as<int>()==-1);
+ std::ofstream(testPath) << "broken: [";
+ UserData::StripData broken;broken.Load();broken.AddArmor(&first,UserData::Strip::Always);broken.Save();
+ std::ifstream original(testPath);std::string bytes{std::istreambuf_iterator<char>(original),{}};
+ assert(bytes=="broken: [");
 }
